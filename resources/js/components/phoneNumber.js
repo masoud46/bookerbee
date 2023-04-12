@@ -65,8 +65,10 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 
 			if (item) {
 				menu.classList.add('no-scroll')
-				item.focus()
-				menu.classList.remove('no-scroll')
+				setTimeout(() => {
+					item.focus()
+					menu.classList.remove('no-scroll')
+				}, 0);
 			}
 		}
 	})
