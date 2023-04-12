@@ -1,6 +1,6 @@
 const Phones = []
 
-document.querySelectorAll('.phone-fax-number-component').forEach(element => {
+document.querySelectorAll('.phone-fax-number-component').forEach((element, index) => {
 	const id = element.getAttribute('id')
 
 	const number = { element }
@@ -9,6 +9,29 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 	const toggle = number.element.querySelector('.dropdown-toggle')
 	const menu = number.element.querySelector('.dropdown-items')
 	const search = number.element.querySelector('.dropdown-search')
+
+
+	// For the first instance, add a hidden div with country flags
+	if (index === 0) {
+		const codes = document.getElementById(`${id}-country-codes`).value.split(',')
+		const preloadFlags = document.createElement('div')
+
+		// Must have "d-none" class to prevent loading,
+		// otherwise will slow down the component's displayed prefix-flag
+		preloadFlags.classList.add('phone-number-flag-icons', 'd-none')
+		codes.map(code => {
+			const flag = document.createElement('span')
+
+			flag.classList.add('fib', `fi-${code}`)
+			preloadFlags.appendChild(flag)
+		})
+		number.element.appendChild(preloadFlags)
+
+		// Remove the "d-none" class after rendering (setTimeout(0))
+		// to start loading the flag icons. Then remove it after a timeout
+		setTimeout(() => { preloadFlags.classList.remove('d-none') }, 0);
+		setTimeout(() => { preloadFlags.remove() }, 5000);
+	}
 
 	if (number.element.classList.contains('is-invalid')) {
 		// number.element.classList.remove('is-invalid')
@@ -98,13 +121,6 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 
 	Phones.push({ id, number })
 
-})
-
-// Remove the "d-none" class right after rendering
-// the page, to start loading the flag icons. Then remove it by after a timeout
-document.querySelectorAll('.phone-number-flag-icons').forEach((container, index) => {
-	if (index === 0) setTimeout(() => { container.classList.remove('d-none') }, 0)
-	setTimeout(() => { container.remove() }, 5000);
 })
 
 

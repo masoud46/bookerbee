@@ -30,6 +30,7 @@ if (isset($class)) {
 	@endphp
 
 	<div id="{{ $id }}" class="phone-fax-number-component {{ $class ?? '' }}" data-default-country-id="{{ $defaultCountryId }}" data-default-country-code="{{ $defaultCountryCode }}">
+		<input type="hidden" id="{{ $id }}-country-codes" value="{{ strtolower(implode(',', array_column($countries->toArray(), 'code'))) }}">
 		<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
 		<div class="input-group {{ isset($error_class) ? 'has-validation' : '' }}">
 			<button type="button" class="phone-number-dropdown btn  {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -53,12 +54,6 @@ if (isset($class)) {
 			</div>
 			<div class="phone-number-prefix form-control {{ $small ? 'form-control-sm' : '' }} d-flex justify-content-end align-items-center user-select-none">{{ $prefix }}</div>
 			<input type="text" name="{{ $numberField }}" class="{{ $error_class ?? '' }} phone-number-input form-control {{ $small ? 'form-control-sm' : '' }}" value="{{ $number ?? '' }}">
-		</div>
-		{{-- Load ahead all the needed flag icons, for the dropdown list --}}
-		<div class="phone-number-flag-icons d-none">
-			@foreach ($countries as $country)
-				<span class="fi fi-{{ strtolower($country->code) }}"></span>
-			@endforeach
 		</div>
 	</div>
 @endif
