@@ -100,9 +100,10 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 
 // Remove the "d-none" class right after rendering
 // the page, to start loading the flag icons. Then remove it by after a timeout
-const flagIconsContainer = document.querySelector('.phone-number-flag-icons')
-setTimeout(() => { flagIconsContainer.classList.remove('d-none') }, 0)
-setTimeout(() => { flagIconsContainer.remove() }, 5000);
+document.querySelectorAll('.phone-number-flag-icons').forEach((container, index) => {
+	if (index === 0) setTimeout(() => { container.classList.remove('d-none') }, 0)
+	setTimeout(() => { container.remove() }, 5000);
+})
 
 
 export { Phones }
