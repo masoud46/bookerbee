@@ -30,6 +30,10 @@
 			list-style: none;
 			margin: 0;
 			padding: 0;
+
+		}
+
+		.dropdown-items {
 			overflow-y: auto;
 
 			&.no-scroll {

@@ -41,16 +41,14 @@ if (isset($class)) {
 						<input class="dropdown-search form-control form-control-sm pe-4" placeholder="{{ __('Search') }}" />
 						<i class="fas fa-magnifying-glass position-absolute opacity-25 top-0 end-0 mt-3 me-3 pe-none"></i>
 					</div>
-					<ul class="dropdown-items flex-grow-1 mb-0" tabindex="-1">
+					<div class="dropdown-items flex-grow-1 mb-0" tabindex="-1">
 						@php($transliterator = Transliterator::createFromRules(':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: Lower(); :: NFC;', Transliterator::FORWARD))
 						@foreach ($list as $value)
-							<li>
-								<button type="button" class="dropdown-item {{ $value->code === $code ? 'active' : '' }}" data-id="{{ $value->id }}" data-code="{{ strtolower($value->code) }}" data-name="{{ $transliterator->transliterate($value->name) }}" data-prefix="{{ $value->prefix }}">
-									<span class="fib fi-{{ strtolower($value->code) }} me-1"></span> {{ $value->name }} <span class="country-prefix">{{ $value->prefix }}</span>
-								</button>
-							</li>
+							<button type="button" class="dropdown-item {{ $value->code === $code ? 'active' : '' }}" data-id="{{ $value->id }}" data-code="{{ strtolower($value->code) }}" data-name="{{ $transliterator->transliterate($value->name) }}" data-prefix="{{ $value->prefix }}">
+								<span class="fib fi-{{ strtolower($value->code) }} me-1"></span> {{ $value->name }} <span class="country-prefix">{{ $value->prefix }}</span>
+							</button>
 						@endforeach
-					</ul>
+					</div>
 				</div>
 			</div>
 			<div class="phone-number-prefix form-control {{ $small ? 'form-control-sm' : '' }} d-flex justify-content-end align-items-center user-select-none">{{ $prefix }}</div>

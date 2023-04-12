@@ -15,12 +15,16 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 		// input.classList.add('is-invalid')
 	}
 
-	toggle.addEventListener('shown.bs.dropdown', () => {
+	toggle.addEventListener('show.bs.dropdown', () => {
 		menu.querySelectorAll('li.d-none').forEach(item => {
 			item.classList.remove('d-none')
 		})
-		menu.querySelector('.dropdown-item.active').scrollIntoView()
 		search.value = ''
+	})
+	toggle.addEventListener('shown.bs.dropdown', () => {
+		setTimeout(() => {
+			menu.querySelector('.dropdown-item.active').scrollIntoView()
+		}, 0);
 		search.focus()
 	})
 
@@ -42,12 +46,11 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 
 		menu.querySelectorAll('.dropdown-item').forEach(item => {
 			const name = item.getAttribute('data-name')
-			const parent = item.parentNode
 
-			parent.classList.add('d-none')
+			item.classList.add('d-none')
 
 			if (name.startsWith(text)) {
-				parent.classList.remove('d-none')
+				item.classList.remove('d-none')
 			}
 
 			menu.scrollTop = 0
@@ -56,9 +59,9 @@ document.querySelectorAll('.phone-fax-number-component').forEach(element => {
 
 	search.addEventListener('keydown', e => {
 		if (e.which === 40) { // arrow down
-			let item = menu.querySelector('li:not(.d-none) .dropdown-item.active')
+			let item = menu.querySelector('.dropdown-item:not(.d-none).active')
 
-			if (!item) item = menu.querySelector('li:not(.d-none) .dropdown-item')
+			if (!item) item = menu.querySelector('.dropdown-item:not(.d-none)')
 
 			if (item) {
 				menu.classList.add('no-scroll')
