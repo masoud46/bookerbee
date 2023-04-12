@@ -30,7 +30,9 @@ if (isset($class)) {
 	@endphp
 
 	<div id="{{ $id }}" class="phone-fax-number-component {{ $class ?? '' }}" data-default-country-id="{{ $defaultCountryId }}" data-default-country-code="{{ $defaultCountryCode }}">
+		{{-- This hidden input can be removed if no preloading of flag-icons is necessary --}}
 		<input type="hidden" id="{{ $id }}-country-codes" value="{{ strtolower(implode(',', array_column($countries->toArray(), 'code'))) }}">
+
 		<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
 		<div class="input-group {{ isset($error_class) ? 'has-validation' : '' }}">
 			<button type="button" class="phone-number-dropdown btn  {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
