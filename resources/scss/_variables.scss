@@ -1,0 +1,66 @@
+// Fonts
+@font-face {
+	font-family: 'Nunito';
+	src: url('../fonts/Nunito-Regular.woff2') format('woff2'),
+		url('../fonts/Nunito-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Nunito';
+	src: url('../fonts/Nunito-Italic.woff2') format('woff2'),
+		url('../fonts/Nunito-Italic.woff') format('woff');
+	font-weight: normal;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Nunito';
+	src: url('../fonts/Nunito-Bold.woff2') format('woff2'),
+		url('../fonts/Nunito-Bold.woff') format('woff');
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Nunito';
+	src: url('../fonts/Nunito-BoldItalic.woff2') format('woff2'),
+		url('../fonts/Nunito-BoldItalic.woff') format('woff');
+	font-weight: bold;
+	font-style: italic;
+	font-display: swap;
+}
+
+@import './app-colors';
+
+
+$font-family-sans-serif: 'Nunito', sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
+
+
+// Body
+$body-bg: #f8fafc;
+// $body-bg: #f8f8f8;
+$body-color: #444;
+$text-muted: #999;
+
+// Typography
+$font-family-sans-serif: 'Nunito', sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
+
+// $navbar-light-color: rgba($color-purple, 0.7);
+// $navbar-light-hover-color: $color-purple;
+// $navbar-light-active-color: $color-purple;
+// $navbar-light-disabled-color: rgba($color-purple, .3);
+
+
+$modal-header-padding-y: 0.6rem;
+// $form-select-padding-x: 0.5rem;
+
+

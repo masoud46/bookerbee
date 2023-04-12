@@ -1,0 +1,225 @@
+import { utils } from '../utils/utils'
+
+import { options as patientNotes } from '../shared/patientNotesModal'
+
+import '../../scss/shared/patient-notes-modal.scss'
+import '../../scss/components/resetable-date.scss'
+import '../../scss/pages/invoice.scss'
+
+
+const formKey = document.getElementById('form-key')
+
+const setPatientNotesData = () => {
+	patientNotes.formKey = formKey?.value
+	patientNotes.name = `${document.getElementById('patient-lastname')?.value}, ${document.getElementById('patient-firstname')?.value}`
+}
+
+patientNotes.fetchUrl = document.getElementById('patient-notes-fetch-url').value
+patientNotes.storeUrl = document.getElementById('patient-notes-store-url').value
+setPatientNotesData()
+
+const invoiceForm = document.getElementById('invoice-form')
+const invoiceApps = document.getElementById('invoice-apps')
+const removeApp = invoiceApps.querySelectorAll('.remove-app')
+const addApp = document.getElementById('add-app')
+const invoiceLocationCheck = document.getElementById('invoice-location_check')
+const invoiceLocation = document.getElementById('invoice-location')
+const invoiceSaved = document.getElementById('invoice-saved')
+const invoiceNotSavedMessage = document.getElementById('invoice-not-saved-message')
+const printInvoiceBtn = document.getElementById('print-invoice')
+const prevSessions = document.getElementById('patient-prev-sessions').textContent * 1
+const sessionTypes = JSON.parse(document.getElementById('invoice-sessions-types').value)
+const patientCategory = JSON.parse(document.getElementById('invoice-patient-category').value)
+
+// reset the the given parent's form elements
+function resetChildrenValues(parent) {
+	parent.querySelectorAll(utils.editableElements).forEach(element => {
+		const defaultValue = element.getAttribute('default-value')
+
+		element.value = defaultValue ?? ''
+	})
+}
+
+// set invoice saved state
+function setInvoiceSaved(value) {
+	invoiceSaved.value = value ? 'true' : 'false'
+	invoiceSaved.dispatchEvent(new Event('change'))
+}
+
+// reset appointment's elements according to the medical session number
+function resetAppSessions(app = null) {
+	const visibleApps = invoiceApps.querySelectorAll('[name^="app-visible-"][value="visible"]')
+
+	visibleApps.forEach((type, index) => {
+		if (index > 0) {
+			const parent = type.parentElement
+			const wrapper = parent.querySelector('.app-type-wrapper')
+			const session = wrapper.getAttribute('data-session') * 1
+			const newSession = prevSessions + index + 1
+
+			const typeElement = wrapper.querySelector('.app-type')
+			const descriptionElement = parent.querySelector('.app-description')
+			const prevId = typeElement.value * 1
+			const prevDescription = descriptionElement.value
+
+			typeElement.classList.remove('app-type-changed')
+			descriptionElement.classList.remove('app-type-changed')
+
+			let id = 0
+			let description = ''
+			for (const type of sessionTypes) {
+				if (!type.max_sessions) {
+					type.max_sessions = 10000 // estimated max sessions!?
+				}
+
+				if (newSession <= type.max_sessions) {
+					id = type.id
+					if (id !== prevId) {
+						if (patientCategory === 1) {
+							description = type.description
+						}
+					} else {
+						description = prevDescription
+					}
+					break
+				}
+			}
+
+			wrapper.setAttribute('data-session', newSession)
+			typeElement.value = id
+			descriptionElement.value = description
+
+			if (parent !== app) { // do not apply "changed" class to the added app
+				setTimeout(() => {
+					if (id !== prevId) typeElement.classList.add('app-type-changed')
+					if (description !== prevDescription) descriptionElement.classList.add('app-type-changed')
+				}, 0);
+			}
+		}
+	})
+}
+
+// if (invoiceSearch) {
+// 	invoiceSearch.querySelector('.dropdown-menu').addEventListener('click', async e => {
+// 		const body = invoiceSearch.querySelector('.invoice-search-result')
+// 		const limit = e.target.getAttribute('data-limit')
+// 		const url = document.getElementById('invoice-search-url').value.replace('?limit', limit)
+
+// 		invoiceSearch.querySelector('.dropdown-toggle').textContent = e.target.textContent
+// 		body.innerHTML = ''
+
+// 		const result = await utils.fetch({ url })
+
+// 		if (result.success) {
+// 			let html = ''
+
+// 			for (const item of result.data) {
+// 				html += `
+// 				<div class="invoice-search-item px-2 py-1" data-id="${item.id}">
+// 					<div class="fw-bold">
+// 						<span class="invoice-search-item-date text-primary me-2">${item.date}</span>
+// 						<span class="invoice-search-item-price text-success me-2">${item.total} €</span>
+// 						<span class="invoice-search-item-name">${item.name}</span>
+// 					</div>
+// 					<div class="invoice-search-item-patient">${item.patient}</div>
+// 				</div>
+// 			`
+// 			}
+// 			body.innerHTML = html
+// 			invoiceSearch.querySelector('.invoice-search-total').textContent = result.data.length
+// 		}
+// 	})
+
+// 	invoiceSearch.querySelector('.invoice-search-result').addEventListener('click', e => {
+// 		const id = e.target.getAttribute('data-id')
+
+// 		if (!id) return
+
+// 		window.location.assign(document.getElementById('invoice-show-url').value.replace('?id', id))
+// 	})
+
+// 	invoiceSearch.querySelector('.dropdown-menu .dropdown-item:first-child').click()
+// }
+
+
+invoiceForm.addEventListener('submit', () => {
+	document.querySelector('body').classList.add('busy')
+})
+
+// when any of the invoice elements changes, set saved state to false
+invoiceForm.querySelectorAll(utils.editableElements).forEach(element => {
+	element.addEventListener('input', () => {
+		setInvoiceSaved(false)
+	})
+})
+
+invoiceSaved.addEventListener('change', () => {
+	if (invoiceSaved.value.toLowerCase() === 'true') {
+		invoiceNotSavedMessage.classList.add('invisible')
+		if (printInvoiceBtn) printInvoiceBtn.classList.remove('disabled')
+	} else {
+		invoiceNotSavedMessage.classList.remove('invisible')
+		if (printInvoiceBtn) printInvoiceBtn.classList.add('disabled')
+	}
+})
+
+if (document.querySelector('.app-description').getAttribute('disabled') !== null) {
+	invoiceApps.querySelectorAll('select.app-type').forEach(element => {
+		element.addEventListener('change', e => {
+			const select = e.target
+			const option = select.options[select.selectedIndex]
+			const description = option.getAttribute('data-description')
+			const appIndex = select.getAttribute('name').split('-')[2]
+			const input = document.querySelector(`[name="app-description-${appIndex}"]`)
+
+			if (input) input.value = description
+		})
+	})
+}
+
+// manage add appointment button
+if (addApp) {
+	addApp.addEventListener('click', e => {
+		const app = invoiceApps.querySelector('.app-item.d-none')
+
+		if (app) {
+			app.querySelector('[name^="app-visible-"]').value = 'visible'
+			app.classList.remove('d-none')
+			setInvoiceSaved(false)
+			resetAppSessions(app)
+		}
+
+		if (invoiceApps.querySelectorAll('.app-item.d-none').length === 0) {
+			addApp.classList.add('d-none')
+		}
+	})
+}
+
+// manage remove appointment button
+removeApp.forEach(btn => {
+	btn.addEventListener('click', e => {
+		const app = e.currentTarget.parentElement.parentElement.parentElement.parentElement
+
+		app.classList.add('d-none')
+		// move the element to the end of its parent
+		app.parentNode.appendChild(app)
+		resetChildrenValues(app)
+		setInvoiceSaved(false)
+		addApp.classList.remove('d-none')
+		resetAppSessions()
+	})
+})
+
+// show/hide the out of office form and set/reset it's elements
+invoiceLocationCheck.addEventListener('change', e => {
+	if (invoiceLocationCheck.checked) {
+		invoiceLocation.classList.add('location-visible')
+	} else {
+		invoiceLocation.classList.remove('location-visible')
+		// resetChildrenValues(invoiceLocation)
+	}
+	// setInvoiceSaved(false)
+})
+
+// resetAppSessions()
+

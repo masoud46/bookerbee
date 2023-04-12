@@ -1,0 +1,372 @@
+*,
+:after,
+:before {
+	box-sizing: border-box;
+	border: 0;
+}
+
+body {
+	margin: 0;
+	margin-left: 0.2mm;
+}
+
+$width: 192mm;
+$padding-left: 0.3mm;
+$padding-bottom: 1mm;
+$header-left-width: 89.2mm;
+$body-div-padding: .5mm;
+$border: 0.4mm solid #000000;
+$border-double: 0.4mm solid #000000;
+
+#prescription {
+	width: $width;
+	max-width: $width;
+	border-collapse: collapse;
+	border-spacing: 0;
+
+
+
+	button {
+		margin: 2.5mm;
+		padding: 2mm 8mm;
+		font-size: 1.5em;
+		cursor: pointer;
+	}
+
+	@media print {
+		// button {
+		// 	display: none;
+		// }
+	}
+
+
+
+	.bold {
+		font-weight: bold;
+	}
+
+	tbody tr td {
+		border-bottom: $border;
+		border-right: $border;
+		text-align: left;
+		font-family: Arial, sans-serif;
+		font-size: 2.8mm;
+		padding: 0 0 0 0.5mm;
+		overflow: hidden;
+
+		&:first-child,
+		&:last-child {
+			text-align: center;
+			padding-left: 0.15mm;
+		}
+
+		&:nth-child(1) {
+			width: 6.2mm;
+			max-width: 6.2mm;
+			border-bottom: none;
+
+			&.row-num {
+				border-left: $border-double;
+				border-bottom: $border;
+			}
+		}
+
+		&:nth-child(7),
+		&:nth-child(8) {
+			width: 16.5mm;
+			max-width: 16.5mm;
+		}
+
+		&:nth-child(9) {
+			width: 5.4mm;
+			max-width: 5.4mm;
+		}
+
+		&.currency {
+			text-align: right;
+			padding-right: 2mm;
+		}
+	}
+
+	tbody tr.table-row td {
+		// height: 5.82mm;
+		// 	max-height: 5.82mm;
+		line-height: 5.82mm;
+		white-space: nowrap;
+
+		&:nth-child(2) {
+			width: 18mm;
+			max-width: 18mm;
+		}
+
+		&:nth-child(3) {
+			width: 10.4mm;
+			max-width: 10.4mm;
+		}
+
+		&:nth-child(4) {
+			width: 15.9mm;
+			max-width: 15.9mm;
+		}
+
+		&:nth-child(5) {
+			width: 21.6mm;
+			max-width: 21.6mm;
+		}
+	}
+
+	tbody tr.table-row.table-header td {
+		font-weight: bold;
+
+		&:nth-child(1) {
+			border-bottom: $border;
+		}
+	}
+
+	.header {
+		height: 78.5mm;
+		line-height: 4.9mm;
+		text-align: left;
+		font-size: 3.85mm;
+
+		.header-left,
+		.header-right {
+			float: left;
+			height: 100%;
+
+			> div {
+				padding-left: $padding-left;
+				padding-bottom: $padding-bottom;
+				border-top: $border;
+			}
+		}
+
+		.header-left {
+			width: $header-left-width;
+			max-width: $header-left-width;
+
+			> div:not(:last-child) {
+				border-right: $border;
+			}
+		}
+
+		.header-right {
+			width: calc(100% - $header-left-width);
+			max-width: calc(100% - $header-left-width);
+
+			> div {
+				padding-left: calc($padding-left + 0.2mm);
+			}
+		}
+
+		.user-name {
+			padding-top: 0.4mm;
+			height: 38.5mm;
+
+			> div:first-child {
+				font-size: 4.85mm;
+				font-weight: bold;
+			}
+		}
+
+		.user {
+			height: 53.5mm;
+		}
+
+		.user-tel,
+		.user-fax,
+		.user-email,
+		.user-code,
+		.patient-code,
+		.patient-name,
+		.patient-acc-num,
+		.patient-acc-date,
+		.prescriber,
+		.header-right-date {
+			clear: both;
+
+			> div {
+				float: left;
+			}
+		}
+
+		.user-tel,
+		.user-fax,
+		.user-email {
+			> div:first-child {
+				width: 19mm;
+			}
+		}
+
+		.user-tel,
+		.user-fax,
+		.patient-code,
+		.patient-name,
+		.patient-acc-num,
+		.patient-acc-date {
+			> div:last-child {
+				font-size: 3.2mm;
+			}
+		}
+
+		.user-code {
+			> div:first-child {
+				width: 46.5mm;
+			}
+		}
+
+		.patient-code,
+		.patient-name,
+		.patient-acc-num,
+		.patient-acc-date,
+		.prescriber {
+			> div:first-child {
+				width: 30mm;
+			}
+		}
+
+		.header-right-date {
+			> div:first-child {
+				width: 38mm;
+			}
+		}
+
+		.patient {
+			height: 20mm;
+		}
+
+		.user-code {
+			height: 14mm;
+			line-height: 14mm;
+		}
+
+		.cns {
+			height: 24mm;
+			line-height: 24mm;
+			// font-size: 2.8mm;
+			text-align: center;
+		}
+
+		.header-right-address {
+			height: 35.5mm;
+			padding-top: 5mm;
+			padding-left: 20mm !important;
+		}
+
+		.prescriber,
+		.date {
+			height: 5.5mm;
+			line-height: 4.5mm;
+			// border-bottom: $border;
+		}
+
+		.prescriber {
+			border-right: none;
+		}
+	}
+
+	.title {
+
+		td {
+			border-right: none;
+
+			> div {
+				line-height: 12.7mm;
+				padding-left: 11mm;
+				text-align: left;
+				font-size: 4.85mm;
+				font-weight: bold;
+
+				> div {
+					float: left;
+				}
+			}
+		}
+
+		.title-num {
+			width: 125mm;
+			max-width: 125mm;
+
+			> span {
+				margin-left: 4mm;
+			}
+		}
+	}
+
+	.total {
+		padding: 0 !important;
+
+		.total-left {
+			height: 36.4mm !important;
+			padding: 3.8mm 0 0 9.4mm;
+
+			> div {
+				float: left;
+			}
+
+			.total-sign {
+				width: 46.6mm;
+
+				> div:last-child {
+					margin-top: 5mm;
+					margin-left: 4mm;
+				}
+			}
+		}
+
+		.total-title {
+			width: 26mm;
+			max-width: 26mm;
+			white-space: nowrap;
+		}
+	}
+
+	.body {
+		font-size: 2.8mm;
+		line-height: 4mm;
+		text-align: left;
+
+		> div:not(:last-child) {
+			padding: 0 $body-div-padding;
+			border-bottom: $border;
+			line-height: 3.6mm;
+		}
+
+		.text {
+			height: 55.7mm;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 3.2mm;
+
+			> div {
+				// display: table;
+				// width: 100%;
+				// height: 100%;
+				text-align: center;
+
+				> div:last-child {
+					margin-top: 4mm;
+				}
+			}
+		}
+
+		.elsewhere {
+			height: 15mm;
+		}
+
+		.note {
+			height: 3.8mm;
+		}
+
+		.footer {
+			// word-spacing: 1.1;
+			letter-spacing: 0.25;
+			padding: 0.7mm 2mm 0 !important;
+			height: 8.2mm;
+			line-height: 3.2mm !important;
+			font-size: 2.379mm;
+			text-align: center;
+		}
+	}
+}

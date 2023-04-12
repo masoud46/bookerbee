@@ -1,0 +1,33 @@
+#patient-notes-modal {
+	.modal-body {
+		min-height: 100px;
+		outline: none;
+	}
+
+	.modal-notes-content {
+		position: relative;
+		outline: none;
+		padding: 0.5rem;
+		border-color: transparent;
+
+		&.modal-notes-empty {
+
+			&::before {
+				content: attr(data-empty);
+				position: absolute;
+				opacity: 0.5;
+				font-style: italic;
+				pointer-events: none;
+				// cursor: text;
+			}
+		}
+	}
+
+	&[data-saved="1"] {
+		.btn-save-notes {
+			opacity: 0.5;
+			pointer-events: none;
+		}
+	}
+}
+
