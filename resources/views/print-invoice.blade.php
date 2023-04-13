@@ -4,10 +4,10 @@
 	// print_r($appointments);
 	// echo "</pre>";
 	
-	if (!$invoice) {
-	    echo '<pre>No invoice found!</pre>';
-	    exit();
-	}
+	// if (!$invoice) {
+	//     echo '<pre>No invoice found!</pre>';
+	//     exit();
+	// }
 	
 	$titles = json_decode($user->titles);
 @endphp
@@ -152,7 +152,7 @@
 					<td>{{ $app->location_code }}</td>
 					<td>{{ date('d/m/Y', strtotime($app->done_at)) }}</td>
 					<td>{{ $app->type_code }}</td>
-					<td colSpan="2">{{ $app->type_description }}</td>
+					<td colSpan="2">{{ $app->description }}</td>
 					<td class="currency">{{ $app->amount }}</td>
 					<td class="currency">{{ $app->insurance ?? '' }}</td>
 					<td>€</td>

@@ -1,0 +1,49 @@
+@import '../app-colors';
+
+
+#invoices-container {
+
+	.invoice-item {
+		&.national-healthcare-item {
+			td {
+				color: $national-healthcare-color;
+			}
+
+			.invoice-item-reference span {
+				margin-left: 0.25rem;
+				font-size: 0.7em;
+			}
+
+			.invoice-item-reference div {
+				position: relative;
+
+				&::after {
+					position: absolute;
+					bottom: 1px;
+					content: attr(data-after);
+					margin-left: 0.2rem;
+					font-size: 0.7em;
+				}
+			}
+		}
+
+		.invoice-item-print {
+			a {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: 1.5rem;
+				height: 1.5rem;
+				border-radius: 50%;
+				color: var(--bs-primary);
+
+				&:hover {
+					color: #fff;
+					background-color: var(--bs-primary);
+				}
+			}
+		}
+	}
+
+
+}

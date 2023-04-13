@@ -2,3 +2,22 @@
 $color-purple: #50145c;
 $color-gold: #c0a94e;
 
+$table-striped-bg-factor: 0.025;
+$table-hover-bg-factor: 0.05;
+
+$national-healthcare-color: #07a;
+// $national-healthcare-color: $color-purple;
+
+.text-national-healthcare {
+	color: $national-healthcare-color;
+}
+
+.bg-national-healthcare {
+	background-color: $national-healthcare-color;
+}
+
+.text-bg-national-healthcare {
+	color: #fff;
+	background-color: $national-healthcare-color;
+}
+

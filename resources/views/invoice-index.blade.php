@@ -73,14 +73,14 @@
 					</thead>
 					<tbody>
 						@foreach ($invoices as $invoice)
-							<tr class="invoice-item user-select-none" data-id="{{ $invoice->id }}">
-								<td scope="col">{{ $invoice->reference }}</td>
+							<tr class="invoice-item user-select-none {{ $invoice->patient_category === 1 ? 'national-healthcare-item' : '' }}" role="button" data-id="{{ $invoice->id }}">
+								<td scope="col" class="invoice-item-reference">{{ $invoice->reference }}<span>{{ $invoice->patient_category === 1 ? 'CNS' : '' }}</span></td>
 								<td scope="col">{{ $invoice->date }}</td>
 								<td scope="col">{{ $invoice->name }}</td>
 								<td scope="col">{{ $invoice->patient }}</td>
 								<td scope="col">{{ $invoice->total }} €</td>
-								<td scope="col" class="text-right">
-									<a href="{{ route('invoice.print', ['invoice' => $invoice->id]) }}" target="_blank" class="float-end" title=" {{ __("Print") }} "><i class="fas fa-print fa-fw pe-none"></i></a>
+								<td scope="col" class="invoice-item-print">
+									<a class="float-end" href="{{ route('invoice.print', ['invoice' => $invoice->id]) }}" target="_blank" class="float-end" title=" {{ __("Print") }} "><i class="fas fa-print pe-none"></i></a>
 									{{-- <a href="{{ route('invoice.show', ['invoice' => $invoice->id]) }}" class="float-end me-3" title=" {{ $invoice->editable ? __("Edit") : __("View") }} "><i class="far {{ $invoice->editable ? 'fa-pen-to-square' : 'fa-eye' }} fa-fw pe-none"></i></a> --}}
 								</td>
 							</tr>

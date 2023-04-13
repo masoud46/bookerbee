@@ -233,7 +233,7 @@
 										    if ($app) {
 										        if ($app->type_id === $type->id) {
 										            $type_id = $type->id;
-										            $description = $category === 1 ? $type->description : $app->description;
+										            // $description = $category === 1 ? $type->description : $app->description;
 										        }
 										    } else {
 										        $type_id = $type->max_sessions ? ($sessions + 1 > $type->max_sessions ? null : $type->id) : $type->id;

@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Settings;
 use App\Models\Type;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -90,6 +91,11 @@ class InvoiceController extends Controller {
 	 * @return Array
 	 */
 	protected function getInvoice($id, $fraction = false) {
+		$check = Invoice::whereId($id)->whereUserId(Auth::user()->id);
+		if (!$check) {
+			abort(404);
+		}
+
 		$invoice = DB::table("invoices")->select([
 			"invoices.id",
 			"invoices.user_id",
@@ -132,8 +138,7 @@ class InvoiceController extends Controller {
 			->leftJoin("countries AS invoice_location_country", "invoice_location_country.id", "=", "invoices.location_country_id")
 			->first();
 
-		$user = Auth::user();
-		if (!$invoice || $invoice->user_id !== $user->id) {
+		if (!$invoice) {
 			abort(404);
 		}
 
@@ -153,6 +158,11 @@ class InvoiceController extends Controller {
 		$invoice->total_amount = 0;
 		$invoice->total_insurance = 0;
 		foreach ($appointments as $key => $value) {
+			if ($invoice->patient_category === 1) {
+				$value->description = $value->type_description;
+			}
+			unset($value->type_description);
+
 			if ($value->amount) {
 				$invoice->total_amount += $value->amount;
 				$appointments[$key]->amount = currency_format($value->amount, $fraction);
@@ -232,19 +242,21 @@ class InvoiceController extends Controller {
 			"invoices.id",
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
+			"patients.category AS patient_category",
 			DB::raw('CONCAT(patients.code, " - ", UPPER(patients.lastname), ", ", patients.firstname) AS patient'),
 			DB::raw('SUM(appointments.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
 			->when($limit < 1000, function ($query) use ($limit) {
-				$query->where("invoices.created_at", ">=", (new \Carbon\Carbon)->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
+				// $query->where("invoices.created_at", ">=", (new \Carbon\Carbon)->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
+				$query->where("invoices.created_at", ">=", Carbon::now()->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
 			})
 			->when($limit >= 1000, function ($query) use ($limit) {
 				$query->whereYear('invoices.created_at', $limit);
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			->leftJoin("appointments", "appointments.invoice_id", "=", "invoices.id")
-			->groupBy("id", "created_at", "date", "name", "patient")
+			->groupBy("id", "created_at", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
 
@@ -536,6 +548,7 @@ class InvoiceController extends Controller {
 				$app[$key] = $field['value'];
 			}
 
+			// remember: disabled inputs are not in POST/PUT query ("description" here)
 			if (!isset($visible_apps[$i]['description'])) $app->description = null;
 			if (!isset($visible_apps[$i]['insurance'])) $app->insurance = null;
 

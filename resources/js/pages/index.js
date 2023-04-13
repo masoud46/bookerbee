@@ -1,6 +1,8 @@
 import { Pickers } from '../components/patientPicker'
 import { utils } from '../utils/utils'
 
+import '../../scss/pages/index.scss'
+
 
 const patientCount = document.querySelector('.patient-count')
 
