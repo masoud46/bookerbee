@@ -24,7 +24,7 @@
 					<select id="settings-location" name="settings-location" class="form-select @error('settings-location') is-invalid @enderror">
 						<option value="" selected hidden>{{ __("Location") }}</option>
 						@foreach ($locations as $location)
-							<option value="{{ $location->id }}" {{ old('settings-location') == $location->id || $settings->location === $location->id ? 'selected' : '' }}>{{ $location->code }} - {{ $location->description }}</option>
+							<option value="{{ $location->id }}" {{ intval(old('settings-location')) === $location->id || $settings->location === $location->id ? 'selected' : '' }}>{{ $location->code }} - {{ $location->description }}</option>
 						@endforeach
 					</select>
 					@error('settings-location')

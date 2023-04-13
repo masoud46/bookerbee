@@ -115,7 +115,7 @@
 									@foreach ($countries as $country)
 										@php($selected = $update ? $country->id === $patient->address_country_id : $country->code === $default_country_code)
 										@if (old('patient-address_country_id'))
-											{{ $selected = old('patient-address_country_id') == $country->id }}
+											{{ $selected = intval(old('patient-address_country_id')) === $country->id }}
 										@endif
 										<option value="{{ $country->id }}" {{ $selected ? 'selected' : '' }}>{{ $country->name }}</option>
 									@endforeach

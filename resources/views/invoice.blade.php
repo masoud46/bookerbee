@@ -161,7 +161,7 @@
 									@foreach ($countries as $country)
 										@php($selected = $add ? $country->id === $patient->address_country_id : ($update ? $country->id === $invoice->patient_address_country_id : $country->code === $default_country_code))
 										@if (old('patient-address_country_id'))
-											{{ $selected = old('patient-address_country_id') == $country->id }}
+											{{ $selected = intval(old('patient-address_country_id')) === $country->id }}
 										@endif
 										<option value="{{ $country->id }}"{{ $selected ? ' selected' : '' }}>{{ $country->name }}</option>
 									@endforeach
@@ -208,7 +208,7 @@
 									@foreach ($locations as $location)
 										@php($selected = $app ? ($app->location_id === $location->id ? 'selected' : '') : ($location->id === $settings->location ? ' selected' : ''))
 										@if (old("app-location_id-{$i}"))
-											{{ $selected = old("app-location_id-{$i}") == $location->id ? 'selected' : '' }}
+											{{ $selected = intval(old("app-location_id-{$i}")) === $location->id ? 'selected' : '' }}
 										@endif
 										<option value="{{ $location->id }}" {{ $selected }} {{ $location->disabled ? 'disabled' : '' }}>{{ $location->code }}</option>
 									@endforeach
@@ -246,7 +246,7 @@
 										?>
 										@php($selected = $type->id === $type_id ? 'selected' : '')
 										@if (old("app-type_id-{$i}"))
-											{{ $selected = old("app-type_id-{$i}") == $type->id ? 'selected' : '' }}
+											{{ $selected = intval(old("app-type_id-{$i}")) === $type->id ? 'selected' : '' }}
 										@endif
 										<option value="{{ $type->id }}" {{ $selected }} data-description="{{ $type->description }}">{{ $type->code }}</option>
 									@endforeach
@@ -355,7 +355,7 @@
 									@foreach ($countries as $country)
 										@php($selected = $update && $invoice->location_check ? $country->id === $invoice->location_country_id : $country->code === $default_country_code)
 										@if (old('invoice-location_country_id'))
-											{{ $selected = old('invoice-location_country_id') == $country->id }}
+											{{ $selected = intval(old('invoice-location_country_id')) === $country->id }}
 										@endif
 										<option value="{{ $country->id }}"{{ $selected ? ' selected' : '' }}>{{ $country->name }}</option>
 									@endforeach
