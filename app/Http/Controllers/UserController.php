@@ -139,6 +139,10 @@ class UserController extends Controller {
 			'user-address2_country_id.numeric' => app('ERRORS')['numeric'],
 		];
 
+		if ($user_object['fax_number'] === null) {
+			$user_object['fax_country_id'] = null;
+		}
+
 		if ($user_object['address2_line1'] || $user_object['address2_code'] || $user_object['address2_city']) {
 			$params_rules['user-address2_line1'] = "required";
 			$params_rules['user-address2_code'] = "required";
@@ -160,6 +164,7 @@ class UserController extends Controller {
 		foreach ($user_object as $key => $value) {
 			$user[$key] = $value;
 		}
+
 		$user['titles'] = json_encode(
 			array_values(// remove keys, get only the values
 				array_filter( // remove empty rows (preserves keys)
@@ -171,6 +176,7 @@ class UserController extends Controller {
 			),
 			JSON_UNESCAPED_UNICODE
 		);
+
 		$user->save();
 
 		session()->flash("success", __("Your profile has been updated."));
