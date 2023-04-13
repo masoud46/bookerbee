@@ -28,7 +28,7 @@ document.querySelectorAll('.phone-fax-number-component').forEach((element, index
 			flag.classList.add('fib', `fi-${code}`)
 			preloadFlags.appendChild(flag)
 		})
-		document.body.appendChild(preloadFlags)
+		document.body.prepend(preloadFlags)
 
 		// Change style to "display:block" after rendering (setTimeout(0))
 		// to start loading the flag icons. Then remove it after a timeout

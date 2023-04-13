@@ -42,6 +42,7 @@
 
 			@csrf
 
+			<input type="hidden" id="patient-email" value="{{ $update ? $invoice->patient_email : $patient->email }}">
 			<input type="hidden" id="patient-notes-fetch-url" value="{{ route('patient.notes') }}">
 			<input type="hidden" id="patient-notes-store-url" value="{{ route('patient.notes.store') }}">
 			<input type="hidden" id="form-key" name="form-key" value="{{ $key }}">

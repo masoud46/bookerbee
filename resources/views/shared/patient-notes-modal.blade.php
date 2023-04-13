@@ -2,7 +2,7 @@
 	<div class="modal-dialog modal-xl modal-fullscreen-lg-down modal-dialog-scrollable">
 		<div class="modal-content shadow">
 			<div class="modal-header shadow-sm">
-				<h6 class="modal-title" id="patient-notes-modal-title">{{ __("Notes:") }}<span class="fw-bold"></span></h6>
+				<h6 class="modal-title" id="patient-notes-modal-title">{{ __("Notes:") }} <span class="patient-notes-modal-name fw-bold"></span> <a class="patient-notes-modal-email"></a></h6>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body position-relative modal-is-waiting" tabindex="-1">

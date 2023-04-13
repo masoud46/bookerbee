@@ -6,11 +6,13 @@ export const options = {
 	fetchUrl: null,
 	storeUrl: null,
 	name: null,
+	email: null,
 }
 
 
 const modal = document.getElementById('patient-notes-modal')
-const title = modal.querySelector('.modal-title span')
+const name = modal.querySelector('.modal-title .patient-notes-modal-name')
+const email = modal.querySelector('.modal-title .patient-notes-modal-email')
 const body = modal.querySelector('.modal-body')
 const content = modal.querySelector('.modal-notes-content')
 const saveBtn = modal.querySelector('.btn-save-notes')
@@ -31,7 +33,11 @@ async function fetchPatientNotes() {
 
 	body.classList.add('modal-is-waiting')
 	content.classList.add('modal-notes-empty')
-	title.textContent = options.name
+	if (options.name) name.textContent = options.name
+	if (options.email) {
+		email.textContent = options.email
+		email.setAttribute('href', `mailto:${options.email}`)
+	}
 	content.innerHTML = ''
 	modal.setAttribute('data-saved', "1")
 

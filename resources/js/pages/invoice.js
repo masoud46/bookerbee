@@ -12,6 +12,7 @@ const formKey = document.getElementById('form-key')
 const setPatientNotesData = () => {
 	patientNotes.formKey = formKey?.value
 	patientNotes.name = `${document.getElementById('patient-lastname')?.value}, ${document.getElementById('patient-firstname')?.value}`
+	patientNotes.email = document.getElementById('patient-email').value
 }
 
 patientNotes.fetchUrl = document.getElementById('patient-notes-fetch-url').value

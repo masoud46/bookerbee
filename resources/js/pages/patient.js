@@ -15,12 +15,11 @@ Phones.forEach(phone => {
 
 
 const formKey = document.getElementById('form-key')
-const patientFirstname = document.getElementById('patient-firstname')
-const patientLastname = document.getElementById('patient-lastname')
 
 const setPatientNotesData = () => {
 	patientNotes.formKey = formKey.value
-	patientNotes.name = `${patientLastname.value}, ${patientFirstname.value}`
+	patientNotes.name = `${document.getElementById('patient-lastname').value}, ${document.getElementById('patient-firstname').value}`
+	patientNotes.email = document.getElementById('patient-email').value
 }
 
 patientNotes.fetchUrl = document.getElementById('patient-notes-fetch-url').value
