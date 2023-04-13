@@ -116,7 +116,7 @@
 								<select id="user-address_country_id" name="user-address_country_id" class="form-select @error('user-address_country_id') is-invalid @enderror">
 									<option value="" selected hidden>{{ __("Country") }}</option>
 									@foreach ($countries as $country)
-										@php($selected = $user->address_country_id ? $country->code === $user->address_country_id : $country->code === $default_country_code)
+										@php($selected = $user->address_country_id ? $country->id === $user->address_country_id : $country->code === $default_country_code)
 										@if (old('user-address_country_id'))
 											{{ $selected = intval(old('user-address_country_id')) === $country->id }}
 										@endif
@@ -166,7 +166,7 @@
 								<select id="user-address2_country_id" name="user-address2_country_id" class="form-select @error('user-address2_country_id') is-invalid @enderror">
 									<option value="" selected hidden>{{ __("Country") }}</option>
 									@foreach ($countries as $country)
-										@php($selected = $user->address2_country_id ? $country->code === $user->address2_country_id : $country->code === $default_country_code)
+										@php($selected = $user->address2_country_id ? $country->id === $user->address2_country_id : $country->code === $default_country_code)
 										@if (old('user-address2_country_id'))
 											{{ $selected = intval(old('user-address2_country_id')) === $country->id }}
 										@endif
