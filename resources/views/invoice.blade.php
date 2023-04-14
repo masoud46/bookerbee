@@ -82,7 +82,7 @@
 					<div class="mb-3 row">
 						<label for="invoice-acc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end">{{ __("Incident date") }}</label>
 						<div class="col-sm-8">
-							<x-resetable-date class="resetable-date-container" inputId="invoice-acc_date" inputName="invoice-acc_date" inputValue="{{ old('invoice-acc_date', $update ? $invoice->acc_date : '') }}" />
+							<x-resetable-date data-small="true" class="resetable-date-container form-control-sm" inputId="invoice-acc_date" inputName="invoice-acc_date" inputValue="{{ old('invoice-acc_date', $update ? $invoice->acc_date : '') }}" />
 						</div>
 					</div>
 					<h6 class="rounded-1 bg-{{ $title_color }} text-white mt-4 py-1 px-3">{{ __("Prescription") }}</h6>
@@ -302,7 +302,7 @@
 				<div class="col-8 col-sm-5 col-md-4 col-lg-3">
 					<label for="invoice-granted_at" class="w-100 col-form-label col-form-label-sm">{{ __("For acquired on") }}</label>
 					<div class="w-100">
-						<x-resetable-date class="resetable-date-container" inputId="invoice-granted_at" inputName="invoice-granted_at" inputValue="{{ old('invoice-granted_at', $update ? $invoice->granted_at : '') }}" />
+						<x-resetable-date class="resetable-date-container form-control-sm" inputId="invoice-granted_at" inputName="invoice-granted_at" inputValue="{{ old('invoice-granted_at', $update ? $invoice->granted_at : '') }}" />
 						@error('invoice-granted_at')
 							<div class="invalid-feedback">{{ $message }}</div>
 						@enderror

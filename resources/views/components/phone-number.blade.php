@@ -14,18 +14,29 @@
 		$code = $list->get($country_id)->code;
 		$prefix = $list->get($country_id)->prefix;
 		
-		$small = isset($small) && strtolower($small) === 'true';
+		$small = null;
+		$small_class = 'form-control-sm';
+		$error_class_name = 'is-invalid';
+
+		if (isset($class)) {
+		    $class = preg_replace('/\s+/', ' ', trim($class));
+		    $class_array = explode(' ', $class);
 		
-		// set input's error class and prevent focus on parent (.is-invalid-parent)
-$error_class_name = 'is-invalid';
-if (isset($class)) {
-    $class = preg_replace('/\s+/', ' ', trim($class));
-    $class_array = explode(' ', $class);
-    if (in_array($error_class_name, $class_array)) {
-        $error_class = $error_class_name;
-        $class_array[] = 'is-invalid-parent'; // to prevent focus
-        $class = implode(' ', $class_array);
+		    if (in_array($small_class, $class_array)) {
+		        $small = $small_class;
+		        $class_array = array_filter($class_array, function ($var) use ($small_class) {
+		            return $var !== $small_class;
+		        });
 		    }
+		
+		    // {{-- set input's error class and prevent focus on parent (.is-invalid-parent) --}}
+		    if (in_array($error_class_name, $class_array)) {
+		        $error_class = $error_class_name;
+		        $class_array[] = 'is-invalid-parent'; // to prevent focus
+		        $class = implode(' ', $class_array);
+		    }
+		
+		    $class = implode(' ', $class_array);
 		}
 	@endphp
 
@@ -35,7 +46,7 @@ if (isset($class)) {
 
 		<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
 		<div class="input-group {{ isset($error_class) ? 'has-validation' : '' }}">
-			<button type="button" class="phone-number-dropdown btn  {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+			<button type="button" class="phone-number-dropdown btn {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
 				<span class="fib fi-{{ strtolower($code) }}"></span>
 			</button>
 			<div class="dropdown-menu shadow pt-0">
@@ -54,8 +65,8 @@ if (isset($class)) {
 					</div>
 				</div>
 			</div>
-			<div class="phone-number-prefix form-control {{ $small ? 'form-control-sm' : '' }} d-flex justify-content-end align-items-center user-select-none">{{ $prefix }}</div>
-			<input type="text" name="{{ $numberField }}" class="{{ $error_class ?? '' }} phone-number-input form-control {{ $small ? 'form-control-sm' : '' }}" value="{{ $number ?? '' }}">
+			<div class="phone-number-prefix form-control {{ $small }} d-flex justify-content-end align-items-center user-select-none">{{ $prefix }}</div>
+			<input type="text" name="{{ $numberField }}" class="{{ $error_class ?? '' }} phone-number-input form-control {{ $small }}" value="{{ $number ?? '' }}">
 		</div>
 	</div>
 @endif
