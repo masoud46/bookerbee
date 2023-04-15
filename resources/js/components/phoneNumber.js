@@ -81,7 +81,6 @@ document.querySelectorAll('.phone-fax-number-component').forEach((element, index
 		item.classList.add('active')
 		number.element.querySelector('.phone-number-country').value = id
 		number.element.querySelector('.phone-number-prefix').textContent = item.getAttribute('data-prefix')
-		// number.element.querySelector('.phone-number-dropdown .fib').setAttribute('class', `fib fi-${item.getAttribute('data-code')} me-1`)
 		number.element.querySelector('.phone-number-dropdown img').src = `/build/flags/${item.getAttribute('data-code')}.svg`
 
 		if (focus) {

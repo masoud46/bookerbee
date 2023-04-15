@@ -20,6 +20,8 @@
 		</script>
 	@endif
 
+	@include('layouts.fonts')
+
 </head>
 
 <body>

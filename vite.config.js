@@ -59,9 +59,9 @@ export default defineConfig({
 					// This is optional but may be useful (I use it a lot)
 					// All images (png, jpg, etc) will be compiled within `images` directory,
 					// all svg files within `icons` directory
-					// if (/png|jpe?g|gif|tiff|bmp|ico/i.test(extension)) {
-					//     extension = 'images'
-					// }
+					if (/png|jpe?g|gif|tiff|bmp|svg|ico/i.test(extension)) {
+					    extension = 'images'
+					}
 
 					// if (/svg/i.test(extension)) {
 					//     extension = 'icons'
@@ -79,15 +79,10 @@ export default defineConfig({
 	plugins: [
 		viteStaticCopy({
 			targets: [
-				// { src: normalizePath(path.join(__dirname, '/resources/flags/*')), dest: normalizePath(path.join(__dirname, '/public/build/flags')) },
-				// { src: normalizePath(path.join(__dirname, '/resources/images/*')), dest: normalizePath(path.join(__dirname, '/public/build/images')) },
-				// { src: normalizePath(path.join(__dirname, '/resources/fonts/*')), dest: normalizePath(path.join(__dirname, '/public/build/fonts')) },
 				{ src: 'resources/flags/*', dest: 'flags' },
 				{ src: 'resources/images/*', dest: 'images' },
 				{ src: 'resources/fonts/*', dest: 'fonts' },
-
-				// { src: path.join(__dirname, '/resources/favicon'), dest: path.join(__dirname, '/public') },
-				// { src: path.join(__dirname, '/resources/favicon/favicon.ico'), dest: path.join(__dirname, '/public') },
+				// { src: 'resources/favicon/*', dest: 'favicon' },
 			],
 		}),
 		laravel({

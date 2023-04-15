@@ -16,6 +16,8 @@
 
 	@stack('assets')
 
+	@include('layouts.fonts')
+
 	@if (session()->has('success') || session()->has('error'))
 		<script>
 			const httpFlashMessage = {
