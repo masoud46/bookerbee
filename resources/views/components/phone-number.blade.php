@@ -47,7 +47,6 @@
 		<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
 		<div class="input-group {{ isset($error_class) ? 'has-validation' : '' }}">
 			<button type="button" class="phone-number-dropdown btn {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-				{{-- <span class="fib fi-{{ strtolower($code) }}"></span> --}}
 				<img class="phone-number-country-flag" src="{{ asset('/build/flags/' . strtolower($code) . '.svg') }}">
 			</button>
 			<div class="dropdown-menu shadow pt-0">
@@ -60,8 +59,6 @@
 						@php($transliterator = Transliterator::createFromRules(':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: Lower(); :: NFC;', Transliterator::FORWARD))
 						@foreach ($list as $value)
 							<button type="button" class="dropdown-item {{ $value->code === $code ? 'active' : '' }}" data-id="{{ $value->id }}" data-code="{{ strtolower($value->code) }}" data-name="{{ $transliterator->transliterate($value->name) }}" data-prefix="{{ $value->prefix }}">
-								{{-- <span class="fib fi-{{ strtolower($value->code) }} me-1"></span> {{ $value->name }} <span class="country-prefix">{{ $value->prefix }}</span> --}}
-								{{-- <img class="phone-number-country-flag" src="{{ Vite::asset('resources/images/flags/' . strtolower($value->code) . '.svg') }}"> --}}
 								<img class="phone-number-country-flag" src="{{ asset('/build/flags/' . strtolower($value->code) . '.svg') }}">
 								{{ $value->name }}
 								<span class="country-prefix">{{ $value->prefix }}</span>

@@ -2,7 +2,6 @@
 // 	'../images/**',
 // 	'../fonts/**',
 // ])
-// '../../node_modules/flag-icons/flags/4x3/**',
 
 import './bootstrap';
 
