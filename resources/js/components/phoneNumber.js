@@ -10,34 +10,8 @@ document.querySelectorAll('.phone-fax-number-component').forEach((element, index
 	const menu = number.element.querySelector('.dropdown-items')
 	const search = number.element.querySelector('.dropdown-search')
 
-
-	// This peace of code can be removed if no preloading of flag-icons is necessary
-	// For the first instance, add a hidden div with country flags
-	if (index === 0) {
-		const codes = document.getElementById(`${id}-country-codes`).value.split(',')
-		const preloadFlags = document.createElement('div')
-
-		// Must have "display:none" style to prevent loading,
-		// otherwise will slow down the component's displayed prefix-flag
-		preloadFlags.style.position = 'fixed';
-		preloadFlags.style.top = '100vh';
-		preloadFlags.style.display = 'none';
-		codes.map(code => {
-			const flag = document.createElement('span')
-
-			flag.classList.add('fib', `fi-${code}`)
-			preloadFlags.appendChild(flag)
-		})
-		document.body.prepend(preloadFlags)
-
-		// Change style to "display:block" after rendering (setTimeout(0))
-		// to start loading the flag icons. Then remove it after a timeout
-		setTimeout(() => { preloadFlags.style.display = 'block' }, 0);
-		setTimeout(() => { preloadFlags.remove() }, 5000);
-	}
-
 	toggle.addEventListener('show.bs.dropdown', () => {
-		menu.querySelectorAll('li.d-none').forEach(item => {
+		menu.querySelectorAll('.d-none').forEach(item => {
 			item.classList.remove('d-none')
 		})
 		search.value = ''

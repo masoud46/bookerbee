@@ -5,10 +5,6 @@
 @import 'bootstrap/scss/bootstrap';
 
 
-// Flag icons
-@import 'flag-icons/css/flag-icons.min';
-
-
 html,
 body {
 	height: 100%;
@@ -295,10 +291,9 @@ body.busy {
 	}
 
 	a,
-	button,
+	button:not([data-bs-toggle="tab"]),
 	select,
 	textarea,
-	button,
 	input,
 	label,
 	.custom-control-label {

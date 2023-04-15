@@ -9,18 +9,16 @@
 			border-top-color: #000;
 		}
 
-		.fib {
+		.phone-number-country-flag {
 			border-color: var(--bs-gray-400) !important;
 			margin-right: 0.25rem !important;
 		}
 	}
 
-	.fib {
-		display: inline-block;
+	.phone-number-country-flag {
 		width: 20px;
-		height: 15px;
+		height: auto;
 		margin-right: 0.5rem;
-		// box-shadow: 0 0 1px rgba(#000, 0.5);
 	}
 
 	.dropdown-menu {

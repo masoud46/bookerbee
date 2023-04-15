@@ -1,10 +1,13 @@
-import { defineConfig } from 'vite'
+import { defineConfig, normalizePath } from 'vite'
 import laravel from 'laravel-vite-plugin'
 
 import glob from 'glob'
 import path from 'node:path'
 import fs from 'fs'
 import { fileURLToPath } from 'node:url'
+
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+
 
 const host = '127.0.0.1'
 const port = '8000'
@@ -40,11 +43,12 @@ export default defineConfig({
 
 	resolve: {
 		alias: {
-			'~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
+			'~bootstrap': normalizePath(path.resolve(__dirname, 'node_modules/bootstrap')),
 		}
 	},
 
 	build: {
+		assetsInlineLimit: 0,
 		rollupOptions: {
 			output: {
 				assetFileNames: (assetInfo) => {
@@ -73,6 +77,19 @@ export default defineConfig({
 	},
 
 	plugins: [
+		viteStaticCopy({
+			targets: [
+				// { src: normalizePath(path.join(__dirname, '/resources/flags/*')), dest: normalizePath(path.join(__dirname, '/public/build/flags')) },
+				// { src: normalizePath(path.join(__dirname, '/resources/images/*')), dest: normalizePath(path.join(__dirname, '/public/build/images')) },
+				// { src: normalizePath(path.join(__dirname, '/resources/fonts/*')), dest: normalizePath(path.join(__dirname, '/public/build/fonts')) },
+				{ src: 'resources/flags/*', dest: 'flags' },
+				{ src: 'resources/images/*', dest: 'images' },
+				{ src: 'resources/fonts/*', dest: 'fonts' },
+
+				// { src: path.join(__dirname, '/resources/favicon'), dest: path.join(__dirname, '/public') },
+				// { src: path.join(__dirname, '/resources/favicon/favicon.ico'), dest: path.join(__dirname, '/public') },
+			],
+		}),
 		laravel({
 			input,
 			refresh: true,

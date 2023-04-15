@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Country;
 use App\Models\Location;
+use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -82,9 +83,11 @@ class UserController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function update(Request $request) {
-		$user = User::find(Auth::user()->id); // to be able to call save()
+		session()->flash("active-tab", $request['active-tab']);
 
+		$user = Auth::user();
 		$params = $request->all();
+		$is_profile = $params['active-tab'] === "profile";
 		$user_object = [];
 
 		foreach ($params as $key => $value) {
@@ -96,24 +99,44 @@ class UserController extends Controller {
 			}
 		}
 
-		$params_rules = [
-			'user-code' => "required|unique:users,code,{$user->id}",
-			'user-titles' => "required",
-			'user-firstname' => "required",
-			'user-lastname' => "required",
-			'user-email' => "required|email|unique:users,email,{$user->id}",
-			'user-phone_country_id' => "required|numeric",
-			'user-phone_number' => "required",
-			'user-fax_country_id' => "nullable|numeric",
-			'user-address_line1' => "required",
-			'user-address_code' => "required",
-			'user-address_city' => "required",
-			'user-address_country_id' => "required|numeric",
-			'user-address2_line1' => "nullable",
-			'user-address2_code' => "nullable",
-			'user-address2_city' => "nullable",
-			'user-address2_country_id' => "nullable|numeric",
-		];
+		if ($is_profile) {
+			$params_rules = [
+				'user-code' => "required|unique:users,code,{$user->id}",
+				'user-titles' => "required",
+				'user-firstname' => "required",
+				'user-lastname' => "required",
+				'user-email' => "required|email|unique:users,email,{$user->id}",
+				'user-phone_country_id' => "required|numeric",
+				'user-phone_number' => "required",
+				'user-fax_country_id' => "nullable|numeric",
+			];
+
+			if ($user_object['fax_number'] === null) {
+				$user_object['fax_country_id'] = null;
+			}
+		} else {
+			$params_rules = [
+				'user-address_line1' => "required",
+				'user-address_code' => "required",
+				'user-address_city' => "required",
+				'user-address_country_id' => "required|numeric",
+				'user-address2_line1' => "nullable",
+				'user-address2_code' => "nullable",
+				'user-address2_city' => "nullable",
+				'user-address2_country_id' => "nullable|numeric",
+			];
+
+			if ($user_object['address2_line1'] || $user_object['address2_code'] || $user_object['address2_city']) {
+				$params_rules['user-address2_line1'] = "required";
+				$params_rules['user-address2_code'] = "required";
+				$params_rules['user-address2_city'] = "required";
+				$params_rules['user-address2_country_id'] = "required|numeric";
+			} else {
+				$user_object['address2_line2'] = null;
+				$user_object['address2_line3'] = null;
+				$user_object['address2_country_id'] = null;
+			}
+		}
 
 		$params_messages = [
 			'user-code.required' => app('ERRORS')['required'],
@@ -139,21 +162,6 @@ class UserController extends Controller {
 			'user-address2_country_id.numeric' => app('ERRORS')['numeric'],
 		];
 
-		if ($user_object['fax_number'] === null) {
-			$user_object['fax_country_id'] = null;
-		}
-
-		if ($user_object['address2_line1'] || $user_object['address2_code'] || $user_object['address2_city']) {
-			$params_rules['user-address2_line1'] = "required";
-			$params_rules['user-address2_code'] = "required";
-			$params_rules['user-address2_city'] = "required";
-			$params_rules['user-address2_country_id'] = "required|numeric";
-		} else {
-			$user_object['address2_line2'] = null;
-			$user_object['address2_line3'] = null;
-			$user_object['address2_country_id'] = null;
-		}
-
 		$validator = Validator::make($params, $params_rules, $params_messages);
 
 		if ($validator->fails()) {
@@ -165,21 +173,38 @@ class UserController extends Controller {
 			$user[$key] = $value;
 		}
 
-		$user['titles'] = json_encode(
-			array_values(// remove keys, get only the values
-				array_filter( // remove empty rows (preserves keys)
-					array_map( // trim each row
-						"trim",
-						preg_split('/[\r\n]+/', $user['titles'], -1, PREG_SPLIT_NO_EMPTY)
+		if ($is_profile) {
+			$user['titles'] = json_encode(
+				array_values( // remove keys, get only the values
+					array_filter( // remove empty rows (preserves keys)
+						array_map( // trim each row
+							"trim",
+							preg_split('/[\r\n]+/', $user['titles'], -1, PREG_SPLIT_NO_EMPTY)
+						)
 					)
-				)
-			),
-			JSON_UNESCAPED_UNICODE
-		);
+				),
+				JSON_UNESCAPED_UNICODE
+			);
+		} else if (!$user->address2_line1) {
+			$settings = Settings::whereUserId($user->id)->first();
+			$locations = Location::all()->sortBy('code');
+			$locations = array_column($locations->toArray(), 'code', 'id');
+
+			if ($locations[$settings->location] === "009b") {
+				$location = array_search('009', $locations);
+				$settings->location = $location === false
+					? array_key_first($locations)
+					: $location;
+				$settings->save();
+			}
+		}
 
 		$user->save();
 
-		session()->flash("success", __("Your profile has been updated."));
+		session()->flash("success", $is_profile
+			? __("Your profile has been updated.")
+			: __("Your address has been updated.")
+		);
 		return redirect()->route("profile");
 	}
 

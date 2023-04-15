@@ -61,7 +61,7 @@
 									{{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
 								</div>
 								<a class="dropdown-item mt-2" href="{{ route('profile') }}">
-									<i class="far fa-user fa-fw me-1"></i> {{ __('My profile') }}
+									<i class="far fa-user fa-fw me-1"></i> {{ __('My information') }}
 								</a>
 								<a class="dropdown-item" href="{{ route('settings') }}">
 									<i class="fas fa-sliders fa-fw me-1"></i> {{ __('Settings') }}
