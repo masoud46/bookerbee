@@ -33,13 +33,6 @@ $border-double: 0.4mm solid #000000;
 		cursor: pointer;
 	}
 
-	@media print {
-		// button {
-		// 	display: none;
-		// }
-	}
-
-
 
 	.bold {
 		font-weight: bold;
@@ -166,6 +159,14 @@ $border-double: 0.4mm solid #000000;
 			> div:first-child {
 				font-size: 4.85mm;
 				font-weight: bold;
+			}
+
+			.address {
+				font-size: 3.2mm;
+
+				&.address-line1 {
+					margin-top: 2mm;
+				}
 			}
 		}
 
@@ -368,5 +369,12 @@ $border-double: 0.4mm solid #000000;
 			font-size: 2.379mm;
 			text-align: center;
 		}
+	}
+}
+
+
+@media print {
+	button {
+		display: none;
 	}
 }

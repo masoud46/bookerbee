@@ -1,14 +1,4 @@
 @php
-	// echo "<pre>";
-	// print_r(Auth::user()->toArray());
-	// print_r($appointments);
-	// echo "</pre>";
-	
-	// if (!$invoice) {
-	//     echo '<pre>No invoice found!</pre>';
-	//     exit();
-	// }
-	
 	$titles = json_decode($user->titles);
 @endphp
 
@@ -20,7 +10,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{ config('app.name', 'Laravel') }} - Invoice</title>
 
-	<!-- Scripts -->
 	@vite('resources/scss/pages/print-invoice.scss')
 </head>
 
@@ -35,21 +24,18 @@
 						<div class="header-left">
 							<div class="user">
 								<div class="user-name">
-									{{-- <div>{{ $user->lastname }}, {{ $user->firstname }}</div> --}}
-									<div>DOE, John</div>
+									<div>{{ $user->lastname }}, {{ $user->firstname }}</div>
 									@foreach ($titles as $title)
 										<div>{{ $title }}</div>
 									@endforeach
-									@if ($user->address_line1)
-										<div>{{ $user->address_line1 }}</div>
-									@endif
+									<div class="address address-line1">{{ $user->address_line1 }}</div>
 									@if ($user->address_line2)
-										<div>{{ $user->address_line2 }}</div>
+										<div class="address">{{ $user->address_line2 }}</div>
 									@endif
 									@if ($user->address_line3)
-										<div>{{ $user->address_line3 }}</div>
+										<div class="address">{{ $user->address_line3 }}</div>
 									@endif
-									<div>{{ $user->address_country }} - {{ $user->address_code }} {{ $user->address_city }}</div>
+									<div class="address">{{ $user->address_country }} - {{ $user->address_code }} {{ $user->address_city }}</div>
 								</div>
 								<div class="user-info">
 									<div class="user-tel">
@@ -206,12 +192,9 @@
 					<div class="body">
 						<div class="text">
 							<div>
-								{{-- <div>{{ $user->bank_account }}</div>
+								<div>{{ $user->bank_account }}</div>
 								<div>{{ $user->bank_swift }}</div>
-								<div>{{ sprintf("Lors du virement, veuillez indiquer votre nom et la référence %s", $invoice->reference) }}</div> --}}
-								<div>LU00 0000 0000 0000 0000</div>
-								<div>BGLLLULL</div>
-								<div>{{ sprintf("Lors du virement, veuillez indiquer votre nom et la référence %s", "23/1") }}</div>
+								<div>{{ sprintf("Lors du virement, veuillez indiquer votre nom et la référence %s", $invoice->reference) }}</div>
 							</div>
 						</div>
 						<div class="elsewhere">
