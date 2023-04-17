@@ -10,8 +10,6 @@
 
 			@csrf
 
-			<input type="hidden" id="patient-fetch-url" value="{{ route('patient.fetch', ['patient' => '?id']) }}">
-			<input type="hidden" id="patient-store-url" value="{{ route('patient.store') }}">
 			<input type="hidden" id="patient-notes-fetch-url" value="{{ route('patient.notes') }}">
 			<input type="hidden" id="patient-notes-store-url" value="{{ route('patient.notes.store') }}">
 			<input type="hidden" id="invoice-new-url" value="{{ route('invoice.new', ['patient' => '?id']) }}">

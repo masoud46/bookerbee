@@ -174,7 +174,7 @@ class InvoiceController extends Controller {
 			}
 		}
 
-		$invoice->total_to_pay = 0;
+		$invoice->total_to_pay = $invoice->total_amount;
 		if ($invoice->prepayment) {
 			$invoice->total_to_pay = $invoice->total_amount - $invoice->prepayment;
 			$invoice->prepayment = currency_format($invoice->prepayment, $fraction);
@@ -188,6 +188,7 @@ class InvoiceController extends Controller {
 
 		$patient_sessions = Patient::getPrevSessions($invoice->patient_id, $invoice->created_at);
 		$invoice->patient_sessions = $patient_sessions;
+		$invoice->patient_address_country = __($invoice->patient_address_country);
 
 		$invoice->editable = config('project.only_last_invoice_editable')
 			? $id === $this->getLastId()
@@ -302,8 +303,8 @@ class InvoiceController extends Controller {
 		]);
 
 		$sessions = Patient::getPrevSessions($patient->id);
-		$country = Country::find($patient->address_country_id);
-		$patient->address_country = $country->name;
+		// $country = Country::find($patient->address_country_id);
+		// $patient->address_country = $country->name;
 		$patient->sessions = $sessions;
 		$patient->name = sprintf("%s, %s", $patient->lastname, $patient->firstname);
 
@@ -689,8 +690,8 @@ class InvoiceController extends Controller {
 		foreach ($countries as $country) {
 			if ($country->id === $user->phone_country_id) $user->phone_prefix = $country->prefix;
 			if ($country->id === $user->fax_country_id) $user->fax_prefix = $country->prefix;
-			if ($country->id === $user->address_country_id) $user->address_country = $country->name;
-			if ($country->id === $user->address2_country_id) $user->address2_country = $country->name;
+			if ($country->id === $user->address_country_id) $user->address_country = __($country->name);
+			if ($country->id === $user->address2_country_id) $user->address2_country = __($country->name);
 		}
 
 		// if user has a secondary address AND

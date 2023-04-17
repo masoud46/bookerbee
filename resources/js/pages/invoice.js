@@ -100,49 +100,6 @@ function resetAppSessions(app = null) {
 	})
 }
 
-// if (invoiceSearch) {
-// 	invoiceSearch.querySelector('.dropdown-menu').addEventListener('click', async e => {
-// 		const body = invoiceSearch.querySelector('.invoice-search-result')
-// 		const limit = e.target.getAttribute('data-limit')
-// 		const url = document.getElementById('invoice-search-url').value.replace('?limit', limit)
-
-// 		invoiceSearch.querySelector('.dropdown-toggle').textContent = e.target.textContent
-// 		body.innerHTML = ''
-
-// 		const result = await utils.fetch({ url })
-
-// 		if (result.success) {
-// 			let html = ''
-
-// 			for (const item of result.data) {
-// 				html += `
-// 				<div class="invoice-search-item px-2 py-1" data-id="${item.id}">
-// 					<div class="fw-bold">
-// 						<span class="invoice-search-item-date text-primary me-2">${item.date}</span>
-// 						<span class="invoice-search-item-price text-success me-2">${item.total} €</span>
-// 						<span class="invoice-search-item-name">${item.name}</span>
-// 					</div>
-// 					<div class="invoice-search-item-patient">${item.patient}</div>
-// 				</div>
-// 			`
-// 			}
-// 			body.innerHTML = html
-// 			invoiceSearch.querySelector('.invoice-search-total').textContent = result.data.length
-// 		}
-// 	})
-
-// 	invoiceSearch.querySelector('.invoice-search-result').addEventListener('click', e => {
-// 		const id = e.target.getAttribute('data-id')
-
-// 		if (!id) return
-
-// 		window.location.assign(document.getElementById('invoice-show-url').value.replace('?id', id))
-// 	})
-
-// 	invoiceSearch.querySelector('.dropdown-menu .dropdown-item:first-child').click()
-// }
-
-
 invoiceForm.addEventListener('submit', () => {
 	document.querySelector('body').classList.add('busy')
 })

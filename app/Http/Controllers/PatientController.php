@@ -211,32 +211,6 @@ class PatientController extends Controller {
 	}
 
 	/**
-	 * Fetch the specified resource.
-	 *
-	 * @param  \App\Models\Patient  $patient
-	 * @return \Illuminate\Http\Response
-	 */
-	public function fetch(Patient $patient) {
-		$sessions = Patient::getPrevSessions($patient->id);
-		$country = Country::find($patient->address_country_id);
-		$patient->address_country = $country->name;
-		$patient->sessions = $sessions;
-
-		$key = Crypt::encrypt([
-			'patient_id' => $patient->id,
-		]);
-
-		unset($patient->id);
-		unset($patient->created_at);
-		unset($patient->updated_at);
-
-		return response()->json([
-			'key' => $key,
-			'patient' => $patient,
-		]);
-	}
-
-	/**
 	 * Get patients list with matched pattern based on code, last name and first name.
 	 *
 	 * @param  \Illuminate\Http\Request $request
