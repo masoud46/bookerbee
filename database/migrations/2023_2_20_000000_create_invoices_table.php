@@ -21,7 +21,7 @@ class CreateInvoicesTable extends Migration
             $table->string('acc_number')->nullable();
             $table->date('acc_date')->nullable();
             $table->string('doc_code', 20);
-            $table->string('doc_name', 50);
+            $table->string('doc_name', 50)->nullable();
             $table->date('doc_date')->useCurrent();
 			$table->integer('prepayment')->nullable();
             $table->date('granted_at')->nullable();
