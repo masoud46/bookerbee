@@ -7,12 +7,14 @@ export const options = {
 	storeUrl: null,
 	name: null,
 	email: null,
+	phone: null,
 }
 
 
 const modal = document.getElementById('patient-notes-modal')
 const name = modal.querySelector('.modal-title .patient-notes-modal-name')
 const email = modal.querySelector('.modal-title .patient-notes-modal-email')
+const phone = modal.querySelector('.modal-title .patient-notes-modal-phone')
 const body = modal.querySelector('.modal-body')
 const content = modal.querySelector('.modal-notes-content')
 const saveBtn = modal.querySelector('.btn-save-notes')
@@ -38,6 +40,7 @@ async function fetchPatientNotes() {
 		email.textContent = options.email
 		email.setAttribute('href', `mailto:${options.email}`)
 	}
+	if (options.phone) phone.textContent = options.phone
 	content.innerHTML = ''
 	modal.setAttribute('data-saved', "1")
 

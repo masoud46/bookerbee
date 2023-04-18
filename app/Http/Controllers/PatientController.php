@@ -167,9 +167,14 @@ class PatientController extends Controller {
 		];
 
 		if (count($patient->toArray())) {
+			if ($patient->phone_country_id) {
+				$patient->phone_prefix = Country::find($patient->phone_country_id)->prefix;
+			}
+
 			$key = Crypt::encrypt([
 				'patient_id' => $patient->id,
 			]);
+
 			$patient_object = array_merge($patient_object, [
 				'key' => $key,
 				'patient' => $patient,

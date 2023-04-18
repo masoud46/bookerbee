@@ -44,7 +44,7 @@
 		{{-- This hidden input can be removed if no preloading of flag-icons is necessary --}}
 		<input type="hidden" id="{{ $id }}-country-codes" value="{{ strtolower(implode(',', array_column($countries->toArray(), 'code'))) }}">
 
-		<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
+		<input type="hidden" name="{{ $countryField }}" value="{{ $country_id ?? '' }}">
 		<div class="input-group {{ isset($error_class) ? 'has-validation' : '' }}">
 			<button type="button" class="phone-number-dropdown btn {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
 				<img class="phone-number-country-flag" src="{{ asset('/build/flags/' . strtolower($code) . '.svg') }}">

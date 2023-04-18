@@ -308,6 +308,10 @@ class InvoiceController extends Controller {
 		$patient->sessions = $sessions;
 		$patient->name = sprintf("%s, %s", $patient->lastname, $patient->firstname);
 
+		if ($patient->phone_country_id) {
+			$patient->phone_prefix = Country::find($patient->phone_country_id)->prefix;
+		}
+
 		$key = Crypt::encrypt([
 			'patient_id' => $patient->id,
 		]);

@@ -1,15 +1,16 @@
 @extends('layouts.app', ['page_title' => '<i class="fas fa-user me-2"></i>' . __('Patient')])
 
-@php($default_country_code = config('project.default_country_code'))
-@php($add = Route::is('patient.new'))
-@php($update = isset($patient))
+@php
+	$default_country_code = config('project.default_country_code');
+	$update = isset($patient);
+@endphp
 
 @section('content')
 	<div class="container">
 		<form id="patient-form" method="post" action="{{ route('patient.store') }}" class="form" autocomplete="off" autofill="off">
-
 			@csrf
-
+			<input type="hidden" id="patient-phone_prefix" value="{{ $update ? $patient->phone_prefix : '' }}">
+			<input type="hidden" id="patient-phone_number" value="{{ $update ? $patient->phone_number : '' }}">
 			<input type="hidden" id="patient-notes-fetch-url" value="{{ route('patient.notes') }}">
 			<input type="hidden" id="patient-notes-store-url" value="{{ route('patient.notes.store') }}">
 			<input type="hidden" id="invoice-new-url" value="{{ route('invoice.new', ['patient' => '?id']) }}">
@@ -18,7 +19,7 @@
 			<div class="row mt-4">
 				<div class="col-8 col-sm-5 offset-sm-4 col-lg-7 offset-lg-2 mb-3">
 					<div class="form-check form-switch">
-						<input id="patient-category" name="patient-category" type="checkbox" class="form-check-input" role="switch" @checked(old('patient-category', $add || ($update && $patient->category === 1)))>
+						<input id="patient-category" name="patient-category" type="checkbox" class="form-check-input" role="switch" @checked(old('patient-category', !$update || $patient->category === 1))>
 						<label class="form-check-label" for="patient-category">{{ __('CNS patient') }}</label>
 					</div>
 				</div>
@@ -138,7 +139,7 @@
 						<a id="new-invoice" href="{{ route('invoice.new', ['patient' => $patient->id]) }}" class="btn btn-outline-secondary {{ session()->has('error') ? 'disabled' : '' }}"><i class="fas fa-receipt fa-fw"></i> {{ __('New invoice') }}</a>
 					@endif
 				</div>
-				<div id="patient-not-saved-message" class="col-12 pt-1 {{ $add || session()->has('error') ? '' : 'invisible' }}">
+				<div id="patient-not-saved-message" class="col-12 pt-1 {{ !$update || session()->has('error') ? '' : 'invisible' }}">
 					<small class="text-danger">{{ __('Data is not saved.') }}</small>
 				</div>
 			</div>

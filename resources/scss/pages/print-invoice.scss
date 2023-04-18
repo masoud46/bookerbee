@@ -6,8 +6,7 @@
 }
 
 body {
-	margin: 0;
-	margin-left: 0.2mm;
+	margin: 30px;
 }
 
 $width: 192mm;
@@ -374,6 +373,11 @@ $border-double: 0.4mm solid #000000;
 
 
 @media print {
+	body {
+		margin: 0;
+		margin-left: 0.2mm;
+	}
+
 	button {
 		display: none;
 	}

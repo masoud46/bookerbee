@@ -13,6 +13,7 @@ const setPatientNotesData = () => {
 	patientNotes.formKey = formKey?.value
 	patientNotes.name = `${document.getElementById('patient-lastname')?.value}, ${document.getElementById('patient-firstname')?.value}`
 	patientNotes.email = document.getElementById('patient-email').value
+	patientNotes.phone = `${document.getElementById('patient-phone_prefix')?.value} ${document.getElementById('patient-phone_number')?.value}`
 }
 
 patientNotes.fetchUrl = document.getElementById('patient-notes-fetch-url').value
@@ -47,6 +48,21 @@ function setInvoiceSaved(value) {
 	invoiceSaved.dispatchEvent(new Event('change'))
 }
 
+// re-index the apps after each removal
+function reIndexApps() {
+	const apps = invoiceApps.querySelectorAll('.app-item')
+
+	apps.forEach((app, index) => {
+		app.querySelectorAll('[name]').forEach(child => {
+			const name = child.getAttribute('name').split('-')
+
+			name.pop()
+			name.push(index)
+			child.setAttribute('name', name.join('-'))
+		})
+	})
+}
+
 // reset appointment's elements according to the medical session number
 function resetAppSessions(app = null) {
 	const visibleApps = invoiceApps.querySelectorAll('[name^="app-visible-"][value="visible"]')
@@ -55,7 +71,6 @@ function resetAppSessions(app = null) {
 		if (index > 0) {
 			const parent = type.parentElement
 			const wrapper = parent.querySelector('.app-type-wrapper')
-			const session = wrapper.getAttribute('data-session') * 1
 			const newSession = prevSessions + index + 1
 
 			const typeElement = wrapper.querySelector('.app-type')
@@ -162,6 +177,7 @@ removeApp.forEach(btn => {
 		// move the element to the end of its parent
 		app.parentNode.appendChild(app)
 		resetChildrenValues(app)
+		reIndexApps()
 		setInvoiceSaved(false)
 		addApp.classList.remove('d-none')
 		resetAppSessions()
