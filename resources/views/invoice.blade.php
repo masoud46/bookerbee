@@ -78,7 +78,7 @@
 							<input id="invoice-acc_number" name="invoice-acc_number" class="form-control form-control-sm" value="{{ old('invoice-acc_number', $update ? $invoice->acc_number : '') }}">
 						</div>
 					</div>
-					<div class="mb-3 row">
+					<div class="row">
 						<label for="invoice-acc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end">{{ __('Incident date') }}</label>
 						<div class="col-sm-8">
 							<x-resetable-date data-small="true" class="resetable-date-container form-control-sm" inputId="invoice-acc_date" inputName="invoice-acc_date" inputValue="{{ old('invoice-acc_date', $update ? $invoice->acc_date : '') }}" />
@@ -95,7 +95,7 @@
 							<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : '') }}" placeholder="{{ __('Name') }}">
 						</div>
 					</div>
-					<div class="mb-3 row">
+					<div class="row">
 						<label for="invoice-doc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Date') }}</span></label>
 						<div class="col-sm-8">
 							<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : '') }}">
@@ -141,38 +141,38 @@
 								<input id="patient-address_line3" name="patient-address_line3" class="form-control form-control-sm" placeholder="{{ __('Line :line', ['line' => 3]) }}" value="{{ old('patient-address_line3', $update ? $invoice->patient_address_line3 : $patient->address_line3) }}">
 							</div>
 							<div class="row">
-								<div class="mb-3 col-lg-5">
+								<div class="mb-1 col-lg-5">
 									<input id="patient-address_code" name="patient-address_code" class="form-control form-control-sm @error('patient-address_code') is-invalid @enderror" placeholder="{{ __('Postal code') }}" value="{{ old('patient-address_code', $update ? $invoice->patient_address_code : $patient->address_code) }}">
 									@error('patient-address_code')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
-								<div class="mb-3 col-lg-7">
+								<div class="mb-1 col-lg-7">
 									<input id="patient-address_city" name="patient-address_city" class="form-control form-control-sm @error('patient-address_city') is-invalid @enderror" placeholder="{{ __('City') }}" value="{{ old('patient-address_city', $update ? $invoice->patient_address_city : $patient->address_city) }}">
 									@error('patient-address_city')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
-							</div>
-							<div class="mb-3">
-								<select id="patient-address_country_id" name="patient-address_country_id" class="form-select form-select-sm @error('patient-address_country_id') is-invalid @enderror">
-									<option value="" selected hidden>{{ __('Country') }}</option>
-									@foreach ($countries as $country)
-										@php($selected = $add ? $country->id === $patient->address_country_id : ($update ? $country->id === $invoice->patient_address_country_id : $country->code === $default_country_code))
-										@if (old('patient-address_country_id'))
-											{{ $selected = intval(old('patient-address_country_id')) === $country->id }}
-										@endif
-										<option value="{{ $country->id }}"{{ $selected ? ' selected' : '' }}>{{ $country->name }}</option>
-									@endforeach
-								</select>
-								@error('patient-address_country_id')
-									<div class="invalid-feedback">{{ $message }}</div>
-								@enderror
+								<div class="col-12">
+									<select id="patient-address_country_id" name="patient-address_country_id" class="form-select form-select-sm @error('patient-address_country_id') is-invalid @enderror">
+										<option value="" selected hidden>{{ __('Country') }}</option>
+										@foreach ($countries as $country)
+											@php($selected = $add ? $country->id === $patient->address_country_id : ($update ? $country->id === $invoice->patient_address_country_id : $country->code === $default_country_code))
+											@if (old('patient-address_country_id'))
+												{{ $selected = intval(old('patient-address_country_id')) === $country->id }}
+											@endif
+											<option value="{{ $country->id }}"{{ $selected ? ' selected' : '' }}>{{ $country->name }}</option>
+										@endforeach
+									</select>
+									@error('patient-address_country_id')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="col-12">
+				<div class="col-12 mt-4">
 					<div class="border-top pt-1"><small class="text-muted fst-italic">{!! __('Fields indicated by :star are required.', ['star' => '<span class="required-field me-2"></span>&nbsp;']) !!}</small></div>
 				</div>
 			</div>

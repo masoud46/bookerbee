@@ -65,7 +65,7 @@
 							@enderror
 						</div>
 					</div>
-					<div class="mb-3 row">
+					<div class="row">
 						<label for="patient-phone_number" class="col-sm-4 col-form-label text-sm-end">{{ __('Phone') }}</label>
 						<div class="col-sm-8">
 							@error('patient-phone_number')
@@ -95,39 +95,39 @@
 								<input id="patient-address_line3" name="patient-address_line3" class="form-control" placeholder="{{ __('Line :line', ['line' => 3]) }}" value="{{ old('patient-address_line3', $update ? $patient->address_line3 : '') }}">
 							</div>
 							<div class="row">
-								<div class="mb-3 col-5">
+								<div class="mb-1 col-5">
 									<input id="patient-address_code" name="patient-address_code" class="form-control @error('patient-address_code') is-invalid @enderror" placeholder="{{ __('Postal code') }}" value="{{ old('patient-address_code', $update ? $patient->address_code : '') }}">
 									@error('patient-address_code')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
-								<div class="mb-3 col-7">
+								<div class="mb-1 col-7">
 									<input id="patient-address_city" name="patient-address_city" class="form-control @error('patient-address_city') is-invalid @enderror" placeholder="{{ __('City') }}" value="{{ old('patient-address_city', $update ? $patient->address_city : '') }}">
 									@error('patient-address_city')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
-							</div>
-							<div class="mb-3">
-								<select style="appearance:none;" id="patient-address_country_id" name="patient-address_country_id" class="form-select @error('patient-address_country_id') is-invalid @enderror">
-									<option value="" selected hidden>{{ __('Country') }}</option>
-									@foreach ($countries as $country)
-										@php($selected = $update ? $country->id === $patient->address_country_id : $country->code === $default_country_code)
-										@if (old('patient-address_country_id'))
-											{{ $selected = intval(old('patient-address_country_id')) === $country->id }}
-										@endif
-										<option value="{{ $country->id }}" {{ $selected ? 'selected' : '' }}>{{ $country->name }}</option>
-									@endforeach
-								</select>
-								@error('patient-address_country_id')
-									<div class="invalid-feedback">{{ $message }}</div>
-								@enderror
+								<div class="col-12">
+									<select style="appearance:none;" id="patient-address_country_id" name="patient-address_country_id" class="form-select @error('patient-address_country_id') is-invalid @enderror">
+										<option value="" selected hidden>{{ __('Country') }}</option>
+										@foreach ($countries as $country)
+											@php($selected = $update ? $country->id === $patient->address_country_id : $country->code === $default_country_code)
+											@if (old('patient-address_country_id'))
+												{{ $selected = intval(old('patient-address_country_id')) === $country->id }}
+											@endif
+											<option value="{{ $country->id }}" {{ $selected ? 'selected' : '' }}>{{ $country->name }}</option>
+										@endforeach
+									</select>
+									@error('patient-address_country_id')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="row mb-4">
+			<div class="row mt-3 mb-4">
 				<div class="col-12">
 					<div class="border-top pt-1"><small class="text-muted fst-italic">{!! __('Fields indicated by :star are required.', ['star' => '<span class="required-field me-2"></span>&nbsp;']) !!}</small></div>
 				</div>
