@@ -17,7 +17,7 @@
 	    $class = implode(' ', $class_array);
 	}
 @endphp
-<div class="{{ $class ?? '' }} d-flex align-items-center">
+<div class="{{ $class ?? '' }} d-flex align-items-center resetable-date-parent-container">
 	<input type="date" id="{{ $inputId }}" name="{{ $inputName }}" class="form-control {{ $small }} flex-grow-1 resetable-date-input" {{ $resetable_date_disabled ? 'disabled' : '' }} value="{{ $inputValue }}">
 	@if (!$resetable_date_disabled)
 		<div class="rounded text-muted ms-1 resetable-date-button" onclick="
@@ -27,7 +27,7 @@
 				input.dispatchEvent(new Event('input'))
 			}
 		">
-			<i class="fas fa-arrows-rotate"></i>
+			<span id="{{ $inputId }}-reset-icon" data-bs-toggle="tooltip" data-bs-title="{{ __("Reset date") }}"><i class="fas fa-arrows-rotate"></i></span>
 		</div>
 	@endif
 </div>
