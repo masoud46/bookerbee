@@ -65,7 +65,7 @@
 							@enderror
 						</div>
 					</div>
-					<div class="row">
+					<div class="mb-3 row">
 						<label for="patient-phone_number" class="col-sm-4 col-form-label text-sm-end">{{ __('Phone') }}</label>
 						<div class="col-sm-8">
 							@error('patient-phone_number')
@@ -107,7 +107,7 @@
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
-								<div class="col-12">
+								<div class="mb-3 col-12">
 									<select style="appearance:none;" id="patient-address_country_id" name="patient-address_country_id" class="form-select @error('patient-address_country_id') is-invalid @enderror">
 										<option value="" selected hidden>{{ __('Country') }}</option>
 										@foreach ($countries as $country)
@@ -127,7 +127,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="row mt-3 mb-4">
+			<div class="row mb-4">
 				<div class="col-12">
 					<div class="border-top pt-1"><small class="text-muted fst-italic">{!! __('Fields indicated by :star are required.', ['star' => '<span class="required-field me-2"></span>&nbsp;']) !!}</small></div>
 				</div>
