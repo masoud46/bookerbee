@@ -1,7 +1,7 @@
 <div id="patient-notes-modal" class="modal fade" data-saved="1" tabindex="-1" aria-labelledby="patient-notes-modal-title" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-fullscreen-lg-down modal-dialog-scrollable">
 		<div class="modal-content shadow">
-			<div class="modal-header shadow-sm">
+			<div class="modal-header bg-dark bg-opacity-10">
 				<h6 class="modal-title" id="patient-notes-modal-title">
 					{{ __('Notes:') }}
 					<span class="patient-notes-modal-name fw-bold me-3"></span>
