@@ -84,7 +84,7 @@
 							</div>
 							<div class="cns">
 								{{-- &lt;réservé CNS&gt; --}}
-								<button onClick="window.print()">Imprimer la mémoire d'honoraires</button>
+								<button onClick="window.print()">{{ __("Print the statement") }}</button>
 							</div>
 							<div class="header-right-address">
 								<div>{{ $invoice->patient_lastname }}, {{ $invoice->patient_firstname }}</div>

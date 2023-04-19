@@ -15,6 +15,7 @@ class CreatePatientsTable extends Migration
     {
         Schema::create('patients', function (Blueprint $table) {
             $table->id();
+			$table->integer('user_id');
 			$table->tinyInteger('category')->comment('1=National healthcare, 2=other');
 			$table->string('code', 20)->unique();
             $table->string('firstname', 50);

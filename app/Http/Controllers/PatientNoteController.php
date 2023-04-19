@@ -31,8 +31,7 @@ class PatientNoteController extends Controller {
 		try {
 			$form_key = Crypt::decrypt($params['form-key']);
 			$notes = PatientNotes::select(['id', 'notes'])
-				->where('patient_id', $form_key['patient_id'])
-				->where('user_id', Auth::user()->id)
+				->wherePatientId($form_key['patient_id'])
 				// ->latest("created_at")
 				->first();
 
@@ -103,7 +102,7 @@ class PatientNoteController extends Controller {
 
 		try {
 			$notes = PatientNotes::updateOrCreate(
-				['patient_id' => $form_key['patient_id'], 'user_id' => Auth::user()->id],
+				['patient_id' => $form_key['patient_id']],
 				['notes' => $notes_str]
 			);
 

@@ -2,11 +2,10 @@
 	<div class="modal-dialog modal-xl modal-fullscreen-lg-down modal-dialog-scrollable">
 		<div class="modal-content shadow">
 			<div class="modal-header bg-dark bg-opacity-10">
-				<h6 class="modal-title" id="patient-notes-modal-title">
-					{{ __('Notes:') }}
-					<span class="patient-notes-modal-name fw-bold me-3"></span>
-					<i class="far fa-envelope me-1"></i><a class="patient-notes-modal-email me-3"></a>
-					<i class="fas fa-mobile-screen-button me-1"></i><span class="patient-notes-modal-phone"></span>
+				<h6 class="modal-title d-flex flex-wrap" id="patient-notes-modal-title">
+					<span><i class="far fa-user fa-fw me-1"></i><span class="patient-notes-modal-name fw-bold me-3"></span></span>
+					<span><i class="far fa-envelope fa-fw me-1"></i><a class="patient-notes-modal-email me-3"></a></span>
+					<span><i class="fas fa-mobile-screen-button fa-fw me-1"></i><span class="patient-notes-modal-phone"></span></span>
 				</h6>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>

@@ -88,17 +88,17 @@
 					<div class="mb-3 row">
 						<label for="invoice-doc_code" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Prescriber') }}</span></label>
 						<div class="col-sm-8 mb-1">
-							<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : '') }}" placeholder="{{ __('Code') }}">
+							<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($prescription ? $prescription->code : '')) }}" placeholder="{{ __('Code') }}">
 							@error('invoice-doc_code')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
-							<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : '') }}" placeholder="{{ __('Name') }}">
+							<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : ($prescription ? $prescription->name : '')) }}" placeholder="{{ __('Name') }}">
 						</div>
 					</div>
 					<div class="row">
 						<label for="invoice-doc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Date') }}</span></label>
 						<div class="col-sm-8">
-							<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : '') }}">
+							<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : ($prescription ? $prescription->date : '')) }}">
 							@error('invoice-doc_date')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Country;
 use App\Models\Patient;
+use Hashids;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -27,7 +29,7 @@ class PatientController extends Controller {
 	public function index() {
 		$entries = 'resources/js/pages/index.js';
 
-		$patients_count = Patient::all()->count();
+		$patients_count = Patient::whereUserId(Auth::user()->id)->count();
 
 		return view('patient-index', [
 			'entries' => $entries,
@@ -64,7 +66,9 @@ class PatientController extends Controller {
 		$is_update = isset($form_key['patient_id']);
 
 		if ($is_update) { // update request
-			$patient = Patient::find($form_key['patient_id']);
+			$patient = Patient::whereId($form_key['patient_id'])
+				->whereUserId(Auth::user()->id)
+				->first();
 			if ($patient === null) {
 				session()->flash("error", __("Patient not found."));
 				return back()->withInput();
@@ -126,6 +130,7 @@ class PatientController extends Controller {
 
 		if (!$is_update) { // create request
 			$patient = new Patient();
+			$patient->user_id = Auth::user()->id;
 		}
 
 		if (!$patient_object['phone_number']) {
@@ -135,6 +140,7 @@ class PatientController extends Controller {
 		foreach ($patient_object as $key => $value) {
 			$patient[$key] = $value;
 		}
+
 		$patient->firstname = ucfirst($patient->firstname);
 		$patient->lastname = strtoupper($patient->lastname);
 		$patient->save();
@@ -157,6 +163,10 @@ class PatientController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function show(Patient $patient) {
+		if ($patient->user_id !== Auth::user()->id) {
+			abort(404);
+		}
+
 		$entries = 'resources/js/pages/patient.js';
 
 		$countries = Country::sortedList();
@@ -229,19 +239,21 @@ class PatientController extends Controller {
 			"firstname",
 			DB::raw("UPPER(patients.lastname) AS lastname"),
 		])
-			->where("code", "LIKE", "{$request->str}%")
-			->orWhere("lastname", "LIKE", "%{$request->str}%")
-			->orWhere("firstname", "LIKE", "%{$request->str}%")
-			// had to use the following approach to eliminate duplicates
-			// where $request->str found in more than one orWhere
-			// ->where(function ($query) use ($request) {
-			// 	$query
-			// 		->where("code", "LIKE", "{$request->str}%")
-			// 		->orWhere("lastname", "LIKE", "%{$request->str}%")
-			// 		->orWhere("firstname", "LIKE", "%{$request->str}%");
-			// })
+			->whereUserId(Auth::user()->id)
+			// // had to use the following approach to eliminate duplicates
+			// // where $request->str found in more than one orWhere
+			->where(function ($query) use ($request) {
+				$query
+					->where("code", "LIKE", "{$request->str}%")
+					->orWhere("lastname", "LIKE", "%{$request->str}%")
+					->orWhere("firstname", "LIKE", "%{$request->str}%");
+			})
 			->orderBy("code")
 			->get();
+		
+		// foreach ($patients as $key => $value) {
+		// 	$value->hash = Hashids::encode($value->id);
+		// }
 
 		return response()->json($patients);
 	}

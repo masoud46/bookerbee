@@ -29,7 +29,6 @@ class Patient extends Model {
 			})
 			->leftJoin("appointments", "appointments.invoice_id", "=", "invoices.id")
 			->count();
-		// ->get();
 
 		return $sessions;
 	}

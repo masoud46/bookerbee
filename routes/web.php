@@ -36,8 +36,6 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');
 		Route::get('/invoice/search/{limit}', [InvoiceController::class, 'index'])->name('invoice.index');
 		Route::get('/invoice/new/{patient}', [InvoiceController::class, 'create'])->name('invoice.new');
-		Route::post('/invoice/autocomplete', [InvoiceController::class, 'autocomplete'])->name('invoice.autocomplete');
-		// Route::get('/invoice/autocomplete/{text}', [InvoiceController::class, 'autocomplete'])->name('invoice.autocomplete');
 		Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
 		Route::get('/invoice/{invoice}/print', [InvoiceController::class, 'print'])->name('invoice.print');
 

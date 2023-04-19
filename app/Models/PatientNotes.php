@@ -14,7 +14,6 @@ class PatientNotes extends Model {
 	 * @var array<int, string>
 	 */
 	protected $fillable = [
-		'user_id',
 		'patient_id',
 		'notes',
 	];

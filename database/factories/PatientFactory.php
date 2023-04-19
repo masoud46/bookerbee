@@ -12,6 +12,7 @@ class PatientFactory extends Factory {
 	 */
 	public function definition() {
 		return [
+			'user_id' => $this->faker->numberBetween(1, 2),
 			'category' => $this->faker->numberBetween(1, 3),
 			'code' => $this->faker->unique()->numberBetween(1234567890123, 9876543210987),
 			'firstname' => ucfirst($this->faker->firstName()),

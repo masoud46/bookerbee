@@ -13,7 +13,7 @@ class CreatePatientNotesTable extends Migration {
 	public function up() {
 		Schema::create('patient_notes', function (Blueprint $table) {
 			$table->id();
-			$table->integer('user_id');
+			// $table->integer('user_id');
 			$table->integer('patient_id');
 			$table->text('notes');
 			$table->timestamp('created_at')->useCurrent();

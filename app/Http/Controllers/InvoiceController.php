@@ -91,8 +91,8 @@ class InvoiceController extends Controller {
 	 * @return Array
 	 */
 	protected function getInvoice($id, $fraction = false) {
-		$check = Invoice::whereId($id)->whereUserId(Auth::user()->id);
-		if (!$check) {
+		$invoice = Invoice::whereId($id)->whereUserId(Auth::user()->id);
+		if (!$invoice) {
 			abort(404);
 		}
 
@@ -224,10 +224,10 @@ class InvoiceController extends Controller {
 	public function index($limit = null) {
 		$entries = 'resources/js/pages/index.js';
 
-		$patients_count = Patient::all()->count();
-		$count = Invoice::where("user_id", "=", Auth::user()->id)->count();
+		$patients_count = Patient::whereUserId(Auth::user()->id)->count();
+		$count = Invoice::whereUserId(Auth::user()->id)->count();
 		$years = Invoice::select(DB::raw('YEAR(created_at) AS year'))
-			->where("user_id", "=", Auth::user()->id)
+			->whereUserId(Auth::user()->id)
 			// ->latest()
 			->groupBy("year")
 			->get();
@@ -296,11 +296,25 @@ class InvoiceController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function create(Patient $patient) {
+		if ($patient->user_id !== Auth::user()->id) {
+			abort(404);
+		}
+
 		$entries = 'resources/js/pages/invoice.js';
 
 		$invoice_object = array_merge($this->getCommonData(), [
 			'entries' => $entries,
 		]);
+
+		$lastPrescription = Invoice::select([
+			"doc_code AS code",
+			"doc_name AS name",
+			"doc_date AS date",
+		])
+			->whereUserId(Auth::user()->id)
+			->wherePatientId($patient->id)
+			->latest()
+			->first();
 
 		$sessions = Patient::getPrevSessions($patient->id);
 		// $country = Country::find($patient->address_country_id);
@@ -323,6 +337,7 @@ class InvoiceController extends Controller {
 		$invoice_object = array_merge($invoice_object, [
 			'key' => $key,
 			'patient' => $patient,
+			'prescription' => $lastPrescription,
 		]);
 
 		return view('invoice', $invoice_object);
@@ -633,11 +648,11 @@ class InvoiceController extends Controller {
 
 	/**
 	 * Get invoice list with matched pattern based on patient's code, last name and first name.
+	 * *** NOT USED ANYMORE ***
 	 *
 	 * @param  \Illuminate\Http\Request $request
 	 * @return \Illuminate\Http\Response
 	 */
-	// public function autocomplete($str) {
 	public function autocomplete(Request $request) {
 		$str = $request->str;
 		$invoices = DB::table('invoices')->select([

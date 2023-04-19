@@ -174,6 +174,8 @@ class UserController extends Controller {
 		}
 
 		if ($is_profile) {
+			$user['firstname'] = ucfirst($user['firstname']);
+			$user['lastname'] = strtoupper($user['lastname']);
 			$user['titles'] = json_encode(
 				array_values( // remove keys, get only the values
 					array_filter( // remove empty rows (preserves keys)
