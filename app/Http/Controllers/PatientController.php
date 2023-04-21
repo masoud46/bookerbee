@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Country;
 use App\Models\Patient;
 use Hashids;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class PatientController extends Controller {
 	/**
@@ -92,12 +94,23 @@ class PatientController extends Controller {
 			: "regex:/^\d{8,15}$/";
 
 		$params_rules = [
-			// 'patient-code' => ["required", "regex:/^(?=\d*$)(?:.{13}|.{15})$/", "unique:patients,code" . ($is_update ? ",{$form_key['patient_id']}" : "")],
-			'patient-code' => [$code_regex, "unique:patients,code" . ($is_update ? ",{$form_key['patient_id']}" : "")],
+			'patient-code' => [
+				"required",
+				$code_regex,
+				Rule::unique('patients', 'code')
+					->where('user_id', Auth::user()->id)
+					->ignore($form_key['patient_id'] ?? -1),
+			],
 			'patient-firstname' => "required",
 			'patient-lastname' => "required",
-			'patient-email' => "nullable|email|unique:patients,email" . ($is_update ? ",{$form_key['patient_id']}" : ""),
-			'patient-phone_country_id' => "required|numeric",
+			'patient-email' => [
+				"nullable",
+				"email",
+				Rule::unique('patients', 'email')
+					->where('user_id', Auth::user()->id)
+					->ignore($form_key['patient_id'] ?? -1),
+			],
+			'patient-phone_country_id' => "nullable|numeric",
 			'patient-phone_number' => "nullable",
 			'patient-address_line1' => "required",
 			'patient-address_code' => "required",
@@ -142,7 +155,7 @@ class PatientController extends Controller {
 		}
 
 		$patient->firstname = ucfirst($patient->firstname);
-		$patient->lastname = strtoupper($patient->lastname);
+		$patient->lastname = ucfirst($patient->lastname);
 		$patient->save();
 
 		if ($is_update) {
@@ -162,8 +175,8 @@ class PatientController extends Controller {
 	 * @param  \App\Models\Patient  $patient
 	 * @return \Illuminate\Http\Response
 	 */
-	public function show(Patient $patient) {
-		if ($patient->user_id !== Auth::user()->id) {
+	public function show(Patient $patient = null) {
+		if ($patient && $patient->user_id !== Auth::user()->id) {
 			abort(404);
 		}
 
@@ -176,7 +189,7 @@ class PatientController extends Controller {
 			'countries' => $countries,
 		];
 
-		if (count($patient->toArray())) {
+		if ($patient) { // update request
 			if ($patient->phone_country_id) {
 				$patient->phone_prefix = Country::find($patient->phone_country_id)->prefix;
 			}
@@ -237,7 +250,7 @@ class PatientController extends Controller {
 			"category",
 			"code",
 			"firstname",
-			DB::raw("UPPER(patients.lastname) AS lastname"),
+			"lastname",
 		])
 			->whereUserId(Auth::user()->id)
 			// // had to use the following approach to eliminate duplicates

@@ -24,7 +24,7 @@
 						<div class="header-left">
 							<div class="user">
 								<div class="user-name">
-									<div>{{ $user->lastname }}, {{ $user->firstname }}</div>
+									<div>{{ strtoupper($user->lastname) }}, {{ ucfirst($user->firstname) }}</div>
 									@foreach ($titles as $title)
 										<div>{{ $title }}</div>
 									@endforeach
@@ -84,21 +84,22 @@
 							</div>
 							<div class="cns">
 								{{-- &lt;réservé CNS&gt; --}}
-								<button onClick="window.print()">{{ __("Print the statement") }}</button>
+								<button onClick="window.print()">{{ __('Print the statement') }}</button>
 							</div>
 							<div class="header-right-address">
-								<div>{{ $invoice->patient_lastname }}, {{ $invoice->patient_firstname }}</div>
-								@if ($invoice->patient_address_line1)
-									<div>{{ $invoice->patient_address_line1 }}</div>
-								@endif
-								@if ($invoice->patient_address_line2)
-									<div>{{ $invoice->patient_address_line2 }}</div>
-								@endif
-								@if ($invoice->patient_address_line3)
-									<div>{{ $invoice->patient_address_line3 }}</div>
-								@endif
-								<div>{{ $invoice->patient_address_country }} - {{ $invoice->patient_address_code }}
-									{{ $invoice->patient_address_city }}</div>
+								<div>
+									<div>{{ strtoupper($invoice->patient_lastname) }}, {{ ucfirst($invoice->patient_firstname) }}</div>
+									@if ($invoice->patient_address_line1)
+										<div>{{ $invoice->patient_address_line1 }}</div>
+									@endif
+									@if ($invoice->patient_address_line2)
+										<div>{{ $invoice->patient_address_line2 }}</div>
+									@endif
+									@if ($invoice->patient_address_line3)
+										<div>{{ $invoice->patient_address_line3 }}</div>
+									@endif
+									<div>{{ $invoice->patient_address_country }} - {{ $invoice->patient_address_code }} {{ $invoice->patient_address_city }}</div>
+								</div>
 							</div>
 							<div class="header-right-date">
 								<div>Date ordonnance :</div>
@@ -194,7 +195,7 @@
 							<div>
 								<div>{{ $user->bank_account }}</div>
 								<div>{{ $user->bank_swift }}</div>
-								<div>{{ sprintf("Lors du virement, veuillez indiquer votre nom et la référence %s", $invoice->reference) }}</div>
+								<div>{{ sprintf('Lors du virement, veuillez indiquer votre nom et la référence %s', $invoice->reference) }}</div>
 							</div>
 						</div>
 						<div class="elsewhere">

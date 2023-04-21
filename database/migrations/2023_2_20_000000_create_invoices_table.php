@@ -17,6 +17,7 @@ class CreateInvoicesTable extends Migration
             $table->id();
 			$table->integer('user_id');
             $table->integer('patient_id');
+            $table->integer('session')->default(1);
             $table->string('name', 100);
             $table->string('acc_number')->nullable();
             $table->date('acc_date')->nullable();

@@ -249,8 +249,14 @@ $border-double: 0.4mm solid #000000;
 
 		.header-right-address {
 			height: 35.5mm;
-			padding-top: 5mm;
-			padding-left: 20mm !important;
+			// padding-top: 5mm;
+			// padding-left: 20mm !important;
+			padding: 0 !important;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			text-align: left;
 		}
 
 		.prescriber,

@@ -1,6 +1,15 @@
 @import '../app-colors';
 
 
+.invoice-session-container {
+	border-width: 0.1rem !important;
+}
+
+#invoice-session {
+	width: 5rem;
+	padding-right: 0.25rem;
+}
+
 #invoice-location {
 	overflow: hidden;
 	max-height: 0;
@@ -10,7 +19,6 @@
 		max-height: 250px;
 	}
 }
-
 
 .app-type-wrapper {
 	position: relative;

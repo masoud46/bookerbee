@@ -51,7 +51,9 @@ class AppServiceProvider extends ServiceProvider {
 					'user_code' => __("This code is already in use."),
 				],
 				'numeric' => __("This field must be numeric."),
+				'session' => __("The initial session must be :initial_session or grater."),
 				'date' => __("Please enter a valid date."),
+				'iban' => __("Please verify your bank account number."),
 			];
 		});
 

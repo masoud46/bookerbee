@@ -140,9 +140,13 @@
     "First name": "Prénom",
     "Profile": "Profil",
     "Ref.": "Réf.",
+    "Session": "Session",
+    "Current session": "Session actuelle",
+    "Initial session": "Session initiale",
+    "Previous sessions:": "Sessions précédentes :",
+    "The initial session must be :initial_session or grater.": "La session initiale doit être :initial_session ou plus.",
     "Without the secondary address, location :location will be disabled.": "Sans l'adresse secondaire, le lieu :location sera désactivé.",
     "Save": "Sauvegarder",
-    "Previous sessions:": "Sessions précédentes :",
     "All fields are mandatory.": "Tous les champs sont obligatoires.",
     "Phone": "Téléphone",
     "Titles": "Titres",
@@ -160,6 +164,9 @@
     "Changes are not saved.": "Les modifications ne sont pas sauvegardées.",
     "An unexpected error has occurred.": "Une erreur inattendu est survenu.",
     "Reset date": "Réinitialiser la date",
+    "Bank account": "Compte bancaire",
+    "Please verify your bank account number.": "Veuillez vérifier votre numéro de compte bancaire.",
+    "optional": "facultatif",
     "Print the statement": "Imprimer le mémoire d'honoraires",
 
     "Afghanistan": "Afghanistan",
@@ -412,5 +419,4 @@
     "Yemen": "Yémen",
     "Zambia": "Zambie",
     "Zimbabwe": "Zimbabwe"
-
 }

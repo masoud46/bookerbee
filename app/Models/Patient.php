@@ -18,16 +18,14 @@ class Patient extends Model {
 	 * @return Integer
 	 */
 	public static function getPrevSessions($id, $date = null) {
-
-		$sessions = Invoice::select(["appointments.id"])
-			->whereUserId(Auth::user()->id)
+		$sessions = Invoice::whereUserId(Auth::user()->id)
 			->wherePatientId($id)
 			->where(function ($query) use ($date) {
 				if ($date) {
 					$query->where("invoices.created_at", "<", $date);
 				}
 			})
-			->leftJoin("appointments", "appointments.invoice_id", "=", "invoices.id")
+			->join("appointments", "appointments.invoice_id", "=", "invoices.id")
 			->count();
 
 		return $sessions;

@@ -22,7 +22,6 @@
 	$disabled = $editable ? '' : 'disabled';
 	
 	$category = $add ? $patient->category : $invoice->patient_category;
-	$sessions = $add ? $patient->sessions : $invoice->patient_sessions;
 	$appDefaultLocation = 3;
 	$last_app = -1;
 	$title_color = $category === 1 ? 'national-healthcare' : 'secondary';
@@ -33,6 +32,8 @@
 	} elseif ($update) {
 	    $last_app = $appointments->count() - 1;
 	}
+	
+	$session = old('invoice-session', $add ? $lastInvoice['next_session'] : $invoice->session);
 @endphp
 
 @section('content')
@@ -88,17 +89,17 @@
 					<div class="mb-3 row">
 						<label for="invoice-doc_code" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Prescriber') }}</span></label>
 						<div class="col-sm-8 mb-1">
-							<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($prescription ? $prescription->code : '')) }}" placeholder="{{ __('Code') }}">
+							<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($lastInvoice ? $lastInvoice['doc_code'] : '')) }}" placeholder="{{ __('Code') }}">
 							@error('invoice-doc_code')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
-							<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : ($prescription ? $prescription->name : '')) }}" placeholder="{{ __('Name') }}">
+							<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : ($lastInvoice ? $lastInvoice['doc_name'] : '')) }}" placeholder="{{ __('Name') }}">
 						</div>
 					</div>
 					<div class="row">
 						<label for="invoice-doc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Date') }}</span></label>
 						<div class="col-sm-8">
-							<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : ($prescription ? $prescription->date : '')) }}">
+							<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : ($lastInvoice ? $lastInvoice['doc_date'] : '')) }}">
 							@error('invoice-doc_date')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
@@ -176,14 +177,20 @@
 					<div class="border-top pt-1"><small class="text-muted fst-italic">{!! __('Fields indicated by :star are required.', ['star' => '<span class="required-field me-2"></span>&nbsp;']) !!}</small></div>
 				</div>
 			</div>
-			<div class="row my-2">
+			<div class="row">
 				<div class="col-12">
-					<h6 class="text-{{ $title_color }} text-center mt-2 mb-0 pt-2 fw-bold">
-						{{ __('INVOICE') }} {!! $category === 1 ? '- CNS' : '' !!}
+					<h6 class="text-{{ $title_color }} text-center mt-2 mb-1 pt-2">
+						<span class="fw-bold">{{ __('INVOICE') }} {!! $category === 1 ? '- CNS' : '' !!}</span>
 					</h6>
-					<h6 class="text-{{ $title_color }} border-bottom text-center mt-2 mb-0 pb-2">
-						{{ __('Previous sessions:') }} <span id="patient-prev-sessions" class="fw-bold">{{ $sessions }}</span>
-					</h6>
+					<div class="border-bottom d-flex flex-wrap justify-content-center text-left">
+						<div class="invoice-session-container d-flex flex-wrap justify-content-center align-items-center text-{{ $title_color }} my-1 py-2 px-3 border border-{{ $title_color }} rounded-1">
+							<span class="fw-bold text-nowrap">{{ __('Initial session') }}</span>
+							<input id="invoice-session" name="invoice-session" type="number" min="{{ $lastInvoice['next_session'] }}" class="form-control form-control-sm mx-2 fw-bold @error('invoice-session') is-invalid @enderror" {{ $editable ? '' : 'disabled' }} value="{{ $session }}" onkeydown="if([13,38,40].indexOf(event.which)===-1)event.preventDefault()">
+							@error('invoice-session')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="row">
@@ -222,7 +229,7 @@
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
-							<div class="col-md-2 mb-1 app-type-wrapper" data-session="{{ $hidden ? '0' : $sessions + $i + 1 }}">
+							<div class="col-md-2 mb-1 app-type-wrapper" data-session="{{ $hidden ? '0' : $session + $i }}">
 								<select name="app-type_id-{{ $i }}" class="app-type form-select form-select-sm @error("app-type_id-{$i}") is-invalid @enderror">
 									<option value="" selected hidden>{{ __('Acte') }}</option>
 									@php($type_id = null)
@@ -235,7 +242,7 @@
 										            $type_id = $type->id;
 										        }
 										    } else {
-										        $type_id = $type->max_sessions ? ($sessions + 1 > $type->max_sessions ? null : $type->id) : $type->id;
+										        $type_id = $type->max_sessions ? ($session > $type->max_sessions ? null : $type->id) : $type->id;
 										        if ($description === null && $category === 1 && $type_id) {
 										            $description = $type->description;
 										        }

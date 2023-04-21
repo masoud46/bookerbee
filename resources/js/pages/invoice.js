@@ -29,7 +29,7 @@ const invoiceLocation = document.getElementById('invoice-location')
 const invoiceSaved = document.getElementById('invoice-saved')
 const invoiceNotSavedMessage = document.getElementById('invoice-not-saved-message')
 const printInvoiceBtn = document.getElementById('print-invoice')
-const prevSessions = document.getElementById('patient-prev-sessions').textContent * 1
+const currentSession = document.getElementById('invoice-session')
 const sessionTypes = JSON.parse(document.getElementById('invoice-sessions-types').value)
 const patientCategory = JSON.parse(document.getElementById('invoice-patient-category').value)
 
@@ -63,54 +63,52 @@ function reIndexApps() {
 	})
 }
 
-// reset appointment's elements according to the medical session number
+// reset appointment's elements according to the invoice session number
 function resetAppSessions(app = null) {
 	const visibleApps = invoiceApps.querySelectorAll('[name^="app-visible-"][value="visible"]')
 
 	visibleApps.forEach((type, index) => {
-		if (index > 0) {
-			const parent = type.parentElement
-			const wrapper = parent.querySelector('.app-type-wrapper')
-			const newSession = prevSessions + index + 1
+		const parent = type.parentElement
+		const wrapper = parent.querySelector('.app-type-wrapper')
+		const newSession = parseInt(currentSession.value) + index
 
-			const typeElement = wrapper.querySelector('.app-type')
-			const descriptionElement = parent.querySelector('.app-description')
-			const prevId = typeElement.value * 1
-			const prevDescription = descriptionElement.value
+		const typeElement = wrapper.querySelector('.app-type')
+		const descriptionElement = parent.querySelector('.app-description')
+		const prevId = typeElement.value * 1
+		const prevDescription = descriptionElement.value
 
-			typeElement.classList.remove('app-type-changed')
-			descriptionElement.classList.remove('app-type-changed')
+		typeElement.classList.remove('app-type-changed')
+		descriptionElement.classList.remove('app-type-changed')
 
-			let id = 0
-			let description = ''
-			for (const type of sessionTypes) {
-				if (!type.max_sessions) {
-					type.max_sessions = 10000 // estimated max sessions!?
-				}
+		let id = 0
+		let description = ''
+		for (const type of sessionTypes) {
+			if (!type.max_sessions) {
+				type.max_sessions = 100000 // estimated max sessions!!
+			}
 
-				if (newSession <= type.max_sessions) {
-					id = type.id
-					if (id !== prevId) {
-						if (patientCategory === 1) {
-							description = type.description
-						}
-					} else {
-						description = prevDescription
+			if (newSession <= type.max_sessions) {
+				id = type.id
+				if (id !== prevId) {
+					if (patientCategory === 1) {
+						description = type.description
 					}
-					break
+				} else {
+					description = prevDescription
 				}
+				break
 			}
+		}
 
-			wrapper.setAttribute('data-session', newSession)
-			typeElement.value = id
-			descriptionElement.value = description
+		wrapper.setAttribute('data-session', newSession)
+		typeElement.value = id
+		descriptionElement.value = description
 
-			if (parent !== app) { // do not apply "changed" class to the added app
-				setTimeout(() => {
-					if (id !== prevId) typeElement.classList.add('app-type-changed')
-					if (description !== prevDescription) descriptionElement.classList.add('app-type-changed')
-				}, 0);
-			}
+		if (parent !== app) { // do not apply "changed" class to the added app
+			setTimeout(() => {
+				if (id !== prevId) typeElement.classList.add('app-type-changed')
+				if (description !== prevDescription) descriptionElement.classList.add('app-type-changed')
+			}, 0);
 		}
 	})
 }
@@ -124,6 +122,10 @@ invoiceForm.querySelectorAll(utils.editableElements).forEach(element => {
 	element.addEventListener('input', () => {
 		setInvoiceSaved(false)
 	})
+})
+
+currentSession.addEventListener('change', () => {
+	resetAppSessions()
 })
 
 invoiceSaved.addEventListener('change', () => {

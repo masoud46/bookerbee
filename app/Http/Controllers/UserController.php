@@ -109,7 +109,11 @@ class UserController extends Controller {
 				'user-phone_country_id' => "required|numeric",
 				'user-phone_number' => "required",
 				'user-fax_country_id' => "nullable|numeric",
+				'user-bank_account' => "required|size:20",
+				'user-bank_swift' => "nullable",
 			];
+
+			$params['user-bank_account'] = preg_replace("/\s+/", "", $params['user-bank_account']);
 
 			if ($user_object['fax_number'] === null) {
 				$user_object['fax_country_id'] = null;
@@ -150,6 +154,8 @@ class UserController extends Controller {
 			'user-phone_number.required' => app('ERRORS')['required'],
 			'user-phone_country_id.numeric' => app('ERRORS')['numeric'],
 			'user-fax_country_id.numeric' => app('ERRORS')['numeric'],
+			'user-bank_account.required' => app('ERRORS')['required'],
+			'user-bank_account.size' => app('ERRORS')['iban'],
 			'user-address_line1.required' => app('ERRORS')['required'],
 			'user-address_code.required' => app('ERRORS')['required'],
 			'user-address_city.required' => app('ERRORS')['required'],
@@ -175,7 +181,7 @@ class UserController extends Controller {
 
 		if ($is_profile) {
 			$user['firstname'] = ucfirst($user['firstname']);
-			$user['lastname'] = strtoupper($user['lastname']);
+			$user['lastname'] = ucfirst($user['lastname']);
 			$user['titles'] = json_encode(
 				array_values( // remove keys, get only the values
 					array_filter( // remove empty rows (preserves keys)
@@ -187,6 +193,10 @@ class UserController extends Controller {
 				),
 				JSON_UNESCAPED_UNICODE
 			);
+			$user['bank_account'] = preg_replace("/\s+/", "", $user['bank_account']);
+			$user['bank_account'] = implode(" ", str_split($user['bank_account'], 4));
+			$user['bank_account'] = strtoupper($user['bank_account']);
+			$user['bank_swift'] = $user['bank_swift'] ? strtoupper($user['bank_swift']) : null;
 		} else if (!$user->address2_line1) {
 			$settings = Settings::whereUserId($user->id)->first();
 			$locations = Location::all()->sortBy('code');

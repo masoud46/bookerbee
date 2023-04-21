@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Settings;
 use App\Models\Type;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -19,42 +20,79 @@ use Illuminate\Support\Facades\Validator;
 
 class InvoiceController extends Controller {
 	/**
-	 * Generate a reference for the invoice.
+	 * Create a new controller instance.
+	 *
+	 * @return void
+	 */
+	public function __construct() {
+		$this->middleware('auth');
+	}
+
+	/**
+	 * Generate the reference for the invoice.
 	 *
 	 * @param StdClass $invoice
 	 * @return String
 	 */
 	private function generateReference($invoice) {
+		// $format = Settings::whereUserId(Auth::user()->id)->first()->ref_format;
+		// $format = explode("|", $format);
+		// $left = "";
+		// eval('$left = date("y", 1681982675);');
+		// dd(
+		// 	$format,
+		// 	date("y", 1681982675),
+		// 	date("y", strtotime($invoice->created_at)),
+		// 	sprintf('date("y", %d);', strtotime($invoice->created_at)),
+		// 	$left,
+		// 	eval('date("y", 1681982675);'),
+		// 	eval(sprintf('date("y", %d);', strtotime($invoice->created_at))),
+		// 	sprintf("%s{$format[1]}%s", eval(sprintf('date("y", %d);', strtotime($invoice->created_at))), $invoice->id)
+		// );
+
 		return sprintf('%s/%s', date('y', strtotime($invoice->created_at)), $invoice->id);
 	}
 
 	/**
-	 * Get the id of the auth user's invoices.
+	 * Get the information of the last invoice.
 	 *
-	 * @return Integer
+	 * @param StdClass $invoice
+	 * @return String
 	 */
-	private function getLastId() {
-		$invoice = Invoice::select("id")
-			->where("user_id", "=", Auth::user()->id)
+	private function getLastInvoice($patient_id, $invoice_id = null) {
+		$lastInvoice = Invoice::select([
+			"id",
+			"session",
+			"doc_code",
+			"doc_name",
+			"doc_date",
+		])
+			->where(function ($query) use ($patient_id, $invoice_id) {
+				if ($invoice_id) { // update
+					return $query
+						->where("id", "<", $invoice_id);
+				} else { // create
+					return $query
+						->whereUserId(Auth::user()->id)
+						->wherePatientId($patient_id);
+				}
+			})
 			->latest()
 			->first();
 
-		return $invoice ? $invoice->id : null;
-	}
+		if ($lastInvoice) {
+			$lastInvoice->next_session = $lastInvoice->session + Appointment::whereInvoiceId($lastInvoice->id)->count();
+			$lastInvoice = $lastInvoice->toArray();
+		} else {
+			$lastInvoice = [
+				'next_session' => 1,
+				'doc_code' => '',
+				'doc_name' => '',
+				'doc_date' => '',
+			];
+		}
 
-	/**
-	 * Check if user has a secondary address.
-	 *
-	 * @return Boolean
-	 */
-	private function userHasSecondaryAddress() {
-		$user = Auth::user();
-
-		return
-			$user->address2_line1 &&
-			$user->address2_code &&
-			$user->address2_city &&
-			$user->address2_country_id;
+		return $lastInvoice;
 	}
 
 	/**
@@ -70,7 +108,7 @@ class InvoiceController extends Controller {
 
 		$settings->amount = currency_format($settings->amount);
 
-		if (!$this->userHasSecondaryAddress()) {
+		if (!User::hasSecondaryAddress()) {
 			$bisId = array_search("009b", array_column($locations->toArray(), "code"));
 			$locations[$bisId]['disabled'] = true;
 		}
@@ -100,6 +138,7 @@ class InvoiceController extends Controller {
 			"invoices.id",
 			"invoices.user_id",
 			"invoices.patient_id",
+			"invoices.session",
 			"invoices.name",
 			"invoices.acc_number",
 			"invoices.acc_date",
@@ -154,6 +193,7 @@ class InvoiceController extends Controller {
 			->join("types", "types.id", "=", "appointments.type_id")
 			->orderBy("appointments.id")
 			->get();
+		// if ($appointments->count() === 0) { abort(404); } // for dummy data, can be removed for production
 
 		$invoice->total_amount = 0;
 		$invoice->total_insurance = 0;
@@ -186,33 +226,28 @@ class InvoiceController extends Controller {
 
 		$invoice->reference = $this->generateReference($invoice);
 
-		$patient_sessions = Patient::getPrevSessions($invoice->patient_id, $invoice->created_at);
-		$invoice->patient_sessions = $patient_sessions;
+		// $patient_sessions = Patient::getPrevSessions($invoice->patient_id, $invoice->created_at);
+		// $invoice->patient_sessions = $patient_sessions;
 		$invoice->patient_address_country = __($invoice->patient_address_country);
 
 		$invoice->editable = config('project.only_last_invoice_editable')
-			? $id === $this->getLastId()
+			? $id === Invoice::getLastId()
 			: true;
+
+		$lastInvoice = $this->getLastInvoice($invoice->patient_id, $invoice->id);
 
 		$key = Crypt::encrypt([
 			'invoice_id' => $invoice->id,
 			'patient_id' => $invoice->patient_id,
+			'initial_session' => $lastInvoice['next_session'],
 		]);
 
 		return [
 			'key' => $key,
 			'invoice' => $invoice,
 			'appointments' => $appointments,
+			'lastInvoice' => $lastInvoice,
 		];
-	}
-
-	/**
-	 * Create a new controller instance.
-	 *
-	 * @return void
-	 */
-	public function __construct() {
-		$this->middleware('auth');
 	}
 
 	/**
@@ -244,7 +279,7 @@ class InvoiceController extends Controller {
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
 			"patients.category AS patient_category",
-			DB::raw('CONCAT(patients.code, " - ", UPPER(patients.lastname), ", ", patients.firstname) AS patient'),
+			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
 			DB::raw('SUM(appointments.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
@@ -256,13 +291,13 @@ class InvoiceController extends Controller {
 				$query->whereYear('invoices.created_at', $limit);
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
-			->leftJoin("appointments", "appointments.invoice_id", "=", "invoices.id")
+			->join("appointments", "appointments.invoice_id", "=", "invoices.id")
 			->groupBy("id", "created_at", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
 
 		$lastIdOnly = config('project.only_last_invoice_editable');
-		$lastId = $this->getLastId();
+		$lastId = Invoice::getLastId();
 
 		foreach ($invoices as $invoice) {
 			$invoice->total = currency_format($invoice->total, true);
@@ -306,28 +341,19 @@ class InvoiceController extends Controller {
 			'entries' => $entries,
 		]);
 
-		$lastPrescription = Invoice::select([
-			"doc_code AS code",
-			"doc_name AS name",
-			"doc_date AS date",
-		])
-			->whereUserId(Auth::user()->id)
-			->wherePatientId($patient->id)
-			->latest()
-			->first();
-
-		$sessions = Patient::getPrevSessions($patient->id);
-		// $country = Country::find($patient->address_country_id);
-		// $patient->address_country = $country->name;
-		$patient->sessions = $sessions;
+		// $sessions = Patient::getPrevSessions($patient->id);
+		// $patient->sessions = $sessions;
 		$patient->name = sprintf("%s, %s", $patient->lastname, $patient->firstname);
 
 		if ($patient->phone_country_id) {
 			$patient->phone_prefix = Country::find($patient->phone_country_id)->prefix;
 		}
 
+		$lastInvoice = $this->getLastInvoice($patient->id);
+
 		$key = Crypt::encrypt([
 			'patient_id' => $patient->id,
+			'initial_session' => $lastInvoice['next_session'],
 		]);
 
 		unset($patient->id);
@@ -337,7 +363,7 @@ class InvoiceController extends Controller {
 		$invoice_object = array_merge($invoice_object, [
 			'key' => $key,
 			'patient' => $patient,
-			'prescription' => $lastPrescription,
+			'lastInvoice' => $lastInvoice,
 		]);
 
 		return view('invoice', $invoice_object);
@@ -365,7 +391,7 @@ class InvoiceController extends Controller {
 		}
 		unset($params['form-key']);
 
-		if (!is_array($form_key) || !isset($form_key['patient_id'])) {
+		if (!is_array($form_key) || !isset($form_key['patient_id']) || !isset($form_key['initial_session'])) {
 			session()->flash("error", __("Form key is invalid."));
 			return back()->withInput();
 		}
@@ -423,6 +449,7 @@ class InvoiceController extends Controller {
 			'patient-address_code' => "required",
 			'patient-address_city' => "required",
 			'patient-address_country_id' => "required|numeric",
+			'invoice-session' => "required|gte:{$form_key['initial_session']}",
 			'invoice-name' => "required",
 			'invoice-acc_number' => "",
 			'invoice-acc_date' => "nullable|date",
@@ -431,6 +458,7 @@ class InvoiceController extends Controller {
 			'invoice-prepayment' => "nullable|regex:{$currency_regex}",
 			'invoice-granted_at' => "nullable|date",
 		];
+		// dd($params_rules);
 
 		$params_messages = [
 			'patient-firstname.required' => app('ERRORS')['required'],
@@ -440,6 +468,8 @@ class InvoiceController extends Controller {
 			'patient-address_city.required' => app('ERRORS')['required'],
 			'patient-address_country_id.required' => app('ERRORS')['required'],
 			'patient-address_country_id.numeric' => app('ERRORS')['numeric'],
+			'invoice-session.required' => app('ERRORS')['required'],
+			'invoice-session.gte' => str_replace(':initial_session', $form_key['initial_session'], app('ERRORS')['session']),
 			'invoice-name.required' => app('ERRORS')['required'],
 			'invoice-acc_date.date' => app('ERRORS')['date'],
 			'invoice-doc_code.required' => app('ERRORS')['required'],
@@ -540,6 +570,7 @@ class InvoiceController extends Controller {
 			$prepayment = currency_parse($invoice['prepayment']);
 			$invoice['prepayment'] = intval($prepayment);
 		}
+		// dd($invoice_object, $invoice->toArray());
 		$invoice->save();
 
 		// get all the appointments of the invoice
@@ -612,6 +643,7 @@ class InvoiceController extends Controller {
 			'key' => $invoice_object['key'],
 			'invoice' => $invoice_object['invoice'],
 			'appointments' => $invoice_object['appointments'],
+			'lastInvoice' => $invoice_object['lastInvoice'],
 		]));
 	}
 
@@ -661,7 +693,7 @@ class InvoiceController extends Controller {
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
 			"patients.code",
-			DB::raw('CONCAT(UPPER(patients.lastname), ", ", patients.firstname) AS patient'),
+			DB::raw('CONCAT(patients.lastname, ", ", patients.firstname) AS patient'),
 			DB::raw('SUM(appointments.amount) AS total'),
 		])
 			->join("patients", "patients.id", "=", "invoices.patient_id")
@@ -715,7 +747,7 @@ class InvoiceController extends Controller {
 
 		// if user has a secondary address AND
 		// if any of the appointments' location is "009b", use the secondary address
-		if ($this->userHasSecondaryAddress()) {
+		if (User::hasSecondaryAddress()) {
 			foreach ($invoice_object['appointments'] as $app) {
 				if ($app->location_code === "009b") {
 					$user->address_line1 = $user->address2_line1;

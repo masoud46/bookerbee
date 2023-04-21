@@ -14,6 +14,7 @@ return new class extends Migration {
 			$table->integer('user_id');
 			$table->integer('amount');
 			$table->integer('location');
+			$table->string('ref_format')->nullable();
 		});
 	}
 

@@ -95,6 +95,21 @@
 									@enderror
 								</div>
 							</div>
+							<div class="mb-3 row">
+								<label for="user-bank_account" class="col-12 col-form-label"><span class="required-field">{{ __('Bank account') }}</span></label>
+								<div class="mb-1">
+									<input id="user-bank_account" name="user-bank_account" class="form-control  @error('user-bank_account') is-invalid @enderror" placeholder="{{ __('IBAN') }}" value="{{ old('user-bank_account', $user->bank_account) }}">
+									@error('user-bank_account')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
+								<div class="mb-1">
+									<input id="user-bank_swift" name="user-bank_swift" class="form-control " placeholder="{{ __('SWIFT / BIC') }} ({{ _('optional') }})" value="{{ old('user-bank_swift', $user->bank_swift) }}">
+									@error('user-bank_swift')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="row border-top pt-1 mt-1 mb-4">

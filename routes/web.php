@@ -46,7 +46,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::post('/patient/notes', [PatientNoteController::class, 'index'])->name('patient.notes');
 		Route::post('/patient/notes/store', [PatientNoteController::class, 'store'])->name('patient.notes.store');
 		Route::post('/patient/autocomplete', [PatientController::class, 'autocomplete'])->name('patient.autocomplete');
-		Route::get('/patient/{patient}', [PatientController::class, 'show'])->name('patient.show');
+		Route::get('/patient/{patient?}', [PatientController::class, 'show'])->name('patient.show');
 
 		Route::get('/profile', [UserController::class, 'edit'])->name('profile');
 		Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
