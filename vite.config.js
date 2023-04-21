@@ -23,6 +23,7 @@ const input = Object.fromEntries(
 )
 input['app'] = fileURLToPath(new URL('resources/js/app.js', import.meta.url))
 input['auth'] = fileURLToPath(new URL('resources/js/auth.js', import.meta.url))
+input['auth-css'] = fileURLToPath(new URL('resources/js/auth-css.js', import.meta.url))
 input['print-invoice'] = fileURLToPath(new URL('resources/scss/pages/print-invoice.scss', import.meta.url))
 
 export default defineConfig({
