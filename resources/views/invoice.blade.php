@@ -183,8 +183,8 @@
 						<span class="fw-bold">{{ __('INVOICE') }} {!! $category === 1 ? '- CNS' : '' !!}</span>
 					</h6>
 					<div class="border-bottom d-flex flex-wrap justify-content-center text-left">
-						<div class="invoice-session-container d-flex flex-wrap justify-content-center align-items-center text-{{ $title_color }} my-1 py-2 px-3 border border-{{ $title_color }} rounded-1">
-							<span class="fw-bold text-nowrap">{{ __('Initial session') }}</span>
+						<div class="invoice-session-container d-flex flex-wrap justify-content-center align-items-center text-{{ $title_color }} my-1 {{ $editable ? 'py-2 px-3 border' : 'mb-2' }} border-{{ $title_color }} rounded-1">
+							<span class="fw-bold text-nowrap">{{ __('Session') }} <small class="text-muted fw-normal">({{ __("min :min", ['min' =>  $lastInvoice['next_session']]) }})</small></span>
 							<input id="invoice-session" name="invoice-session" type="number" min="{{ $lastInvoice['next_session'] }}" class="form-control form-control-sm mx-2 fw-bold @error('invoice-session') is-invalid @enderror" {{ $editable ? '' : 'disabled' }} value="{{ $session }}" onkeydown="if([13,38,40].indexOf(event.which)===-1)event.preventDefault()">
 							@error('invoice-session')
 								<div class="invalid-feedback">{{ $message }}</div>

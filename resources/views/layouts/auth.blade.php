@@ -1,3 +1,9 @@
+@php
+	$domain = parse_url(request()->root())['host'];
+	$path = in_array($domain, config('project.external_domains', []))
+		? "templates/{$domain}/"
+		: null;
+@endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -8,16 +14,12 @@
 	<title>{{ config('app.name', 'Laravel') }}</title>
 
 	<!-- Scripts -->
-	@vite('resources/js/auth.js')
-
-	@if (session()->has('success') || session()->has('error'))
-		<script>
-			const httpFlashMessage = {
-				message: JSON.stringify("{{ session('success') ?? session('error') }}"),
-				error: {{ session()->has('error') ? 'true' : 'false' }},
-			}
-			httpFlashMessage.message = httpFlashMessage.message.substring(1, httpFlashMessage.message.length - 1)
-		</script>
+	@if ($path)
+		@vite("resources/js/auth.js")
+		@vite("resources/js/{$path}auth.js")
+	@else
+		@vite("resources/js/auth-css.js")
+		@vite("resources/js/auth.js")
 	@endif
 
 	@include('layouts.fonts')
@@ -26,7 +28,7 @@
 
 <body>
 	<div id="app">
-		<div class="position-fixed top-0 start-0 end-0 text-end p-3">
+		<div class="menu-bar text-end p-3">
 			@if (!Route::is('login'))
 				<a class="fw-bold me-2" href="{{ route('login') }}">{{ __('Login') }}</a>
 			@endif

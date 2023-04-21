@@ -18,6 +18,10 @@ yarn-error.log
 /.idea
 /.vscode
 
-/crt
 .env.psychosexo
 .env.private
+/crt
+/resources/images/templates/serge.com
+/resources/scss/templates/serge.com
+/resources/js/templates/serge.com
+

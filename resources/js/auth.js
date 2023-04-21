@@ -3,5 +3,3 @@
 // 	'../fonts/**',
 // ])
 
-import '../scss/auth.scss'
-

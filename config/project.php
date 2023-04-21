@@ -11,6 +11,11 @@ if (!is_array($limits)) {
 sort($limits);
 
 return [
+	'external_domains' => [
+		'psychosexo.clinic',
+		'serge.com',
+	],
+
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),
 	'only_last_invoice_editable' => env('APP_ONLY_LAST_INVOICE_EDITABLE', true),
 	'load_invoice_limits' => $limits,
