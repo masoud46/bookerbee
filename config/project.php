@@ -18,7 +18,6 @@ return [
 	],
 
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),
-	'only_last_invoice_editable' => env('APP_ONLY_LAST_INVOICE_EDITABLE', true),
 	'load_invoice_limits' => $limits,
 
 ];

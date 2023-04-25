@@ -191,7 +191,7 @@
 									<div class="invalid-feedback">{{ $message }}</div>
 								@enderror
 							@else
-								<span class="fw-bold text-nowrap">{{ __('Session') }} {{ $lastInvoice['next_session'] }}</span>
+								<span class="fw-bold text-nowrap">{{ __('Session') }} {{ $session }}</span>
 								<input id="invoice-session" name="invoice-session" type="hidden" value="{{ $session }}">
 							@endif
 						</div>

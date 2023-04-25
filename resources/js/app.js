@@ -8,8 +8,6 @@ import './bootstrap';
 import { Tooltip } from 'bootstrap';
 import { utils } from './utils/utils';
 
-import '../scss/app.scss'
-
 
 document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(element =>
 	element = new Tooltip(element)

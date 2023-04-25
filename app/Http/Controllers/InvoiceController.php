@@ -228,9 +228,7 @@ class InvoiceController extends Controller {
 		// $invoice->patient_sessions = $patient_sessions;
 		$invoice->patient_address_country = __($invoice->patient_address_country);
 
-		$invoice->editable = config('project.only_last_invoice_editable')
-			? $id === Invoice::getLastId($invoice->patient_id)
-			: true;
+		$invoice->editable = $id === Invoice::getLastId($invoice->patient_id);
 
 		$lastInvoice = $this->getLastInvoice($invoice->patient_id, $invoice->id);
 
@@ -295,15 +293,10 @@ class InvoiceController extends Controller {
 			->latest()
 			->get();
 
-		$lastIdOnly = config('project.only_last_invoice_editable');
-
 		foreach ($invoices as $invoice) {
 			$invoice->total = currency_format($invoice->total, true);
 			$invoice->reference = $this->generateReference($invoice);
-			$lastId = Invoice::getLastId($invoice->patient_id);
-			$invoice->editable = $lastIdOnly
-				? $invoice->id === $lastId
-				: true;
+			$invoice->editable = $invoice->id === Invoice::getLastId($invoice->patient_id);
 		}
 
 		// after signing in,

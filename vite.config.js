@@ -12,11 +12,18 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 const host = '127.0.0.1'
 const port = '8000'
 
+const main = Object.fromEntries(
+	glob.sync('resources/js/*.js', {
+		ignore: 'resources/js/bootstrap.js',
+	}).map(file => [
+		// This remove `resources/js/` as well as the file extension from each file, so e.g.
+		// resources/js/nested/foo.js becomes nested/foo
+		path.relative('resources/js', file.slice(0, file.length - path.extname(file).length)),
+		fileURLToPath(new URL(file, import.meta.url))
+	])
+)
 const pages = Object.fromEntries(
 	glob.sync('resources/js/pages/**/*.js').map(file => [
-
-		// This remove `resources/js/pages/` as well as the file extension from each file, so e.g.
-		// resources/js/pages/nested/foo.js becomes nested/foo
 		path.relative('resources/js/pages', file.slice(0, file.length - path.extname(file).length)),
 		fileURLToPath(new URL(file, import.meta.url))
 	])
@@ -27,12 +34,8 @@ const templates = Object.fromEntries(
 		fileURLToPath(new URL(file, import.meta.url))
 	])
 )
-const input = Object.assign(pages, templates)
+const input = Object.assign(main, pages, templates)
 
-input['app-css'] = fileURLToPath(new URL('resources/js/app-css.js', import.meta.url))
-input['app'] = fileURLToPath(new URL('resources/js/app.js', import.meta.url))
-input['auth-css'] = fileURLToPath(new URL('resources/js/auth-css.js', import.meta.url))
-input['auth'] = fileURLToPath(new URL('resources/js/auth.js', import.meta.url))
 input['print-invoice'] = fileURLToPath(new URL('resources/scss/pages/print-invoice.scss', import.meta.url))
 
 export default defineConfig({
@@ -70,7 +73,7 @@ export default defineConfig({
 					// All images (png, jpg, etc) will be compiled within `images` directory,
 					// all svg files within `icons` directory
 					if (/png|jpe?g|gif|tiff|bmp|svg|ico/i.test(extension)) {
-					    extension = 'images'
+						extension = 'images'
 					}
 
 					// if (/svg/i.test(extension)) {
