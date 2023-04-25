@@ -1,8 +1,15 @@
 @php
-	$domain = parse_url(request()->root())['host'];
-	$path = in_array($domain, config('project.external_domains', []))
-		? "templates/{$domain}/"
-		: null;
+	$domain = request()->getHttpHost();
+	$resources = ['resources/js/auth-css.js', 'resources/js/auth.js'];
+	$path = null;
+	
+	if (in_array($domain, config('project.external_domains', []))) {
+	    $path = "templates/{$domain}/";
+
+		if (file_exists(resource_path() . "/js/{$path}auth.js")) {
+	        $resources = ['resources/js/auth.js', "resources/js/{$path}auth.js"];
+	    }
+	}
 @endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -14,13 +21,7 @@
 	<title>{{ config('app.name', 'Laravel') }}</title>
 
 	<!-- Scripts -->
-	@if ($path)
-		@vite("resources/js/auth.js")
-		@vite("resources/js/{$path}auth.js")
-	@else
-		@vite("resources/js/auth-css.js")
-		@vite("resources/js/auth.js")
-	@endif
+	@vite($resources)
 
 	@include('layouts.fonts')
 

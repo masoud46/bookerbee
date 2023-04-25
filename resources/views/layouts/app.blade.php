@@ -1,3 +1,16 @@
+@php
+	$domain = request()->getHttpHost();
+	$resources = ['resources/js/app-css.js', 'resources/js/app.js'];
+	$path = null;
+	
+	if (in_array($domain, config('project.external_domains', []))) {
+	    $path = "templates/{$domain}/";
+
+		if (file_exists(resource_path() . "/js/{$path}app.js")) {
+	        $resources = ['resources/js/app.js', "resources/js/{$path}app.js"];
+	    }
+	}
+@endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 {{-- <html lang="{{ LaravelLocalization::getCurrentLocale() }}"> --}}
@@ -13,8 +26,6 @@
 
 	@include('layouts.fonts')
 
-	@stack('assets')
-
 	<script>
 		// Pass php variables to javascript
 		window.laravel = {}
@@ -26,7 +37,9 @@
 	</script>
 
 	<!-- Scripts -->
-	@vite('resources/js/app.js')
+	@vite($resources)
+
+	@stack('assets')
 
 	@if (session()->has('success') || session()->has('error'))
 		<script>

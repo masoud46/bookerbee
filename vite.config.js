@@ -12,7 +12,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 const host = '127.0.0.1'
 const port = '8000'
 
-const input = Object.fromEntries(
+const pages = Object.fromEntries(
 	glob.sync('resources/js/pages/**/*.js').map(file => [
 
 		// This remove `resources/js/pages/` as well as the file extension from each file, so e.g.
@@ -21,9 +21,18 @@ const input = Object.fromEntries(
 		fileURLToPath(new URL(file, import.meta.url))
 	])
 )
+const templates = Object.fromEntries(
+	glob.sync('resources/js/templates/**/*.js').map(file => [
+		path.relative('resources/js', file.slice(0, file.length - path.extname(file).length)),
+		fileURLToPath(new URL(file, import.meta.url))
+	])
+)
+const input = Object.assign(pages, templates)
+
+input['app-css'] = fileURLToPath(new URL('resources/js/app-css.js', import.meta.url))
 input['app'] = fileURLToPath(new URL('resources/js/app.js', import.meta.url))
-input['auth'] = fileURLToPath(new URL('resources/js/auth.js', import.meta.url))
 input['auth-css'] = fileURLToPath(new URL('resources/js/auth-css.js', import.meta.url))
+input['auth'] = fileURLToPath(new URL('resources/js/auth.js', import.meta.url))
 input['print-invoice'] = fileURLToPath(new URL('resources/scss/pages/print-invoice.scss', import.meta.url))
 
 export default defineConfig({
