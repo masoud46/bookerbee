@@ -104,7 +104,7 @@
 									@enderror
 								</div>
 								<div class="mb-1">
-									<input id="user-bank_swift" name="user-bank_swift" class="form-control " placeholder="{{ __('SWIFT / BIC') }} ({{ _('optional') }})" value="{{ old('user-bank_swift', $user->bank_swift) }}">
+									<input id="user-bank_swift" name="user-bank_swift" class="form-control " placeholder="{{ __('SWIFT / BIC') }} ({{ __('optional') }})" value="{{ old('user-bank_swift', $user->bank_swift) }}">
 									@error('user-bank_swift')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
