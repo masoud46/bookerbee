@@ -8,15 +8,16 @@
 	<div class="container">
 		<ul class="nav nav-tabs fw-bold mt-3" role="tablist">
 			<li class="nav-item" role="presentation">
-				<button class="nav-link {{ $active_tab === 'profile' ? 'active' : '' }}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">{{ __("Profile") }}</button>
+				<button class="nav-link {{ $active_tab === 'profile' ? 'active' : '' }}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">{{ __('Profile') }}</button>
 			</li>
 			<li class="nav-item" role="presentation">
-				<button class="nav-link {{ $active_tab === 'address' ? 'active' : '' }}" id="address-tab" data-bs-toggle="tab" data-bs-target="#address-tab-pane" type="button" role="tab" aria-controls="address-tab-pane" aria-selected="true">{{ __("Address") }}</button>
+				<button class="nav-link {{ $active_tab === 'address' ? 'active' : '' }}" id="address-tab" data-bs-toggle="tab" data-bs-target="#address-tab-pane" type="button" role="tab" aria-controls="address-tab-pane" aria-selected="true">{{ __('Address') }}</button>
 			</li>
 		</ul>
 		<div class="tab-content p-3 pb-0">
 			<div class="tab-pane fade {{ $active_tab === 'profile' ? 'show active' : '' }}" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
 				<form id="profile-form" method="post" action="{{ route('profile.update') }}" class="form" autocomplete="off" autofill="off">
+					<input type="hidden" id="edit-email-url" value="{{ route('profile.email') }}">
 					<input type="hidden" id="profile-saved">
 					<input type="hidden" name="active-tab" value="profile">
 					@method('put')
@@ -63,7 +64,7 @@
 						</div>
 						<div class="col-md-6">
 							<div class="mb-3 row">
-								<label for="user-email" class="col-12 col-form-label"><span class="required-field">{{ __('Email') }}</span></label>
+								<label for="user-email" class="col-12 col-form-label"><span class="required-field">{{ __('Email') }}</span>{{-- <i class="far fa-edit ms-2 btn-edit" data-bs-toggle="modal" data-bs-target="#edit-email-modal"></i> --}}</label>
 								<div class="col-12">
 									<input id="user-email" name="user-email" class="form-control  @error('user-email') is-invalid @enderror" value="{{ old('user-email', $user->email) }}">
 									@error('user-email')
@@ -253,24 +254,39 @@
 				</form>
 			</div>
 		</div>
-		{{-- <div class="row border-top pt-1 mt-1 mb-4">
-				<div class="col-12">
-					<div class="pt-1"><small class="text-muted fst-italic">{!! __('Fields indicated by :star are required.', ['star' => '<span class="required-field me-2"></span>&nbsp;']) !!}</small></div>
-				</div>
-			</div>
-			<div class="row my-4">
-				<div class="col-12">
-					<button type="submit" class="btn btn-primary btn-fa-spinner me-3" data-saved="0"><i class="icon-visible fas fa-file-arrow-down fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Save') }}</button>
-				</div>
-				<div id="user-not-saved-message" class="col-12 pt-1 {{ session()->has('error') ? '' : 'invisible' }}">
-					<small class="text-danger">{{ __('Your profile is not saved.') }}</small>
-				</div>
-			</div>
-		</form> --}}
 	</div>
 @endsection
 
 
+@section('modals')
+	{{-- <div id="edit-email-modal" class="modal fade" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content shadow">
+				<div class="modal-header shadow-sm">
+					<h6 class="modal-title" id="edit-email-modal-title">{{ __('Change') }}</h6>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-3">
+						<label for="user-new_email" class="form-label">{{ __('New email address') }}</label>
+						<input id="user-new_email" class="form-control" value="masoudf46@gmail.com">
+						<div class="invalid-feedback"></div>
+					</div>
+					<div>{{ __('An email will be sent to the provided address in order to confirm the modification.') }}</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times fa-fw"> </i>{{ __('Cancel') }}</button>
+					<button type="button" class="btn btn-sm btn-primary btn-fa-spinner btn-save"><i class="icon-visible far fa-paper-plane fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Send') }}</button>
+				</div>
+			</div>
+		</div>
+	</div> --}}
+@endsection
+
+
 @push('assets')
+	{{-- <script>
+		window.laravelEmailChangeSuccessMessage = `{{ __("The confirmation email has been sent.") }}`
+	</script> --}}
 	@vite($entries)
 @endpush

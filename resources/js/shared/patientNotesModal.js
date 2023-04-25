@@ -54,7 +54,7 @@ async function fetchPatientNotes() {
 
 		setTimeout(() => { body.classList.remove('modal-is-waiting') }, 0);
 	} else {
-		utils.showMessage({ message: appMessages.unexpectedError, error: true })
+		utils.showMessage({ message: window.laravel.messages.unexpectedError, error: true })
 	}
 }
 
@@ -65,7 +65,7 @@ modal.addEventListener('hide.bs.modal', e => {
 	if (modal.getAttribute('data-saved') === "1") return
 
 	e.preventDefault()
-	utils.showConfirmation(appMessages.saveModification,
+	utils.showConfirmation(window.laravel.messages.saveModification,
 		() => {
 			modal.setAttribute('data-saved', "1")
 			modal.querySelector('.btn-close').click()
@@ -115,11 +115,11 @@ saveBtn.addEventListener('click', async () => {
 	const result = await utils.fetch({ url: options.storeUrl, data })
 
 	if (result.success) {
-		utils.showMessage({ message: appMessages.modificationSaved })
+		utils.showMessage({ message: window.laravel.messages.modificationSaved })
 		insertNotes(result.data)
 		modal.setAttribute('data-saved', "1")
 	} else {
-		utils.showMessage({ message: appMessages.unexpectedError, error: true })
+		utils.showMessage({ message: window.laravel.messages.unexpectedError, error: true })
 	}
 
 	modal.classList.remove('saving-content')

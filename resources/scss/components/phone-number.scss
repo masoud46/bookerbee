@@ -13,6 +13,14 @@
 			border-color: var(--bs-gray-400) !important;
 			margin-right: 0.25rem !important;
 		}
+
+		&.prefix-disabled {
+			pointer-events: none;
+
+			&::after {
+				border-color: transparent;
+			}
+		}
 	}
 
 	.phone-number-country-flag {
@@ -77,6 +85,11 @@
 		width: 3rem;
 		padding: 0.25rem;
 		color: #999;
+
+		&.disabled {
+			background-color: transparent;
+			border-right-width: 0;
+		}
 	}
 
 }

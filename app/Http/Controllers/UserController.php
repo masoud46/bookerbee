@@ -79,7 +79,6 @@ class UserController extends Controller {
 	 * Update the specified resource in storage.
 	 *
 	 * @param  \Illuminate\Http\Request  $request
-	 * @param  \App\Models\User  $user
 	 * @return \Illuminate\Http\Response
 	 */
 	public function update(Request $request) {
@@ -213,9 +212,11 @@ class UserController extends Controller {
 
 		$user->save();
 
-		session()->flash("success", $is_profile
-			? __("Your profile has been updated.")
-			: __("Your address has been updated.")
+		session()->flash(
+			"success",
+			$is_profile
+				? __("Your profile has been updated.")
+				: __("Your address has been updated.")
 		);
 		return redirect()->route("profile");
 	}
@@ -228,6 +229,11 @@ class UserController extends Controller {
 	 */
 	public function destroy(User $user) {
 		//
+	}
+
+	// Signed URL test
+	public function sign($id, $email) {
+		dd(\Illuminate\Support\Facades\URL::signedRoute('unsubscribe', ['id' => $id, 'email' => $email]));
 	}
 
 	public function ss() {

@@ -30,6 +30,16 @@ button i {
 	opacity: 0.6 !important;
 }
 
+.btn-edit {
+	cursor: pointer;
+	opacity: 0.4;
+	transition: opacity 0.25s;
+
+	&:hover {
+		opacity: 0.8;
+	}
+}
+
 .required-field {
 	position: relative;
 
@@ -68,12 +78,6 @@ button i {
 	}
 }
 
-.modal {
-	.btn {
-		transition: opacity 0.25s;
-	}
-}
-
 .modal.saving-content {
 	* {
 		pointer-events: none;
@@ -82,11 +86,6 @@ button i {
 	button {
 		opacity: 0.5;
 	}
-}
-
-.modal-header {
-	// background-color: $body-bg;
-	// background-color: #eee;
 }
 
 .modal-body {
@@ -115,15 +114,6 @@ button i {
 			opacity: 1;
 		}
 	}
-}
-
-// nested modal
-.modal:nth-of-type(odd) {
-	z-index: 1065 !important;
-}
-
-.modal-backdrop.show:nth-of-type(odd) {
-	z-index: 1060 !important;
 }
 
 .form-control,
@@ -214,7 +204,7 @@ button i {
 
 .btn-fa-spinner {
 	--fa-animation-duration: 0.5s;
-	transition: opacity 0.5s;
+	// transition: opacity 0.5s;
 
 	.icon-hidden {
 		display: none;

@@ -4,6 +4,9 @@
 	<p class="db-picker-component text-danger">The "id" and "numberField" attributes must be different!</p>
 @else
 	@php
+		$disabled = $disabled ?? false;
+		$readonly = $readonly ?? false;
+		
 		$country_id = isset($country) ? intval(trim($country)) : 0;
 		
 		$list = $countries->keyBy('code');
@@ -41,12 +44,11 @@
 	@endphp
 
 	<div id="{{ $id }}" class="phone-fax-number-component {{ $class ?? '' }}" data-default-country-id="{{ $defaultCountryId }}" data-default-country-code="{{ $defaultCountryCode }}">
-		{{-- This hidden input can be removed if no preloading of flag-icons is necessary --}}
-		<input type="hidden" id="{{ $id }}-country-codes" value="{{ strtolower(implode(',', array_column($countries->toArray(), 'code'))) }}">
-
-		<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
+		@if (!$disabled)
+			<input type="hidden" name="{{ $countryField }}" class="phone-number-country" value="{{ $country_id ?? '' }}">
+		@endif
 		<div class="input-group {{ isset($error_class) ? 'has-validation' : '' }}">
-			<button type="button" class="phone-number-dropdown btn {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+			<button type="button" class="phone-number-dropdown {{ $readonly || $disabled ? 'prefix-disabled' : '' }} btn {{ $small ? 'btn-sm' : '' }} btn-outline-primary dropdown-toggle" {{ $readonly || $disabled ? '' : 'data-bs-toggle=dropdown' }} aria-expanded="false">
 				<img class="phone-number-country-flag" src="{{ asset('/build/flags/' . strtolower($code) . '.svg') }}">
 			</button>
 			<div class="dropdown-menu shadow pt-0">
@@ -56,19 +58,21 @@
 						<i class="fas fa-magnifying-glass position-absolute opacity-25 top-0 end-0 mt-3 me-3 pe-none"></i>
 					</div>
 					<div class="dropdown-items flex-grow-1 mb-0" tabindex="-1">
-						@php($transliterator = Transliterator::createFromRules(':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: Lower(); :: NFC;', Transliterator::FORWARD))
-						@foreach ($list as $value)
-							<button type="button" class="dropdown-item {{ $value->code === $code ? 'active' : '' }}" data-id="{{ $value->id }}" data-code="{{ strtolower($value->code) }}" data-name="{{ $transliterator->transliterate($value->name) }}" data-prefix="{{ $value->prefix }}">
-								<img class="phone-number-country-flag" src="{{ asset('/build/flags/' . strtolower($value->code) . '.svg') }}">
-								{{ $value->name }}
-								<span class="country-prefix">{{ $value->prefix }}</span>
-							</button>
-						@endforeach
+						@if (!$readonly && !$disabled)
+							@php($transliterator = Transliterator::createFromRules(':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: Lower(); :: NFC;', Transliterator::FORWARD))
+							@foreach ($list as $value)
+								<button type="button" class="dropdown-item {{ $value->code === $code ? 'active' : '' }}" data-id="{{ $value->id }}" data-code="{{ strtolower($value->code) }}" data-name="{{ $transliterator->transliterate($value->name) }}" data-prefix="{{ $value->prefix }}">
+									<img class="phone-number-country-flag" src="{{ asset('/build/flags/' . strtolower($value->code) . '.svg') }}">
+									{{ $value->name }}
+									<span class="country-prefix">{{ $value->prefix }}</span>
+								</button>
+							@endforeach
+						@endif
 					</div>
 				</div>
 			</div>
-			<div class="phone-number-prefix form-control {{ $small }} d-flex justify-content-end align-items-center user-select-none">{{ $prefix }}</div>
-			<input type="text" name="{{ $numberField }}" class="{{ $error_class ?? '' }} phone-number-input form-control {{ $small }}" value="{{ $number ?? '' }}">
+			<div class="phone-number-prefix {{ $disabled ? 'disabled' : '' }} form-control {{ $small }} d-flex justify-content-end align-items-center user-select-none">{{ $prefix }}</div>
+			<input type="text" {{ $readonly ? 'readonly' : '' }} {{ $disabled ? 'disabled' : 'name=' . $numberField }} class="{{ $error_class ?? '' }} phone-number-input form-control {{ $small }}" value="{{ $number ?? '' }}">
 		</div>
 	</div>
 @endif

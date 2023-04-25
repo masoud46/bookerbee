@@ -11,12 +11,22 @@
 
 	<title>{{ config('app.name', 'Laravel') }}</title>
 
-	<!-- Scripts -->
-	@vite('resources/js/app.js')
+	@include('layouts.fonts')
 
 	@stack('assets')
 
-	@include('layouts.fonts')
+	<script>
+		// Pass php variables to javascript
+		window.laravel = {}
+		window.laravel.messages = {
+			unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
+			saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
+			modificationSaved: `{{ __('Changes have been saved.') }}`,
+		}
+	</script>
+
+	<!-- Scripts -->
+	@vite('resources/js/app.js')
 
 	@if (session()->has('success') || session()->has('error'))
 		<script>
@@ -48,6 +58,12 @@
 
 					<!-- Right Side Of Navbar -->
 					<ul class="navbar-nav ms-auto">
+						{{-- <li class="nav-item">
+							<a class="nav-link" href="{{ route('email.change-email') }}">Send ChangeEmail Mail</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ route('email.change-password') }}">Send ChangePassword Mail</a>
+						</li> --}}
 						<li class="nav-item">
 							<a class="nav-link" href="{{ route('home') }}">{{ __('Statement') }}</a>
 						</li>
@@ -78,16 +94,16 @@
 						</li>
 						@php($locales = LaravelLocalization::getSupportedLocales())
 						@if (count($locales) > 1)
-						<li class="nav-item dropdown">
-							<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-language me-1"></i><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
-							<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarLangDropdown">
-								@foreach ($locales as $localeCode => $properties)
-									<a class="dropdown-item" rel="alternate" hreflang="{{ $localeCode }}" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
-										{{ $properties['native'] }}
-									</a>
-								@endforeach
-							</div>
-						</li>
+							<li class="nav-item dropdown">
+								<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-language me-1"></i><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
+								<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarLangDropdown">
+									@foreach ($locales as $localeCode => $properties)
+										<a class="dropdown-item" rel="alternate" hreflang="{{ $localeCode }}" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
+											{{ $properties['native'] }}
+										</a>
+									@endforeach
+								</div>
+							</li>
 						@endif
 					</ul>
 				</div>
@@ -100,7 +116,7 @@
 
 	</div>
 
-	@yield('modal')
+	@yield('modals')
 
 	<div id="yes-no-modal" class="modal fade" tabindex="-1">
 		<div class="modal-dialog">
@@ -124,15 +140,6 @@
 	</div>
 
 	<div class="body-overlay"></div>
-
-	<script>
-		const appMessages = {
-			incompleteRequest: `{{ __('Incomplete request!') }}`,
-			unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
-			saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
-			modificationSaved: `{{ __('Changes have been saved.') }}`,
-		}
-	</script>
 
 	@stack('scripts')
 

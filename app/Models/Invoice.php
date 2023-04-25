@@ -16,9 +16,10 @@ class Invoice extends Model {
 	 *
 	 * @return Integer
 	 */
-	public static function getLastId() {
+	public static function getLastId($patient_id) {
 		$invoice = Invoice::select("id")
-			->where("user_id", "=", Auth::user()->id)
+			->whereUserId(Auth::user()->id)
+			->wherePatientId($patient_id)
 			->latest()
 			->first();
 

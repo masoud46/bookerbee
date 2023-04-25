@@ -13,12 +13,36 @@ Phones.forEach(phone => {
 
 const profileForm = document.getElementById('profile-form')
 const profileSaved = document.getElementById('profile-saved')
+// const editEmailModal = document.getElementById('edit-email-modal')
+// const editEmailField = document.getElementById('user-new_email')
+// const saveEmailBtn = document.querySelector('#edit-email-modal .btn-save')
 
 // set profile saved state
 function setProfileSaved(value) {
 	profileSaved.value = value ? 'true' : 'false'
 	profileSaved.dispatchEvent(new Event('change'))
 }
+
+// // send email change request
+// async function changeEmail() {
+// 	document.body.classList.add('busy')
+// 	editEmailField.classList.remove('is-invalid')
+// 	const result = await utils.fetch({
+// 		url: document.getElementById('edit-email-url').value,
+// 		data: { 'user-email': editEmailField.value },
+// 	})
+// 	console.log(result);
+// 	document.body.classList.remove('busy')
+
+// 	if (result.success) {
+// 		editEmailModal.querySelector('.btn-close').click()
+// 		utils.showMessage({ message: window.laravelEmailChangeSuccessMessage })
+// 	} else {
+// 		editEmailField.classList.add('is-invalid')
+// 		editEmailField.focus()
+// 		editEmailModal.querySelector('.invalid-feedback').textContent = result.data
+// 	}
+// }
 
 profileForm.addEventListener('submit', () => {
 	document.querySelector('body').classList.add('busy')
@@ -40,6 +64,17 @@ profileSaved.addEventListener('change', () => {
 		message.classList.remove('invisible')
 	}
 })
+
+// editEmailModal.addEventListener('shown.bs.modal', () => {
+// 	editEmailField.focus()
+// })
+
+// editEmailField.addEventListener('keypress', e => {
+// 	if (e.key === 'Enter') {
+// 		changeEmail()
+// 	}
+// })
+// saveEmailBtn.addEventListener('click', changeEmail)
 
 
 const addressForm = document.getElementById('address-form')

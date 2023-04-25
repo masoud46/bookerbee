@@ -4,8 +4,10 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientNoteController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Support\Facades\Route;
@@ -23,6 +25,17 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 */
 
 // Route::get('/ss', [UserController::class, 'ss']);
+
+// Signed URL test
+Route::get('/subscribe/{id}/{email}', [UserController::class, 'sign'])->name('subscribe');
+Route::get('/unsubscribe/{id}/{email}', function (Request $request, $id, $email) {
+	if (!$request->hasValidSignature()) {
+		abort(401);
+	}
+
+	dd($id, $email);
+})->name('unsubscribe');
+
 
 // Route::prefix(LaravelLocalization::setLocale())->middleware(['localeSessionRedirect', 'localizationRedirect'])->group(
 Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedirect', 'localizationRedirect'])->group(
@@ -50,10 +63,15 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 
 		Route::get('/profile', [UserController::class, 'edit'])->name('profile');
 		Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
+		Route::post('/profile/email', [UserController::class, 'email'])->name('profile.email');
 
 		Route::get('/settings', [SettingsController::class, 'edit'])->name('settings');
 		Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
 		Route::get('/report', [ReportController::class, 'index'])->name('report');
+
+
+		Route::get('/send/change-email', [SendEmailController::class, 'sendChangeEmail'])->name('email.change-email');
+		Route::get('/send/change-password', [SendEmailController::class, 'sendChangePassword'])->name('email.change-password');
 	}
 );

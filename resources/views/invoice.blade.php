@@ -387,7 +387,7 @@
 	</div>
 @endsection
 
-@section('modal')
+@section('modals')
 	@include('shared.patient-notes-modal')
 @endsection
 

@@ -67,16 +67,14 @@ class InvoiceController extends Controller {
 			"doc_name",
 			"doc_date",
 		])
-			->where(function ($query) use ($patient_id, $invoice_id) {
+			->where(function ($query) use ($invoice_id) {
 				if ($invoice_id) { // update
-					return $query
-						->where("id", "<", $invoice_id);
+					return $query->where("id", "<", $invoice_id);
 				} else { // create
-					return $query
-						->whereUserId(Auth::user()->id)
-						->wherePatientId($patient_id);
+					return $query->whereUserId(Auth::user()->id);
 				}
 			})
+			->wherePatientId($patient_id)
 			->latest()
 			->first();
 
@@ -231,7 +229,7 @@ class InvoiceController extends Controller {
 		$invoice->patient_address_country = __($invoice->patient_address_country);
 
 		$invoice->editable = config('project.only_last_invoice_editable')
-			? $id === Invoice::getLastId()
+			? $id === Invoice::getLastId($invoice->patient_id)
 			: true;
 
 		$lastInvoice = $this->getLastInvoice($invoice->patient_id, $invoice->id);
@@ -276,6 +274,7 @@ class InvoiceController extends Controller {
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
 			"invoices.id",
+			"invoices.patient_id",
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
 			"patients.category AS patient_category",
@@ -292,16 +291,16 @@ class InvoiceController extends Controller {
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			->join("appointments", "appointments.invoice_id", "=", "invoices.id")
-			->groupBy("id", "created_at", "date", "name", "patient", "patient_category")
+			->groupBy("id", "patient_id", "created_at", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
 
 		$lastIdOnly = config('project.only_last_invoice_editable');
-		$lastId = Invoice::getLastId();
 
 		foreach ($invoices as $invoice) {
 			$invoice->total = currency_format($invoice->total, true);
 			$invoice->reference = $this->generateReference($invoice);
+			$lastId = Invoice::getLastId($invoice->patient_id);
 			$invoice->editable = $lastIdOnly
 				? $invoice->id === $lastId
 				: true;
@@ -458,7 +457,6 @@ class InvoiceController extends Controller {
 			'invoice-prepayment' => "nullable|regex:{$currency_regex}",
 			'invoice-granted_at' => "nullable|date",
 		];
-		// dd($params_rules);
 
 		$params_messages = [
 			'patient-firstname.required' => app('ERRORS')['required'],
@@ -570,7 +568,6 @@ class InvoiceController extends Controller {
 			$prepayment = currency_parse($invoice['prepayment']);
 			$invoice['prepayment'] = intval($prepayment);
 		}
-		// dd($invoice_object, $invoice->toArray());
 		$invoice->save();
 
 		// get all the appointments of the invoice
