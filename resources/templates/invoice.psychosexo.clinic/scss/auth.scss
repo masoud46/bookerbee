@@ -1,10 +1,13 @@
 // Variables
-@import '../../variables';
+@import '../../../scss/variables';
+@import 'variables';
 
 $blue: $color-purple;
 
 $body-color: #000;
 $body-bg: $color-gold;
+
+$text-muted: #999;
 
 $input-bg: #fff;
 
@@ -22,7 +25,7 @@ body {
 }
 
 body {
-	background-image: url('../../../images/templates/invoice.psychosexo.clinic/logo.svg');
+	background-image: url('../images/logo.svg');
 	background-repeat: no-repeat;
 	background-size: contain;
 }

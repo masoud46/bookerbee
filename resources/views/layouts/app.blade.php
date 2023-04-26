@@ -1,13 +1,16 @@
 @php
 	$domain = request()->getHttpHost();
-	$resources = ['resources/js/app-css.js', 'resources/js/app.js'];
-	$path = null;
+	$resources = ['resources/scss/app.scss', 'resources/js/app.js'];
 	
 	if (in_array($domain, config('project.external_domains', []))) {
-	    $path = "templates/{$domain}/";
+	    $path = "templates/{$domain}";
 
-		if (file_exists(resource_path() . "/js/{$path}app.js")) {
-	        $resources = ['resources/js/app.js', "resources/js/{$path}app.js"];
+	    if (file_exists(resource_path() . "/{$path}/scss/app.scss")) {
+	        $resources = ["resources/{$path}/scss/app.scss", 'resources/js/app.js'];
+	    }
+
+	    if (file_exists(resource_path() . "/{$path}/js/app.js")) {
+	        $resources[] = "resources/{$path}/js/app.js";
 	    }
 	}
 @endphp
@@ -25,6 +28,7 @@
 	<title>{{ config('app.name', 'Laravel') }}</title>
 
 	@include('layouts.fonts')
+	<link rel="stylesheet" href="{{ asset('/build/fonts/fontawesome/css/all.min.css') }}">
 
 	<script>
 		// Pass php variables to javascript

@@ -1,13 +1,16 @@
 @php
 	$domain = request()->getHttpHost();
-	$resources = ['resources/js/auth-css.js', 'resources/js/auth.js'];
-	$path = null;
+	$resources = ['resources/scss/auth.scss', 'resources/js/auth.js'];
 	
 	if (in_array($domain, config('project.external_domains', []))) {
-	    $path = "templates/{$domain}/";
+	    $path = "templates/{$domain}";
 
-		if (file_exists(resource_path() . "/js/{$path}auth.js")) {
-	        $resources = ['resources/js/auth.js', "resources/js/{$path}auth.js"];
+	    if (file_exists(resource_path() . "/{$path}/scss/auth.scss")) {
+	        $resources = ["resources/{$path}/scss/auth.scss", 'resources/js/auth.js'];
+	    }
+
+	    if (file_exists(resource_path() . "/{$path}/js/auth.js")) {
+	        $resources[] = "resources/{$path}/js/auth.js";
 	    }
 	}
 @endphp

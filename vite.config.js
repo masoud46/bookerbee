@@ -13,14 +13,23 @@ const host = '127.0.0.1'
 const port = '8000'
 
 const main = Object.fromEntries(
-	glob.sync('resources/js/*.js', {
+	glob.sync([
+		'resources/scss/auth.scss',
+		'resources/scss/app.scss',
+		'resources/js/auth.js',
+		'resources/js/app.js',
+	], {
 		ignore: 'resources/js/bootstrap.js',
-	}).map(file => [
-		// This remove `resources/js/` as well as the file extension from each file, so e.g.
-		// resources/js/nested/foo.js becomes nested/foo
-		path.relative('resources/js', file.slice(0, file.length - path.extname(file).length)),
-		fileURLToPath(new URL(file, import.meta.url))
-	])
+	}).map(file => {
+		const ext = path.extname(file)
+		const from = ext === '.js' ? 'resources/js' : 'resources'
+		return [
+			// This remove `resources/js/` as well as the file extension from each file, so e.g.
+			// resources/js/nested/foo.js becomes nested/foo
+			path.relative(from, file.slice(0, file.length - ext.length)),
+			fileURLToPath(new URL(file, import.meta.url))
+		]
+	})
 )
 const pages = Object.fromEntries(
 	glob.sync('resources/js/pages/**/*.js').map(file => [
@@ -29,14 +38,15 @@ const pages = Object.fromEntries(
 	])
 )
 const templates = Object.fromEntries(
-	glob.sync('resources/js/templates/**/*.js').map(file => [
-		path.relative('resources/js', file.slice(0, file.length - path.extname(file).length)),
+	glob.sync(['resources/templates/**/*.{scss,js}', 'resources/templates/**/images/*']).map(file => [
+		path.relative('resources', file.slice(0, file.length - path.extname(file).length)),
 		fileURLToPath(new URL(file, import.meta.url))
 	])
 )
 const input = Object.assign(main, pages, templates)
 
 input['print-invoice'] = fileURLToPath(new URL('resources/scss/pages/print-invoice.scss', import.meta.url))
+// console.log(input);
 
 export default defineConfig({
 	// server: {
@@ -95,6 +105,8 @@ export default defineConfig({
 				{ src: 'resources/flags/*', dest: 'flags' },
 				{ src: 'resources/images/*', dest: 'images' },
 				{ src: 'resources/fonts/*', dest: 'fonts' },
+				{ src: normalizePath(path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/css/all.min.css')), dest: 'fonts/fontawesome/css' },
+				{ src: normalizePath(path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts/*')), dest: 'fonts/fontawesome/webfonts' },
 				// { src: 'resources/favicon/*', dest: 'favicon' },
 			],
 		}),

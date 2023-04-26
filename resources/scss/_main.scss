@@ -1,0 +1,339 @@
+html,
+body {
+	height: 100%;
+	font-family: 'Nunito', sans-serif;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+	&:disabled {
+		background-color: rgba(#000, 0.025) !important;
+		background-color: transparent !important;
+	}
+}
+
+button i {
+	margin-right: 4px;
+}
+
+::placeholder {
+	font-size: 0.9em;
+	font-style: italic;
+	opacity: 0.6 !important;
+}
+
+.btn-edit {
+	cursor: pointer;
+	opacity: 0.4;
+	transition: opacity 0.25s;
+
+	&:hover {
+		opacity: 0.8;
+	}
+}
+
+.required-field {
+	position: relative;
+
+	&::after {
+		content: '*';
+		position: absolute;
+		right: -0.6rem;
+		font-weight: bold;
+		color: $danger;
+		opacity: 0.5;
+	}
+}
+
+.body-overlay {
+	z-index: 1000;
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background-color: #fff;
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.25s;
+}
+
+.dropdown-menu {
+	*:focus {
+		outline: none !important;
+	}
+
+	&.dropdown-sm {
+		.dropdown-menu {
+			font-size: 0.9em;
+		}
+	}
+}
+
+.modal.saving-content {
+	* {
+		pointer-events: none;
+	}
+
+	button {
+		opacity: 0.5;
+	}
+}
+
+.modal-body {
+
+	.modal-body-container,
+	.modal-waiting {
+		transition: opacity 0.5s;
+	}
+
+	.modal-body-container {
+		opacity: 1;
+	}
+
+	.modal-waiting {
+		pointer-events: none;
+		opacity: 0;
+	}
+
+	&.modal-is-waiting {
+		.modal-body-container {
+			pointer-events: none;
+			opacity: 0;
+		}
+
+		.modal-waiting {
+			opacity: 1;
+		}
+	}
+}
+
+.form-control,
+.form-select,
+.form-control:focus,
+.form-select:focus {
+	background-color: #fff;
+}
+
+.custom-switch {
+
+	.custom-control-label,
+	.custom-control-label::before,
+	.custom-control-label::after {
+		cursor: pointer;
+	}
+}
+
+.border-national-healthcare {
+	border-color: $national-healthcare-color !important;
+}
+
+.text-national-healthcare {
+	color: $national-healthcare-color;
+}
+
+.bg-national-healthcare {
+	background-color: $national-healthcare-color;
+}
+
+.text-bg-national-healthcare {
+	color: #fff;
+	background-color: $national-healthcare-color;
+}
+
+.flash-message {
+	z-index: 10000;
+	position: fixed;
+	top: -100%;
+	left: 50%;
+	transform: translate(-50%);
+	width: calc(100% - 30px);
+	min-height: 40px;
+	color: #fff;
+	background-color: $green;
+	transition: top 0.4s;
+
+	> div {
+		position: relative;
+	}
+
+	.flash-message-text {
+		margin: 10px 30px 10px 15px;
+	}
+
+	.flash-message-close {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		width: 25px;
+		height: 25px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		font-size: 1.3em;
+		opacity: 0.6;
+		transition: opacity 0.25s;
+
+		&:hover {
+			opacity: 0.8;
+		}
+
+		svg {
+			pointer-events: none;
+		}
+	}
+
+	&.flash-message-error {
+		background-color: $red;
+	}
+
+	&.flash-message-visible {
+		top: 15px !important;
+	}
+}
+
+.app-tooltip {
+	--bs-tooltip-bg: var(--bs-secondary);
+	--bs-tooltip-max-width: 500px !important;
+	--bs-tooltip-opacity: 1;
+
+	.tooltip-inner {
+		white-space: nowrap;
+		text-align: left !important;
+		font-size: 0.95em;
+	}
+}
+
+.navbar-brand {
+	svg {
+		transform: scale(1.1);
+	}
+}
+
+.btn-fa-spinner {
+	--fa-animation-duration: 0.5s;
+	// transition: opacity 0.5s;
+
+	.icon-hidden {
+		display: none;
+	}
+
+	&.spinning {
+		.icon-visible {
+			display: none;
+		}
+
+		.icon-hidden {
+			display: var(--fa-display, inline-block);
+		}
+	}
+}
+
+// .form-select:not([multiple]):not([size]) {
+.form-select {
+	cursor: pointer;
+}
+
+.form-check {
+
+	input,
+	label {
+		cursor: pointer;
+	}
+}
+
+.navbar {
+	z-index: 1;
+
+	.nav-link.dropdown-toggle {
+		padding-right: 0;
+
+		&::after {
+			border: none;
+		}
+	}
+}
+
+#navbarDropdown {
+	position: relative;
+	bottom: -1px;
+}
+
+#navbarLangDropdown {
+	position: relative;
+	top: -1px;
+
+	.fa-language {
+		position: relative;
+		top: 2px;
+	}
+}
+
+#patient-notes {
+	font-size: 1.1em;
+	cursor: pointer;
+	opacity: 0.75;
+	transition: opacity 0.25s;
+
+	&:hover {
+		opacity: 1;
+	}
+}
+
+
+body.busy {
+
+	.body-overlay {
+		// visibility: visible;
+		// opacity: 0.5;
+	}
+
+	a,
+	button:not([data-bs-toggle="tab"]),
+	select,
+	textarea,
+	input,
+	label,
+	.custom-control-label {
+		pointer-events: none;
+
+		&:not(label):not(.custom-control-label) {
+			opacity: 0.5;
+		}
+	}
+
+	.btn-fa-spinner {
+		// opacity: 0.5;
+		transition: none;
+
+		.icon-visible {
+			display: none;
+		}
+
+		.icon-hidden {
+			display: var(--fa-display, inline-block);
+		}
+	}
+}
+
+@media only screen and (min-width:576px) {
+	.flash-message {
+		width: 75%;
+	}
+}
+
+@media only screen and (min-width:768px) {
+	.flash-message {
+		width: 60%;
+	}
+}
+
+@media only screen and (min-width:992px) {
+	.flash-message {
+		width: 50%;
+	}
+}
+
+@media only screen and (min-width:1200px) {}
