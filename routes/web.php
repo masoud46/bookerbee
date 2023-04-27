@@ -55,7 +55,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::get('/patient', [PatientController::class, 'index'])->name('patient.index');
 		Route::post('/patient', [PatientController::class, 'store'])->name('patient.store');
 		Route::get('/patient/new', [PatientController::class, 'show'])->name('patient.new');
-		Route::get('/patient/fetch/{patient}', [PatientController::class, 'fetch'])->name('patient.fetch');
+		Route::get('/patient/list', [PatientController::class, 'list'])->name('patient.list');
 		Route::post('/patient/notes', [PatientNoteController::class, 'index'])->name('patient.notes');
 		Route::post('/patient/notes/store', [PatientNoteController::class, 'store'])->name('patient.notes.store');
 		Route::post('/patient/autocomplete', [PatientController::class, 'autocomplete'])->name('patient.autocomplete');

@@ -271,4 +271,36 @@ class PatientController extends Controller {
 		return response()->json($patients);
 	}
 
+
+	/**
+	 * Get all the patients
+	 *
+	 * @return \Illuminate\Http\Response
+	 */
+	public function list() {
+		$prefixes = array_column(Country::all()->toArray(), 'prefix', 'id');
+		$patients = Patient::select([
+			"id",
+			"category",
+			"code",
+			"firstname",
+			"lastname",
+			"email",
+			"phone_country_id",
+			"phone_number",
+		])
+			->whereUserId(Auth::user()->id)
+			->orderBy("code")
+			->get();
+
+		foreach ($patients as $patient) {
+			if ($patient->phone_country_id) {
+				$patient->phone_prefix = $prefixes[$patient->phone_country_id];
+			}
+			unset($patient->phone_country_id);
+		}
+
+		return response()->json($patients);
+	}
+
 }

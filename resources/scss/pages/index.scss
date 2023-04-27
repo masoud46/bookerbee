@@ -44,6 +44,27 @@
 			}
 		}
 	}
+}
 
+#patients-container {
 
+	.accordion-body {
+		height: calc(100vh - 300px);
+	}
+
+	.loading-overlay {
+		visibility: hidden;
+	}
+
+	&.loading {
+
+		#items-table-filter,
+		.table-responsive {
+			opacity: 0;
+		}
+
+		.loading-overlay {
+			visibility: visible;
+		}
+	}
 }

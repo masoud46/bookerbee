@@ -37,7 +37,7 @@
 				<x-patient-picker id="patient-picker-component" autocompleteUrl="{{ route('patient.autocomplete') }}" picked-url="{{ route('invoice.new', ['patient' => '?id']) }}" placeholder="{{ __('Last name / First name / Reg. number') }}" helper-text="{{ __('Start by typing three characters.') }}" />
 			</div>
 		</div>
-		<div id="invoice-filter" class="row justify-content-between">
+		<div id="items-table-filter" class="row justify-content-between">
 			<div class="col-12 mt-4">
 				<h4 class="border-bottom pb-2">{{ __("Invoices") }}</h4>
 			</div>
@@ -52,10 +52,10 @@
 						@endforeach
 					</ul>
 				</span>
-				<small class="h-100 d-flex align-items-center text-nowrap float-end"><span class="invoice-count me-1">{{ $count }}</span> / {{ $count }}</small>
+				<small class="h-100 d-flex align-items-center text-nowrap float-end"><span class="items-table-count me-1">{{ $count }}</span>/<span class="items-table-total ms-1">{{ $count }}</span></small>
 			</div>
 			<div class="col-md-6 col-lg-5 col-xl-4 mt-3 mt-sm-2 d-flex">
-				<input class="invoice-filter-input form-control" placeholder="{{ __("Search") }}" value="">
+				<input class="items-table-filter-input form-control" placeholder="{{ __("Search") }}" value="">
 			</div>
 		</div>
 		<div id="invoices-container" class="row mt-3">
@@ -73,7 +73,7 @@
 					</thead>
 					<tbody>
 						@foreach ($invoices as $invoice)
-							<tr class="invoice-item user-select-none {{ $invoice->patient_category === 1 ? 'national-healthcare-item' : '' }}" role="button" data-id="{{ $invoice->id }}">
+							<tr class="items-table-item user-select-none {{ $invoice->patient_category === 1 ? 'national-healthcare-item' : '' }}" role="button" data-id="{{ $invoice->id }}">
 								<td scope="col" class="invoice-item-reference">{{ $invoice->reference }}<span>{{ $invoice->patient_category === 1 ? 'CNS' : '' }}</span></td>
 								<td scope="col">{{ $invoice->date }}</td>
 								<td scope="col">{{ $invoice->name }}</td>
