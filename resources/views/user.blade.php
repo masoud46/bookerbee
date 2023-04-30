@@ -1,6 +1,7 @@
 @extends('layouts.app', ['page_title' => '<i class="far fa-user me-2"></i>' . __('My information')])
 
 @php($default_country_code = config('project.default_country_code'))
+@php($default_timezone = config('project.default_timezone'))
 @php($active_tab = session('active-tab') ?? 'profile')
 @php($user = Auth::user())
 
@@ -92,6 +93,24 @@
 									@enderror
 									<x-phone-number id="fax-number-component" class=" {{ $fax_error_class ?? '' }}" :countries="$countries" default-country-code="{{ $default_country_code }}" country-field="user-fax_country_id" number-field="user-fax_number" country="{{ old('user-fax_country_id', $user->fax_country_id) }}" number="{{ old('user-fax_number', $user->fax_number) }}" />
 									@error('user-fax_number')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
+							</div>
+							<div class="mb-3 row">
+								<label for="user-timezone" class="col-12 col-form-label"><span class="required-field">{{ __('Time zone') }}</span></label>
+								<div class="col-12">
+									<select id="user-timezone" name="user-timezone" class="form-select  @error('user-timezone') is-invalid @enderror">
+										<option value="" selected hidden>{{ __('Time zone') }}</option>
+										@foreach ($timezones as $timezone)
+											@php($selected = $user->timezone ? $timezone->name === $user->timezone : $timezone->name === $default_timezone)
+											@if (old('user-timezone'))
+												{{ $selected = intval(old('user-timezone')) === $timezone->name }}
+											@endif
+											<option value="{{ $timezone->name }}" {{ $selected ? 'selected' : '' }}>(UTC{{ $timezone->offset_str }}) {{ $timezone->name }}</option>
+										@endforeach
+									</select>
+									@error('user-timezone')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>

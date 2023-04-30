@@ -17,23 +17,23 @@
 	
 	$default_country_code = config('project.default_country_code');
 	$add = isset($key) && isset($patient);
-	$update = isset($invoice) && isset($appointments);
+	$update = isset($invoice) && isset($sessions);
 	$editable = $add || $invoice->editable;
 	$disabled = $editable ? '' : 'disabled';
 	
 	$category = $add ? $patient->category : $invoice->patient_category;
-	$appDefaultLocation = 3;
-	$last_app = -1;
+	$sessionDefaultLocation = 3;
+	$last_session = -1;
 	$title_color = $category === 1 ? 'national-healthcare' : 'secondary';
-	$oldVisibleApps = array_keys(session()->getOldInput(), 'visible');
+	$oldVisibleSessions = array_keys(session()->getOldInput(), 'visible');
 	
-	if (count($oldVisibleApps)) {
-	    $last_app = count($oldVisibleApps) - 1;
+	if (count($oldVisibleSessions)) {
+	    $last_session = count($oldVisibleSessions) - 1;
 	} elseif ($update) {
-	    $last_app = $appointments->count() - 1;
+	    $last_session = $sessions->count() - 1;
 	}
 	
-	$session = old('invoice-session', $add ? $lastInvoice['next_session'] : $invoice->session);
+	$invoice_session = old('invoice-session', $add ? $lastInvoice['next_session'] : $invoice->session);
 @endphp
 
 @section('content')
@@ -53,7 +53,7 @@
 				<div class="col-md-6">
 					<h6 class="rounded-1 bg-{{ $title_color }} text-white mt-4 py-1 px-3">{{ __('Patient') }} {!! $category === 1 ? '- CNS' : '' !!}
 						<span id="patient-notes" class="float-end" data-bs-toggle="modal" data-bs-target="#patient-notes-modal">
-							<span data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="app-tooltip" data-bs-title="{{ __('Notes') }}">
+							<span data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="session-tooltip" data-bs-title="{{ __('Notes') }}">
 								<i class="far fa-file-lines"></i>
 							</span>
 						</span>
@@ -186,13 +186,13 @@
 						<div class="invoice-session-container d-flex flex-wrap justify-content-center align-items-center text-{{ $title_color }} my-1 {{ $editable ? 'py-2 px-3 border' : 'mb-2' }} rounded-1 border-{{ $title_color }}">
 							@if ($editable)
 								<span class="fw-bold text-nowrap">{{ __('Session') }} <small class="text-muted fw-normal">({{ $lastInvoice['next_session'] }})</small></span>
-								<input id="invoice-session" name="invoice-session" type="number" min="{{ $lastInvoice['next_session'] }}" class="form-control form-control-sm mx-2 fw-bold @error('invoice-session') is-invalid @enderror" {{ $editable ? '' : 'disabled' }} value="{{ $session }}" onkeydown="if([13,38,40].indexOf(event.which)===-1)event.preventDefault()">
+								<input id="invoice-session" name="invoice-session" type="number" min="{{ $lastInvoice['next_session'] }}" class="form-control form-control-sm mx-2 fw-bold @error('invoice-session') is-invalid @enderror" {{ $editable ? '' : 'disabled' }} value="{{ $invoice_session }}" onkeydown="if([13,38,40].indexOf(event.which)===-1)event.preventDefault()">
 								@error('invoice-session')
 									<div class="invalid-feedback">{{ $message }}</div>
 								@enderror
 							@else
-								<span class="fw-bold text-nowrap">{{ __('Session') }} {{ $session }}</span>
-								<input id="invoice-session" name="invoice-session" type="hidden" value="{{ $session }}">
+								<span class="fw-bold text-nowrap">{{ __('Session') }} {{ $invoice_session }}</span>
+								<input id="invoice-session" name="invoice-session" type="hidden" value="{{ $invoice_session }}">
 							@endif
 						</div>
 					</div>
@@ -200,54 +200,54 @@
 			</div>
 			<div class="row">
 				<div class="col-1 col-md-5 col-lg-4 d-flex align-items-center">
-					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="app-tooltip" data-bs-title="{!! $locations_tooltip !!}"><i class="far fa-circle-question"></i></span>
+					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="session-tooltip" data-bs-title="{!! $locations_tooltip !!}"><i class="far fa-circle-question"></i></span>
 				</div>
 				<div class="col-11 col-md-7 col-lg-8 d-flex align-items-center">
-					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="app-tooltip" data-bs-title="{!! $types_tooltip !!}"><i class="far fa-circle-question"></i></span>
+					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="session-tooltip" data-bs-title="{!! $types_tooltip !!}"><i class="far fa-circle-question"></i></span>
 				</div>
 			</div>
-			<div id="invoice-apps" class="row">
+			<div id="invoice-sessions" class="row">
 				@for ($i = 0; $i < 10; $i++)
-					@php($app = !count($oldVisibleApps) && $i <= $last_app ? $appointments[$i] : null)
-					@php($hidden = $i === 0 || $i <= $last_app ? '' : 'd-none')
-					<div class="col-12 app-item {{ $hidden }}">
-						<input type="hidden" name="app-visible-{{ $i }}" value="{{ $hidden ? '' : 'visible' }}">
+					@php($session = !count($oldVisibleSessions) && $i <= $last_session ? $sessions[$i] : null)
+					@php($hidden = $i === 0 || $i <= $last_session ? '' : 'd-none')
+					<div class="col-12 session-item {{ $hidden }}">
+						<input type="hidden" name="session-visible-{{ $i }}" value="{{ $hidden ? '' : 'visible' }}">
 						<div class="row">
 							<div class="col-md-2 mb-1">
-								<select name="app-location_id-{{ $i }}" class="app-location form-select form-select-sm @error("app-location_id-{$i}") is-invalid @enderror" default-value={{ $appDefaultLocation }}>
+								<select name="session-location_id-{{ $i }}" class="session-location form-select form-select-sm @error("session-location_id-{$i}") is-invalid @enderror" default-value={{ $sessionDefaultLocation }}>
 									<option value="" selected hidden>{{ __('Location') }}</option>
 									@foreach ($locations as $location)
-										@php($selected = $app ? ($app->location_id === $location->id ? 'selected' : '') : ($location->id === $settings->location ? ' selected' : ''))
-										@if (old("app-location_id-{$i}"))
-											{{ $selected = intval(old("app-location_id-{$i}")) === $location->id ? 'selected' : '' }}
+										@php($selected = $session ? ($session->location_id === $location->id ? 'selected' : '') : ($location->id === $settings->location ? ' selected' : ''))
+										@if (old("session-location_id-{$i}"))
+											{{ $selected = intval(old("session-location_id-{$i}")) === $location->id ? 'selected' : '' }}
 										@endif
 										<option value="{{ $location->id }}" {{ $selected }} {{ $location->disabled ? 'disabled' : '' }}>{{ $location->code }}</option>
 									@endforeach
 								</select>
-								@error("app-location_id-{$i}")
+								@error("session-location_id-{$i}")
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
 							<div class="col-md-3 col-lg-2 mb-1">
-								<input type="date" name="app-done_at-{{ $i }}" class="app-date form-control form-control-sm @error("app-done_at-{$i}") is-invalid @enderror" placeholder="Date" value="{{ old("app-done_at-{$i}", $app && $app->done_at ? $app->done_at : '') }}">
-								@error("app-done_at-{$i}")
+								<input type="date" name="session-done_at-{{ $i }}" class="session-date form-control form-control-sm @error("session-done_at-{$i}") is-invalid @enderror" placeholder="Date" value="{{ old("session-done_at-{$i}", $session && $session->done_at ? $session->done_at : '') }}">
+								@error("session-done_at-{$i}")
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
-							<div class="col-md-2 mb-1 app-type-wrapper" data-session="{{ $hidden ? '0' : $session + $i }}">
-								<select name="app-type_id-{{ $i }}" class="app-type form-select form-select-sm @error("app-type_id-{$i}") is-invalid @enderror">
+							<div class="col-md-2 mb-1 session-type-wrapper" data-session="{{ $hidden ? '0' : $invoice_session + $i }}">
+								<select name="session-type_id-{{ $i }}" class="session-type form-select form-select-sm @error("session-type_id-{$i}") is-invalid @enderror">
 									<option value="" selected hidden>{{ __('Acte') }}</option>
 									@php($type_id = null)
 									@php($description = null)
 									@foreach ($types as $type)
 										<?php
 										if ($type_id === null) {
-										    if ($app) {
-										        if ($app->type_id === $type->id) {
+										    if ($session) {
+										        if ($session->type_id === $type->id) {
 										            $type_id = $type->id;
 										        }
 										    } else {
-										        $type_id = $type->max_sessions ? ($session > $type->max_sessions ? null : $type->id) : $type->id;
+										        $type_id = $type->max_sessions ? ($invoice_session > $type->max_sessions ? null : $type->id) : $type->id;
 										        if ($description === null && $category === 1 && $type_id) {
 										            $description = $type->description;
 										        }
@@ -255,34 +255,34 @@
 										}
 										$selected = $type->id === $type_id ? 'selected' : '';
 										?>
-										@if (old("app-type_id-{$i}"))
-											{{ $selected = intval(old("app-type_id-{$i}")) === $type->id ? 'selected' : '' }}
+										@if (old("session-type_id-{$i}"))
+											{{ $selected = intval(old("session-type_id-{$i}")) === $type->id ? 'selected' : '' }}
 										@endif
 										<option value="{{ $type->id }}" {{ $selected }} data-description="{{ $type->description }}">{{ $type->code }}</option>
 									@endforeach
 								</select>
-								@error("app-type_id-{$i}")
+								@error("session-type_id-{$i}")
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
 							<div class="col-md-3 col-lg-4 mb-1">
-								<input name="app-description-{{ $i }}" class="app-description form-control form-control-sm @error("app-description-{$i}") is-invalid @enderror" placeholder="{{ __('Description') }}" {{ $category === 1 ? 'disabled' : '' }} value="{{ old("app-description-{$i}", $app && $app->description ? $app->description : $description) }}">
-								@error("app-description-{$i}")
+								<input name="session-description-{{ $i }}" class="session-description form-control form-control-sm @error("session-description-{$i}") is-invalid @enderror" placeholder="{{ __('Description') }}" {{ $category === 1 ? 'disabled' : '' }} value="{{ old("session-description-{$i}", $session && $session->description ? $session->description : $description) }}">
+								@error("session-description-{$i}")
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
 							<div class="col-md-2 mb-1 d-flex">
-								<div class="input-group input-group-sm flex-grow-1 @error("app-amount-{$i}") has-validation @enderror">
-									<input name="app-amount-{{ $i }}" class="xapp-amount form-control form-control-sm @error("app-amount-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __('Amount') }}" default-value="{{ $settings->amount }}" value="{{ old("app-amount-{$i}", $app && $app->amount ? $app->amount : $settings->amount) }}">
+								<div class="input-group input-group-sm flex-grow-1 @error("session-amount-{$i}") has-validation @enderror">
+									<input name="session-amount-{{ $i }}" class="xsession-amount form-control form-control-sm @error("session-amount-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __('Amount') }}" default-value="{{ $settings->amount }}" value="{{ old("session-amount-{$i}", $session && $session->amount ? $session->amount : $settings->amount) }}">
 									<span class="input-group-text" id="input-group-sizing-sm">€</span>
-									@error("app-amount-{$i}")
+									@error("session-amount-{$i}")
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
 								@if ($editable)
-									<div class="remove-app-container">
+									<div class="remove-session-container">
 										@if ($i > 0)
-											<div class="remove-app text-danger">
+											<div class="remove-session text-danger">
 												<i class="fas fa-trash-can"></i>
 											</div>
 										@endif
@@ -290,10 +290,10 @@
 								@endif
 							</div>
 							{{-- <div class="col-md-2 mb-1">
-								<div class="input-group input-group-sm @error("app-insurance-{$i}") has-validation @enderror">
-									<input name="app-insurance-{{ $i }}" class="app-insurance form-control form-control-sm @error("app-insurance-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __("Coverd-part") }}" value="{{ $app && $app->insurance ? $app->insurance : '' }}">
+								<div class="input-group input-group-sm @error("session-insurance-{$i}") has-validation @enderror">
+									<input name="session-insurance-{{ $i }}" class="session-insurance form-control form-control-sm @error("session-insurance-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __("Coverd-part") }}" value="{{ $session && $session->insurance ? $session->insurance : '' }}">
 									<span class="input-group-text" id="input-group-sizing-sm">€</span>
-									@error("app-insurance-{$i}")
+									@error("session-insurance-{$i}")
 										<div class="invalid-feedback"></div>
 									@enderror
 								</div> --}}
@@ -304,7 +304,7 @@
 			<div class="mb-3 row">
 				@if ($editable)
 					<div class="col-12">
-						<a id="add-app" class="btn btn-sm btn-success"><i class="fas fa-plus fa-fw"></i> {{ __('Add') }}</a>
+						<a id="add-session" class="btn btn-sm btn-success"><i class="fas fa-plus fa-fw"></i> {{ __('Add') }}</a>
 					</div>
 				@endif
 			</div>

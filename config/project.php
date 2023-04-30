@@ -18,6 +18,7 @@ return [
 	],
 
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),
+	'default_timezone' => env('APP_DEFAULT_TIMEZONE', 'Europe/Luxembourg'),
 	'load_invoice_limits' => $limits,
 
 ];

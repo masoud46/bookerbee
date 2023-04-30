@@ -1,10 +1,10 @@
 {
-    "name": "laravel/laravel",
+    "name": "invoice_manager",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "Invoice Manager",
     "keywords": [
-        "framework",
-        "laravel"
+        "invoice",
+        "manager"
     ],
     "license": "MIT",
     "require": {

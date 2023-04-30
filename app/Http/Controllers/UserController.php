@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Country;
 use App\Models\Location;
 use App\Models\Settings;
+use App\Models\Timezone;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -67,10 +68,12 @@ class UserController extends Controller {
 
 		$locations = Location::all()->sortBy('code');
 		$countries = Country::sortedList();
+		$timezones = Timezone::all()->sortBy('offset');
 
 		return view('user', [
 			'entries' => $entries,
 			'countries' => $countries,
+			'timezones' => $timezones,
 			'locations' => $locations,
 		]);
 	}
@@ -100,6 +103,7 @@ class UserController extends Controller {
 
 		if ($is_profile) {
 			$params_rules = [
+				'user-timezone' => "required",
 				'user-code' => "required|unique:users,code,{$user->id}",
 				'user-titles' => "required",
 				'user-firstname' => "required",
@@ -142,6 +146,7 @@ class UserController extends Controller {
 		}
 
 		$params_messages = [
+			'user-timezone.required' => app('ERRORS')['required'],
 			'user-code.required' => app('ERRORS')['required'],
 			'user-code.unique' => app('ERRORS')['unique']['user_code'],
 			'user-titles.required' => app('ERRORS')['required'],

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
+use App\Models\Session;
 use App\Models\Country;
 use App\Models\Invoice;
 use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Settings;
+use App\Models\Timezone;
 use App\Models\Type;
 use App\Models\User;
 use Carbon\Carbon;
@@ -79,7 +80,7 @@ class InvoiceController extends Controller {
 			->first();
 
 		if ($lastInvoice) {
-			$lastInvoice->next_session = $lastInvoice->session + Appointment::whereInvoiceId($lastInvoice->id)->count();
+			$lastInvoice->next_session = $lastInvoice->session + Session::whereInvoiceId($lastInvoice->id)->count();
 			$lastInvoice = $lastInvoice->toArray();
 		} else {
 			$lastInvoice = [
@@ -120,7 +121,7 @@ class InvoiceController extends Controller {
 	}
 
 	/**
-	 * Get an invoice and its related patient and appointments
+	 * Get an invoice and its related patient and sessions
 	 *
 	 * @param  Integer $id
 	 * @param  Boolean $fraction
@@ -179,23 +180,23 @@ class InvoiceController extends Controller {
 			abort(404);
 		}
 
-		$appointments = Appointment::select([
-			"appointments.*",
+		$sessions = Session::select([
+			"sessions.*",
 			"locations.code AS location_code",
 			"locations.description AS location_description",
 			"types.code AS type_code",
 			"types.description AS type_description",
 		])
 			->whereInvoiceId($id)
-			->join("locations", "locations.id", "=", "appointments.location_id")
-			->join("types", "types.id", "=", "appointments.type_id")
-			->orderBy("appointments.id")
+			->join("locations", "locations.id", "=", "sessions.location_id")
+			->join("types", "types.id", "=", "sessions.type_id")
+			->orderBy("sessions.id")
 			->get();
-		// if ($appointments->count() === 0) { abort(404); } // for dummy data, can be removed for production
+		// if ($sessions->count() === 0) { abort(404); } // for dummy data, can be removed for production
 
 		$invoice->total_amount = 0;
 		$invoice->total_insurance = 0;
-		foreach ($appointments as $key => $value) {
+		foreach ($sessions as $key => $value) {
 			if ($invoice->patient_category === 1) {
 				$value->description = $value->type_description;
 			}
@@ -203,12 +204,12 @@ class InvoiceController extends Controller {
 
 			if ($value->amount) {
 				$invoice->total_amount += $value->amount;
-				$appointments[$key]->amount = currency_format($value->amount, $fraction);
+				$sessions[$key]->amount = currency_format($value->amount, $fraction);
 			}
 
 			if ($value->insurance) {
 				$invoice->total_insurance += $value->insurance;
-				$appointments[$key]->insurance = currency_format($value->insurance, $fraction);
+				$sessions[$key]->insurance = currency_format($value->insurance, $fraction);
 			}
 		}
 
@@ -224,8 +225,6 @@ class InvoiceController extends Controller {
 
 		$invoice->reference = $this->generateReference($invoice);
 
-		// $patient_sessions = Patient::getPrevSessions($invoice->patient_id, $invoice->created_at);
-		// $invoice->patient_sessions = $patient_sessions;
 		$invoice->patient_address_country = __($invoice->patient_address_country);
 
 		$invoice->editable = $id === Invoice::getLastId($invoice->patient_id);
@@ -241,7 +240,7 @@ class InvoiceController extends Controller {
 		return [
 			'key' => $key,
 			'invoice' => $invoice,
-			'appointments' => $appointments,
+			'sessions' => $sessions,
 			'lastInvoice' => $lastInvoice,
 		];
 	}
@@ -277,7 +276,7 @@ class InvoiceController extends Controller {
 			"invoices.name",
 			"patients.category AS patient_category",
 			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
-			DB::raw('SUM(appointments.amount) AS total'),
+			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
 			->when($limit < 1000, function ($query) use ($limit) {
@@ -288,7 +287,7 @@ class InvoiceController extends Controller {
 				$query->whereYear('invoices.created_at', $limit);
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
-			->join("appointments", "appointments.invoice_id", "=", "invoices.id")
+			->join("sessions", "sessions.invoice_id", "=", "invoices.id")
 			->groupBy("id", "patient_id", "created_at", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
@@ -300,12 +299,8 @@ class InvoiceController extends Controller {
 		}
 
 		// after signing in,
-		// set user's phone and fax prefix as well as the address country name
-		// $route = app('router')->getRoutes()->match( // get previous url's route
-		// 	app('request')->create(url()->previous())
-		// );
-		// if ($route->uri === "login") {
-		// }
+		if (url()->previous() === route("login")) {
+		}
 
 		return view('invoice-index', [
 			'entries' => $entries,
@@ -333,8 +328,6 @@ class InvoiceController extends Controller {
 			'entries' => $entries,
 		]);
 
-		// $sessions = Patient::getPrevSessions($patient->id);
-		// $patient->sessions = $sessions;
 		$patient->name = sprintf("%s, %s", $patient->lastname, $patient->firstname);
 
 		if ($patient->phone_country_id) {
@@ -411,7 +404,7 @@ class InvoiceController extends Controller {
 
 		$patient_object =  [];
 		$invoice_object =  [];
-		$apps = [];
+		$sessions = [];
 
 		$currency_regex = currency_regex();
 
@@ -424,9 +417,9 @@ class InvoiceController extends Controller {
 				case "patient":
 					$patient_object[$field[1]] = $value;
 					break;
-				case "app":
-					$app_field = explode("-", $field[1]);
-					$apps[$app_field[1]][$app_field[0]] = [
+				case "session":
+					$session_field = explode("-", $field[1]);
+					$sessions[$session_field[1]][$session_field[0]] = [
 						'key' => $key,
 						'value' => $value,
 					];
@@ -472,17 +465,17 @@ class InvoiceController extends Controller {
 			'invoice-location_country_id.numeric' => app('ERRORS')['numeric'],
 		];
 
-		if (count($apps) === 0) {
+		if (count($sessions) === 0) {
 			session()->flash("error", __("No session!"));
 			return back()->withInput();
 		}
 
-		$visible_apps = [];
-		for ($i = 0; $i < count($apps); $i++) {
-			if ($apps[$i]['visible']['value'] ?? false) {
-				unset($apps[$i]['visible']);
-				$visible_apps[] = $apps[$i];
-				foreach ($apps[$i] as $key => $items) {
+		$visible_sessions = [];
+		for ($i = 0; $i < count($sessions); $i++) {
+			if ($sessions[$i]['visible']['value'] ?? false) {
+				unset($sessions[$i]['visible']);
+				$visible_sessions[] = $sessions[$i];
+				foreach ($sessions[$i] as $key => $items) {
 					unset($date);
 					unset($regex);
 					if ($key === "done_at") {
@@ -507,7 +500,7 @@ class InvoiceController extends Controller {
 			}
 		}
 
-		if (count($visible_apps) === 0) {
+		if (count($visible_sessions) === 0) {
 			session()->flash("error", __("No visible session!"));
 			return back()->withInput();
 		}
@@ -563,21 +556,21 @@ class InvoiceController extends Controller {
 		}
 		$invoice->save();
 
-		// get all the appointments of the invoice
-		$appointments = Appointment::whereInvoiceId($invoice->id)
+		// get all the sessions of the invoice
+		$sessions = Session::whereInvoiceId($invoice->id)
 			->orderBy("id")
 			->get();
 
-		for ($i = 0; $i < count($visible_apps); $i++) {
-			if ($appointments->count()) {
-				$app = $appointments->first();
-				$first_key = $appointments->keys()->first();
-				$appointments = $appointments->forget($first_key);
+		for ($i = 0; $i < count($visible_sessions); $i++) {
+			if ($sessions->count()) {
+				$session = $sessions->first();
+				$first_key = $sessions->keys()->first();
+				$sessions = $sessions->forget($first_key);
 			} else {
-				$app = new Appointment();
+				$session = new Session();
 			}
 
-			foreach ($visible_apps[$i] as $key => $field) {
+			foreach ($visible_sessions[$i] as $key => $field) {
 				if (in_array($key, ["amount", "insurance"])) {
 					$field['value'] = intval(currency_parse($field['value']));
 
@@ -586,20 +579,20 @@ class InvoiceController extends Controller {
 					}
 				}
 
-				$app[$key] = $field['value'];
+				$session[$key] = $field['value'];
 			}
 
 			// remember: disabled inputs are not in POST/PUT query ("description" here)
-			if (!isset($visible_apps[$i]['description'])) $app->description = null;
-			if (!isset($visible_apps[$i]['insurance'])) $app->insurance = null;
+			if (!isset($visible_sessions[$i]['description'])) $session->description = null;
+			if (!isset($visible_sessions[$i]['insurance'])) $session->insurance = null;
 
-			$app->invoice_id = $invoice->id;
-			$app->save();
+			$session->invoice_id = $invoice->id;
+			$session->save();
 		}
 
-		// delete any extra old appointments from database
-		foreach ($appointments as $appointment) {
-			$appointment->delete();
+		// delete any extra old sessions from database
+		foreach ($sessions as $session) {
+			$session->delete();
 		}
 
 		if ($is_update) {
@@ -632,7 +625,7 @@ class InvoiceController extends Controller {
 			'entries' => $entries,
 			'key' => $invoice_object['key'],
 			'invoice' => $invoice_object['invoice'],
-			'appointments' => $invoice_object['appointments'],
+			'sessions' => $invoice_object['sessions'],
 			'lastInvoice' => $invoice_object['lastInvoice'],
 		]));
 	}
@@ -684,7 +677,7 @@ class InvoiceController extends Controller {
 			"invoices.name",
 			"patients.code",
 			DB::raw('CONCAT(patients.lastname, ", ", patients.firstname) AS patient'),
-			DB::raw('SUM(appointments.amount) AS total'),
+			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			->where("invoices.user_id", "=", Auth::user()->id)
@@ -694,7 +687,7 @@ class InvoiceController extends Controller {
 					->orWhere("patients.firstname", "LIKE", "%{$str}%")
 					->orWhere("patients.code", "LIKE", "{$str}%");
 			})
-			->leftJoin("appointments", "appointments.invoice_id", "=", "invoices.id")
+			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
 			->groupBy("id", "created_at", "date", "name", "patients.code", "patient")
 			->latest()
 			->get()->toArray();
@@ -736,10 +729,10 @@ class InvoiceController extends Controller {
 		}
 
 		// if user has a secondary address AND
-		// if any of the appointments' location is "009b", use the secondary address
+		// if any of the sessions' location is "009b", use the secondary address
 		if (User::hasSecondaryAddress()) {
-			foreach ($invoice_object['appointments'] as $app) {
-				if ($app->location_code === "009b") {
+			foreach ($invoice_object['sessions'] as $session) {
+				if ($session->location_code === "009b") {
 					$user->address_line1 = $user->address2_line1;
 					$user->address_line2 = $user->address2_line2;
 					$user->address_line3 = $user->address2_line3;

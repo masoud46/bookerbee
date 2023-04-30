@@ -20,7 +20,7 @@
 	}
 }
 
-.app-type-wrapper {
+.session-type-wrapper {
 	position: relative;
 
 	&::after {
@@ -35,7 +35,7 @@
 	}
 }
 
-.app-type-changed {
+.session-type-changed {
 	animation: flash 1.5s
 }
 
@@ -59,7 +59,7 @@
 	}
 }
 
-.app-item {
+.session-item {
 	margin-bottom: 1.5rem;
 
 	.input-group-text {
@@ -67,12 +67,12 @@
 	}
 }
 
-.remove-app-container {
+.remove-session-container {
 	display: flex;
 	align-items: center;
 	width: 1.5rem;
 
-	.remove-app {
+	.remove-session {
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -117,11 +117,11 @@
 @media only screen and (min-width:576px) {}
 
 @media only screen and (min-width:768px) {
-	.app-item {
+	.session-item {
 		margin-bottom: 0;
 	}
 
-	.app-type-wrapper {
+	.session-type-wrapper {
 		&::after {
 			top: 7px;
 			left: calc(100% - 0.62rem);

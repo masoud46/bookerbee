@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
+use App\Models\Session;
 use Illuminate\Http\Request;
 
-class AppointmentController extends Controller {
+class SessionController extends Controller {
 	/**
 	 * Create a new controller instance.
 	 *
@@ -46,20 +46,20 @@ class AppointmentController extends Controller {
 	/**
 	 * Display the specified resource.
 	 *
-	 * @param  \App\Models\Appointment  $appointment
+	 * @param  \App\Models\Session  $session
 	 * @return \Illuminate\Http\Response
 	 */
-	public function show(Appointment $appointment) {
+	public function show(Session $session) {
 		//
 	}
 
 	/**
 	 * Show the form for editing the specified resource.
 	 *
-	 * @param  \App\Models\Appointment  $appointment
+	 * @param  \App\Models\Session  $session
 	 * @return \Illuminate\Http\Response
 	 */
-	public function edit(Appointment $appointment) {
+	public function edit(Session $session) {
 		//
 	}
 
@@ -67,20 +67,20 @@ class AppointmentController extends Controller {
 	 * Update the specified resource in storage.
 	 *
 	 * @param  \Illuminate\Http\Request  $request
-	 * @param  \App\Models\Appointment  $appointment
+	 * @param  \App\Models\Session  $session
 	 * @return \Illuminate\Http\Response
 	 */
-	public function update(Request $request, Appointment $appointment) {
+	public function update(Request $request, Session $session) {
 		//
 	}
 
 	/**
 	 * Remove the specified resource from storage.
 	 *
-	 * @param  \App\Models\Appointment  $appointment
+	 * @param  \App\Models\Session  $session
 	 * @return \Illuminate\Http\Response
 	 */
-	public function destroy(Appointment $appointment) {
+	public function destroy(Session $session) {
 		//
 	}
 }

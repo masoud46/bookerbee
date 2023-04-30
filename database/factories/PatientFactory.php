@@ -16,7 +16,7 @@ class PatientFactory extends Factory {
 			'category' => $this->faker->numberBetween(1, 3),
 			'code' => $this->faker->unique()->numberBetween(1234567890123, 9876543210987),
 			'firstname' => ucfirst($this->faker->firstName()),
-			'lastname' => strtoupper($this->faker->lastName()),
+			'lastname' => ucfirst($this->faker->lastName()),
 			'email' => $this->faker->unique()->safeEmail(),
 			'phone_country_id' => 129,
 			'phone_number' => $this->faker->phoneNumber(),

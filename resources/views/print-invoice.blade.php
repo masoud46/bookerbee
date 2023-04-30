@@ -1,5 +1,8 @@
 @php
 	$titles = json_decode($user->titles);
+	$invoice_date = Carbon\Carbon::parse($invoice->created_at)
+		->timezone(Auth::user()->timezone)
+		->format('d/m/Y');
 @endphp
 
 <!DOCTYPE html>
@@ -114,7 +117,7 @@
 				<td colSpan="9">
 					<div>
 						<div class="title-num">MÉMOIRE D’HONORAIRES &nbsp;&nbsp; N° : <span>{{ $invoice->reference }}</span></div>
-						<div class="title-date">du : <span>{{ date('d/m/Y', strtotime($invoice->created_at)) }}</span></div>
+						<div class="title-date">du : <span>{{ $invoice_date }}</span></div>
 					</div>
 				</td>
 			</tr>
@@ -131,22 +134,22 @@
 			</tr>
 
 			@php($i = 0)
-			@foreach ($appointments as $app)
+			@foreach ($sessions as $session)
 				@php($i++)
 				<tr class="table-row">
 					<td class="row-num">{{ sprintf('%02d', $i) }}</td>
 					<td>{{ $user->code }}</td>
-					<td>{{ $app->location_code }}</td>
-					<td>{{ date('d/m/Y', strtotime($app->done_at)) }}</td>
-					<td>{{ $app->type_code }}</td>
-					<td colSpan="2">{{ $app->description }}</td>
-					<td class="currency">{{ $app->amount }}</td>
-					<td class="currency">{{ $app->insurance ?? '' }}</td>
+					<td>{{ $session->location_code }}</td>
+					<td>{{ date('d/m/Y', strtotime($session->done_at)) }}</td>
+					<td>{{ $session->type_code }}</td>
+					<td colSpan="2">{{ $session->description }}</td>
+					<td class="currency">{{ $session->amount }}</td>
+					<td class="currency">{{ $session->insurance ?? '' }}</td>
 					<td>€</td>
 				</tr>
 			@endforeach
 
-			@for ($i = $appointments->count(); $i < 10; $i++)
+			@for ($i = $sessions->count(); $i < 10; $i++)
 				<tr class="table-row">
 					<td class="row-num">{{ sprintf('%02d', $i + 1) }}</td>
 					<td></td>
