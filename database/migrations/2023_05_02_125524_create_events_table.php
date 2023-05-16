@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 			$table->bigInteger('user_id')->unsigned();
 			$table->bigInteger('patient_id')->unsigned()->nullable();
-			$table->tinyInteger('category')->comment('1=RDV, 2=private, 9=Locked');
+			$table->tinyInteger('category')->comment('1=RDV, 2=private');
 			$table->string('title', 100)->nullable();
 			$table->boolean('allday');
 			$table->timestamp('start')->nullable();

@@ -11,8 +11,9 @@ return new class extends Migration {
 	public function up(): void {
 		Schema::create('timezones', function (Blueprint $table) {
 			$table->id();
-			$table->string('name', 255);
-			$table->string('utc_offset', 6)->nullable();
+			$table->integer('offset', 2);
+			$table->string('offset_str', 6)->nullable();
+			$table->string('name', 100);
 		});
 	}
 
