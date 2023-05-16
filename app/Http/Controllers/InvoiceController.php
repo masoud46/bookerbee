@@ -260,8 +260,9 @@ class InvoiceController extends Controller {
 		$count = Invoice::whereUserId(Auth::user()->id)->count();
 		$years = Invoice::select(DB::raw('YEAR(created_at) AS year'))
 			->whereUserId(Auth::user()->id)
-			->latest()
+			// ->latest()
 			->groupBy("year")
+			->orderBy("year", "desc")
 			->get();
 
 		if (!is_numeric($limit)) {
