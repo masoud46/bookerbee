@@ -3,7 +3,7 @@
 
 #invoices-container {
 
-	.invoice-item {
+	.items-table-item {
 		&.national-healthcare-item {
 			td {
 				color: $national-healthcare-color;
@@ -25,6 +25,14 @@
 					font-size: 0.7em;
 				}
 			}
+		}
+
+		&.inactive-invoice {
+			td {
+					color: $inactive-invoice-color;
+					text-decoration: line-through;
+					opacity: 0.75;
+				}
 		}
 
 		.invoice-item-print {

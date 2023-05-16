@@ -31,10 +31,16 @@
 	<link rel="stylesheet" href="{{ asset('/build/fonts/fontawesome/css/all.min.css') }}">
 
 	<script>
-		// Pass php variables to javascript
-		window.laravel = {}
+		/* Pass php variables to javascript */
+		window.laravel = {
+			locale: '{{ LaravelLocalization::getCurrentLocale() }}',
+			// TODO: To show a message if the content might need to be saved
+			modified: false,
+		}
 		window.laravel.messages = {
 			unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
+			databaseError: `{{ __('Changes could not be applied.') }}<br>{{ __('Try again.') }}`,
+			irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
 			saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
 			modificationSaved: `{{ __('Changes have been saved.') }}`,
 		}
@@ -87,22 +93,27 @@
 						<li class="nav-item">
 							<a class="nav-link" href="{{ route('patient.index') }}">{{ __('Patient') }}</a>
 						</li>
+						{{-- <li class="nav-item">
+							<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
+						</li> --}}
 						<li class="nav-item dropdown">
 							<a id="navbarDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
 								<i class="fa-solid fa-bars fa-fw"></i>
 							</a>
-							<div class="dropdown-menu dropdown-menu-end shadow pt-0" aria-labelledby="navbarDropdown">
-								<div id="navbarDropdown" class="dropdown-item disabled border-bottom fst-italic fw-bold py-1">
+							<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
+								<div id="navbarDropdown" class="dropdown-item disabled xborder-bottom fst-italic fw-bold xpt-1">
 									{{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
 								</div>
-								<a class="dropdown-item mt-2" href="{{ route('profile') }}">
+								<hr class="my-2">
+								<a class="dropdown-item" href="{{ route('profile') }}">
 									<i class="far fa-user fa-fw me-1"></i> {{ __('My information') }}
 								</a>
 								<a class="dropdown-item" href="{{ route('settings') }}">
 									<i class="fas fa-sliders fa-fw me-1"></i> {{ __('Settings') }}
 								</a>
+								<hr class="my-2">
 								<a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-									<i class="fa-solid fa-arrow-right-from-bracket fa-fw me-1"></i> {{ __('Logout') }}
+									<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
 								</a>
 								<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
 									@csrf

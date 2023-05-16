@@ -18,13 +18,14 @@
 	$default_country_code = config('project.default_country_code');
 	$add = isset($key) && isset($patient);
 	$update = isset($invoice) && isset($sessions);
-	$editable = $add || $invoice->editable;
+	$inactive = isset($invoice) && !$invoice->active;
+	$editable = !$inactive && ($add || $invoice->editable);
 	$disabled = $editable ? '' : 'disabled';
 	
 	$category = $add ? $patient->category : $invoice->patient_category;
 	$sessionDefaultLocation = 3;
 	$last_session = -1;
-	$title_color = $category === 1 ? 'national-healthcare' : 'secondary';
+	$title_color = $inactive ? 'inactive-invoice' : ($category === 1 ? 'national-healthcare' : 'secondary');
 	$oldVisibleSessions = array_keys(session()->getOldInput(), 'visible');
 	
 	if (count($oldVisibleSessions)) {
@@ -38,7 +39,7 @@
 
 @section('content')
 	<div class="container">
-		<form id="invoice-form" method="post" action="{{ route('invoice.store') }}" class="form" autocomplete="off" autofill="off">
+		<form id="invoice-form" method="post" action="{{ route('invoice.store') }}" class="form {{ $inactive ? "inactive-invoice" : '' }}" autocomplete="off" autofill="off">
 			@csrf
 			<input type="hidden" id="patient-email" value="{{ $update ? $invoice->patient_email : $patient->email }}">
 			<input type="hidden" id="patient-phone_prefix" value="{{ $update ? $invoice->patient_phone_prefix : $patient->phone_prefix }}">
@@ -49,11 +50,14 @@
 			<input type="hidden" id="invoice-saved" value="true">
 			<input type="hidden" id="invoice-sessions-types" value='{{ json_encode($types->toArray()) }}'>
 			<input type="hidden" id="invoice-patient-category" value='{{ $category }}'>
+			@if (isset($invoice))
+				<input type="hidden" id="disable-invoice-url" value="{{ route('invoice.disable', ['invoice' => $invoice->id]) }}">
+			@endif
 			<div class="row">
 				<div class="col-md-6">
 					<h6 class="rounded-1 bg-{{ $title_color }} text-white mt-4 py-1 px-3">{{ __('Patient') }} {!! $category === 1 ? '- CNS' : '' !!}
 						<span id="patient-notes" class="float-end" data-bs-toggle="modal" data-bs-target="#patient-notes-modal">
-							<span data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="session-tooltip" data-bs-title="{{ __('Notes') }}">
+							<span data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="app-tooltip" data-bs-title="{{ __('Notes') }}">
 								<i class="far fa-file-lines"></i>
 							</span>
 						</span>
@@ -200,10 +204,10 @@
 			</div>
 			<div class="row">
 				<div class="col-1 col-md-5 col-lg-4 d-flex align-items-center">
-					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="session-tooltip" data-bs-title="{!! $locations_tooltip !!}"><i class="far fa-circle-question"></i></span>
+					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="app-tooltip" data-bs-title="{!! $locations_tooltip !!}"><i class="far fa-circle-question"></i></span>
 				</div>
 				<div class="col-11 col-md-7 col-lg-8 d-flex align-items-center">
-					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="session-tooltip" data-bs-title="{!! $types_tooltip !!}"><i class="far fa-circle-question"></i></span>
+					<span class="text-secondary text-opacity-50" data-bs-toggle="tooltip" data-bs-html="true" data-bs-custom-class="app-tooltip" data-bs-title="{!! $types_tooltip !!}"><i class="far fa-circle-question"></i></span>
 				</div>
 			</div>
 			<div id="invoice-sessions" class="row">
@@ -234,8 +238,8 @@
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
-							<div class="col-md-2 mb-1 session-type-wrapper" data-session="{{ $hidden ? '0' : $invoice_session + $i }}">
-								<select name="session-type_id-{{ $i }}" class="session-type form-select form-select-sm @error("session-type_id-{$i}") is-invalid @enderror">
+							<div class="col-md-1 mb-1 session-type-wrapper" data-session="{{ $hidden ? '0' : $invoice_session + $i }}">
+								<select name="session-type_id-{{ $i }}" readonly class="session-type pe-none form-select form-select-sm form-control form-control-sm form-control-plaintext text-center @error("session-type_id-{$i}") is-invalid @enderror">
 									<option value="" selected hidden>{{ __('Acte') }}</option>
 									@php($type_id = null)
 									@php($description = null)
@@ -265,7 +269,7 @@
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
-							<div class="col-md-3 col-lg-4 mb-1">
+							<div class="col-md-4 col-lg-4 mb-1">
 								<input name="session-description-{{ $i }}" class="session-description form-control form-control-sm @error("session-description-{$i}") is-invalid @enderror" placeholder="{{ __('Description') }}" {{ $category === 1 ? 'disabled' : '' }} value="{{ old("session-description-{$i}", $session && $session->description ? $session->description : $description) }}">
 								@error("session-description-{$i}")
 									<div class="invalid-feedback"></div>
@@ -274,7 +278,7 @@
 							<div class="col-md-2 mb-1 d-flex">
 								<div class="input-group input-group-sm flex-grow-1 @error("session-amount-{$i}") has-validation @enderror">
 									<input name="session-amount-{{ $i }}" class="xsession-amount form-control form-control-sm @error("session-amount-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __('Amount') }}" default-value="{{ $settings->amount }}" value="{{ old("session-amount-{$i}", $session && $session->amount ? $session->amount : $settings->amount) }}">
-									<span class="input-group-text" id="input-group-sizing-sm">€</span>
+									<span class="input-group-text px-1" id="input-group-sizing-sm">€</span>
 									@error("session-amount-{$i}")
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
@@ -292,7 +296,7 @@
 							{{-- <div class="col-md-2 mb-1">
 								<div class="input-group input-group-sm @error("session-insurance-{$i}") has-validation @enderror">
 									<input name="session-insurance-{{ $i }}" class="session-insurance form-control form-control-sm @error("session-insurance-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __("Coverd-part") }}" value="{{ $session && $session->insurance ? $session->insurance : '' }}">
-									<span class="input-group-text" id="input-group-sizing-sm">€</span>
+									<span class="input-group-text px-1" id="input-group-sizing-sm">€</span>
 									@error("session-insurance-{$i}")
 										<div class="invalid-feedback"></div>
 									@enderror
@@ -323,7 +327,7 @@
 						<label for="invoice-prepayment" class="w-100 col-form-label col-form-label-sm">{{ __('Prepayment') }}</label>
 						<div class="w-100 input-group input-group-sm @error('invoice-prepayment') has-validation @enderror">
 							<input id="invoice-prepayment" name="invoice-prepayment" class="form-control form-control-sm @error('invoice-prepayment') is-invalid @enderror" value="{{ old('invoice-prepayment', $update ? $invoice->prepayment : '') }}">
-							<span class="input-group-text" id="input-group-sizing-sm">€</span>
+							<span class="input-group-text px-1" id="input-group-sizing-sm">€</span>
 							@error('invoice-prepayment')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror
@@ -382,6 +386,9 @@
 					<button type="submit" id="save-invoice" class="btn btn-primary btn-fa-spinner me-3" data-saved="0"><i class="icon-visible fas fa-file-arrow-down fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Save') }}</button>
 					@if ($update)
 						<a id="print-invoice" href="{{ route('invoice.print', ['invoice' => $invoice->id]) }}" target="_blank" class="btn btn-outline-secondary{{ $update ? '' : ' disabled' }}"><i class="fas fa-print fa-fw"></i> {{ __('Print') }}</a>
+						@if ($editable)
+							<button type="button" id="disable-invoice" class="btn btn-danger float-end"><i class="fas fa-xmark fa-fw"></i> {{ __('Disable this invoice') }}</button>
+						@endif
 					@endif
 				</div>
 				<div id="invoice-not-saved-message" class="col-12 pt-1 {{ $update ? 'invisible' : '' }}">

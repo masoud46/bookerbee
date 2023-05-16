@@ -71,12 +71,12 @@ class SettingsController extends Controller {
 
 		$settings->amount = currency_format($settings->amount);
 
-		return view('settings', [
-			'entries' => $entries,
-			'locations' => $locations,
-			'types' => $types,
-			'settings' => $settings,
-		]);
+		return view('settings', compact(
+			'entries',
+			'locations',
+			'types',
+			'settings',
+		));
 	}
 
 	/**

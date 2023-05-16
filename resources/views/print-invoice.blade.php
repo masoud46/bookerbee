@@ -1,4 +1,5 @@
 @php
+	$cancelled = !$invoice->active;
 	$titles = json_decode($user->titles);
 	$invoice_date = Carbon\Carbon::parse($invoice->created_at)
 		->timezone(Auth::user()->timezone)
@@ -141,10 +142,10 @@
 					<td>{{ $user->code }}</td>
 					<td>{{ $session->location_code }}</td>
 					<td>{{ date('d/m/Y', strtotime($session->done_at)) }}</td>
-					<td>{{ $session->type_code }}</td>
-					<td colSpan="2">{{ $session->description }}</td>
-					<td class="currency">{{ $session->amount }}</td>
-					<td class="currency">{{ $session->insurance ?? '' }}</td>
+					<td class="{{ $cancelled ? 'cancelled' : '' }}">{{ $session->type_code }}</td>
+					<td colSpan="2" class="{{ $cancelled ? 'cancelled' : '' }}">{{ $session->description }}</td>
+					<td class="currency {{ $cancelled ? 'cancelled' : '' }}">{{ $session->amount }}</td>
+					<td class="currency {{ $cancelled ? 'cancelled' : '' }}">{{ $session->insurance ?? '' }}</td>
 					<td>€</td>
 				</tr>
 			@endforeach
@@ -174,20 +175,20 @@
 					</div>
 				</td>
 				<td class="total-title">Total :</td>
-				<td class="currency bold">{{ $invoice->total_amount ?? '' }}</td>
-				<td class="currency bold">{{ $invoice->total_insurance ?? '' }}</td>
+				<td class="currency bold {{ $cancelled ? 'cancelled' : '' }}">{{ $invoice->total_amount ?? '' }}</td>
+				<td class="currency bold {{ $cancelled ? 'cancelled' : '' }}">{{ $invoice->total_insurance ?? '' }}</td>
 				<td>€</td>
 			</tr>
 			<tr class="total-amount">
 				<td></td>
 				<td class="total-title">Acompte à déduire :</td>
-				<td colSpan="2" class="currency">{{ $invoice->prepayment ?? '' }}</td>
+				<td colSpan="2" class="currency {{ $cancelled ? 'cancelled' : '' }}">{{ $invoice->prepayment ?? '' }}</td>
 				<td>€</td>
 			</tr>
 			<tr class="total-amount">
 				<td></td>
 				<td class="total-title">A PAYER :</td>
-				<td colSpan="2" class="currency bold">{{ $invoice->total_to_pay ?? '' }}</td>
+				<td colSpan="2" class="currency bold {{ $cancelled ? 'cancelled' : '' }}">{{ $invoice->total_to_pay ?? '' }}</td>
 				<td>€</td>
 			</tr>
 			<tr>
@@ -219,6 +220,12 @@
 			</tr>
 		</tbody>
 	</table>
+
+	@if ($cancelled)
+	<div id="cancelled">
+		<div class="cancelled">ANNULÉ</div>
+	</div>
+	@endif
 
 	<script>
 		// window.onafterprint = function() {

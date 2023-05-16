@@ -38,7 +38,7 @@ utils.fetch = async ({ method = 'POST', url, data = null, csrf = null }) => {
 	if (data) options.body = JSON.stringify(data)
 	else options.method = 'GET'
 	if (csrf) options.headers['X-CSRF-TOKEN'] = csrf
-	if (method.toUpperCase() === 'POST' && !csrf) {
+	if (method.toUpperCase() !== 'GET' && !csrf) {
 		const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
 
 		if (csrf) {
@@ -96,7 +96,8 @@ utils.toast.show = ({ message, delay, error = false }) => {
 
 utils.showMessage = ({ message, timeout, error = false }) => {
 	const flash = utils.flash
-	if (!timeout) timeout = error ? flash.errorTimeout : flash.timeout
+
+	timeout = timeout ?? error ? flash.errorTimeout : flash.timeout
 
 	flash.element.classList.remove('flash-message-visible')
 	flash.element.querySelector('.flash-message-text').innerHTML = message

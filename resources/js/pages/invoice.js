@@ -32,6 +32,7 @@ const printInvoiceBtn = document.getElementById('print-invoice')
 const currentSession = document.getElementById('invoice-session')
 const sessionTypes = JSON.parse(document.getElementById('invoice-sessions-types').value)
 const patientCategory = JSON.parse(document.getElementById('invoice-patient-category').value)
+const disableInvoiceBtn = document.getElementById('disable-invoice')
 
 // reset the the given parent's form elements
 function resetChildrenValues(parent) {
@@ -196,6 +197,15 @@ invoiceLocationCheck.addEventListener('change', e => {
 	}
 	// setInvoiceSaved(false)
 })
+
+// disable the invoice
+disableInvoiceBtn?.addEventListener('click', e => {
+	utils.showConfirmation(window.laravel.messages.irreversibleAction, () => {
+		document.location.assign(document.getElementById('disable-invoice-url').value)
+	})
+})
+
+
 
 // resetSessionNumber()
 

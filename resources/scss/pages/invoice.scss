@@ -1,6 +1,48 @@
 @import '../variables';
 
 
+#invoice-form.inactive-invoice {
+	* {
+		pointer-events: none;
+	}
+
+	#print-invoice,
+	#print-invoice * {
+		pointer-events: initial;
+	}
+
+	#add-session,
+	#save-invoice {
+		display: none;
+	}
+
+	.invoice-session-container {
+		opacity: 0.25;
+	}
+
+	#invoice-sessions {
+
+		.session-type-wrapper,
+		.session-description,
+		.input-group {
+			opacity: 0.25;
+		}
+
+		.remove-session-container {
+			display: none;
+		}
+	}
+
+	label[for="invoice-prepayment"],
+	label[for="invoice-prepayment"] + .input-group {
+		opacity: 0.25;
+	}
+}
+
+.form-select.session-type {
+	background-image: none;
+}
+
 .invoice-session-container {
 	border-width: 0.1rem !important;
 }
@@ -43,19 +85,19 @@
 	20% {}
 
 	25% {
-		background-color: #ff0;
-		transform: scale(1.05);
+		box-shadow: 0 0 50px 0 #ff9 inset;
+		transform: scale(1.1);
 	}
 
 	40% {}
 
 	50% {
-		background-color: #ff0;
+		box-shadow: 0 0 50px 0 #ff9 inset;
 		transform: scale(1);
 	}
 
 	100% {
-		background-color: #fff;
+		box-shadow: none;
 	}
 }
 
@@ -123,8 +165,8 @@
 
 	.session-type-wrapper {
 		&::after {
-			top: 7px;
-			left: calc(100% - 0.62rem);
+			top: 6px;
+			left: calc(100% - 0.65rem);
 			font-size: 0.75em;
 			font-weight: normal;
 		}

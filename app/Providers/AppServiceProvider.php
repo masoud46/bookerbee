@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider {
 					'global' => __("Please verify this field."),
 					'code' => __("Please check the registration number."),
 					'price' => __("Invalid price format."),
-					'location' => __("Please fill in the secondary address first, or choose another location."),
+					'location' => __("Please fill in your secondary address first, or choose another location."),
 				],
 				'unique' => [
 					'email' => __("This email address is already in use."),

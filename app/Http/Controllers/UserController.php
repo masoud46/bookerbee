@@ -70,12 +70,12 @@ class UserController extends Controller {
 		$countries = Country::sortedList();
 		$timezones = Timezone::all()->sortBy('offset');
 
-		return view('user', [
-			'entries' => $entries,
-			'countries' => $countries,
-			'timezones' => $timezones,
-			'locations' => $locations,
-		]);
+		return view('user', compact(
+			'entries',
+			'countries',
+			'timezones',
+			'locations',
+		));
 	}
 
 	/**

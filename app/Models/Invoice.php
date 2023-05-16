@@ -26,4 +26,20 @@ class Invoice extends Model {
 		return $invoice ? $invoice->id : null;
 	}
 
+	/**
+	 * Get the id of the user's last active invoice.
+	 *
+	 * @return Integer
+	 */
+	public static function getLastActiveId($patient_id) {
+		$invoice = Invoice::select("id")
+			->whereUserId(Auth::user()->id)
+			->wherePatientId($patient_id)
+			->whereActive(true)
+			->latest()
+			->first();
+
+		return $invoice ? $invoice->id : null;
+	}
+
 }

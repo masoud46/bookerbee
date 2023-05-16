@@ -15,8 +15,9 @@ class CreateInvoicesTable extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-			$table->integer('user_id');
-            $table->integer('patient_id');
+			$table->bigInteger('user_id')->unsigned();
+            $table->bigInteger('patient_id')->unsigned();
+            $table->bigInteger('serial')->unsigned();
             $table->integer('session')->default(1);
             $table->string('name', 100);
             $table->string('acc_number')->nullable();
@@ -31,7 +32,8 @@ class CreateInvoicesTable extends Migration
 			$table->string('location_address', 100)->nullable();
 			$table->string('location_code', 10)->nullable();
 			$table->string('location_city', 50)->nullable();
-			$table->integer('location_country_id')->nullable();
+			$table->integer('location_country_id')->unsigned()->nullable();
+			$table->boolean('active')->unsigned()->default(true);
 			$table->timestamp('created_at')->useCurrent();
 			$table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });

@@ -1,14 +1,30 @@
-.resetable-date-button {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	width: 24px;
-	height: 25px;
-	cursor: pointer;
-	opacity: 0.75;
-	transition: opacity 0.2s;
+.resetable-date-container {
 
-	&:hover {
-		opacity: 1;
+	.resetable-date-button {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-left: 0.25rem;
+		padding: 0.25rem;
+		line-height: 1;
+		font-size: 1.1em;
+		cursor: pointer;
+		opacity: 0.75;
+		transition: opacity 0.2s;
+
+		&:hover {
+			opacity: 1;
+		}
 	}
+
+	.resetable-date-input {
+		&:disabled {
+			// opacity: 0.5;
+
+			& ~ .resetable-date-button {
+				opacity: 0.5;
+			}
+		}
+	}
+
 }

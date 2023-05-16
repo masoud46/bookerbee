@@ -15,8 +15,8 @@ class CreateSessionsTable extends Migration
     {
         Schema::create('sessions', function (Blueprint $table) {
             $table->id();
-            $table->integer('invoice_id');
-			$table->integer('location_id');
+            $table->bigInteger('invoice_id')->unsigned();
+			$table->bigInteger('location_id')->unsigned();
 			$table->integer('type_id');
 			$table->string('description', 100)->nullable();
 			$table->date('done_at');

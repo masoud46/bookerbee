@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientNoteController;
@@ -50,7 +51,9 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::get('/invoice/search/{limit}', [InvoiceController::class, 'index'])->name('invoice.index');
 		Route::get('/invoice/new/{patient}', [InvoiceController::class, 'create'])->name('invoice.new');
 		Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
-		Route::get('/invoice/{invoice}/print', [InvoiceController::class, 'print'])->name('invoice.print');
+		Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
+		Route::get('/invoice/print/{invoice}', [InvoiceController::class, 'print'])->name('invoice.print');
+		Route::get('/invoice/disable/{invoice}', [InvoiceController::class, 'disable'])->name('invoice.disable');
 
 		Route::get('/patient', [PatientController::class, 'index'])->name('patient.index');
 		Route::post('/patient', [PatientController::class, 'store'])->name('patient.store');
@@ -60,6 +63,11 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::post('/patient/notes/store', [PatientNoteController::class, 'store'])->name('patient.notes.store');
 		Route::post('/patient/autocomplete', [PatientController::class, 'autocomplete'])->name('patient.autocomplete');
 		Route::get('/patient/{patient?}', [PatientController::class, 'show'])->name('patient.show');
+
+		Route::get('/agenda', [EventController::class, 'index'])->name('agenda.index');
+		Route::post('/event', [EventController::class, 'store'])->name('event.add');
+		Route::put('/event/{event}', [EventController::class, 'update'])->name('event.update');
+		Route::delete('/event/{event}', [EventController::class, 'destroy'])->name('event.cancel');
 
 		Route::get('/profile', [UserController::class, 'edit'])->name('profile');
 		Route::put('/profile', [UserController::class, 'update'])->name('profile.update');

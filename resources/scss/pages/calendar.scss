@@ -1,0 +1,261 @@
+.agenda-timezone {
+	font-size: 0.75em;
+}
+
+.popover {
+	box-shadow: 4px 4px 10px rgba(#000, 0.2);
+}
+
+.fc-h-event,
+.fc-v-event {
+	&.fc-private-event {
+		background-color: rgba(#198754, 0.75) !important;
+		border-color: rgba(#198754, 0.75) !important;
+
+		.fc-event-main {
+			// color: rgba(#000, 0.75) !important;
+		}
+	}
+
+	.fc-event-time {
+		font-weight: bold;
+	}
+}
+
+.fc-list-event {
+	&.fc-private-event {
+
+		.fc-list-event-dot {
+			border-color: rgba(#198754, 0.5) !important;
+		}
+	}
+}
+
+.fc-locked-event {
+	background-color: #ddd !important;
+	border-color: #ddd !important;
+
+	&.fc-bg-event {
+		background-color: #ccc !important;
+	}
+
+	.fc-event-main {
+		color: #999 !important;
+	}
+}
+
+// hide locked events from listWeekView
+.fc-listWeek-view {
+	.fc-locked-event {
+		display: none;
+	}
+}
+
+.fc .fc-toolbar.fc-header-toolbar {
+	margin-bottom: 0.5em;
+}
+
+
+.app-tooltip-agenda {
+
+	.tooltip-inner {
+		padding: 0.75rem;
+		line-height: 2;
+		font-size: 1.1em;
+	}
+}
+
+
+#calendar-modal {
+	.calendar-event {
+		display: none;
+	}
+
+	&.modal-event-action-update_event,
+	&.modal-event-action-add,
+	&.modal-event-action-cancel {
+		.calendar-event-rdv {
+			display: inherit;
+		}
+
+		&.modal-event-action-add {
+			.calendar-event-add {
+				display: inherit;
+			}
+		}
+
+		&.modal-event-action-cancel,
+		&.modal-event-action-update_event {
+
+			.patient-picker-input {
+				pointer-events: none;
+			}
+
+			.patient-picker-component {
+
+				i,
+				small.text-muted {
+					display: none;
+				}
+			}
+		}
+
+		&.modal-event-action-cancel {
+			.calendar-event-cancel {
+				display: inherit;
+			}
+		}
+
+		&.modal-event-action-update_event {
+			.calendar-event-update_event {
+				display: inherit;
+			}
+		}
+
+	}
+
+	&.modal-event-action-update_lock,
+	&.modal-event-action-lock,
+	&.modal-event-action-unlock {
+		.calendar-event-slot {
+			display: inherit;
+		}
+
+		&.modal-event-action-lock {
+			.calendar-event-lock {
+				display: inherit;
+			}
+		}
+
+		&.modal-event-action-update_lock {
+			.calendar-event-update_lock {
+				display: inherit;
+			}
+		}
+
+		&.modal-event-action-unlock {
+			.calendar-event-unlock {
+				display: inherit;
+			}
+
+			.calendar-event-title,
+			.event-recurr-frequency,
+			.event-recurr-limit {
+				pointer-events: none;
+			}
+		}
+	}
+
+	.event-recurr-frequency:disabled {
+		pointer-events: none;
+		background-image: none;
+	}
+
+	&.modal-event-all-day.modal-event-same-day {
+
+		.calendar-event-to,
+		.calendar-event-end {
+			display: none !important;
+		}
+
+		.calendar-event-start {
+			text-align: center !important;
+		}
+	}
+
+	&.modal-event-all-day {
+
+		.calendar-event-start-space,
+		.calendar-event-end-space,
+		.calendar-event-start-time,
+		.calendar-event-end-time {
+			display: none !important;
+		}
+
+		.calendar-event-all-day {
+			display: inherit;
+		}
+
+		&:not(.modal-event-same-day) {
+			.calendar-event-start-date {
+				text-align: right !important;
+			}
+		}
+	}
+
+	&.modal-event-same-day {
+
+		.calendar-event-end-space,
+		.calendar-event-end-date {
+			display: none !important;
+		}
+
+		.calendar-event-end-time {
+			text-align: left !important;
+		}
+	}
+
+	&.modal-event-recurr {
+		.calendar-event-recurr {
+			display: inherit;
+		}
+
+		.event-recurr-container {
+			width: calc(100% + 2rem) !important;
+			margin: 0 -1rem !important;
+			padding: 0 1rem !important;
+			overflow: hidden;
+			max-height: 0;
+			// height: 114px;
+			transition: max-height 0.25s;
+		}
+
+		.event-recurr-days {
+			max-height: 0;
+
+			&:not(.no-animation) {
+				transition: max-height 0.25s;
+			}
+
+			&.event-recurr-days-visible {
+				max-height: 50px;
+			}
+		}
+
+		.event-recurr-day ~ .btn {
+			padding-left: 0.75rem;
+			padding-right: 0.75rem;
+		}
+
+		// .event-recurr-days {
+		// 	cursor: default;
+		// }
+
+		// .form-check-input:not(:disabled) {
+		// 	cursor: pointer;
+
+		// 	& ~ .form-check-label {
+		// 		cursor: pointer;
+		// 	}
+		// }
+
+		// .form-check-label {
+		// 	margin-right: 0.25rem;
+		// 	padding: 0 0.25rem;
+		// 	user-select: none;
+		// }
+	}
+
+	&.modal-event-recurr.modal-event-recurr-open {
+		.event-recurr-container {
+			max-height: 100px;
+		}
+
+		&.modal-event-action-unlock {
+			.resetable-date-button {
+				display: none;
+			}
+		}
+	}
+
+}

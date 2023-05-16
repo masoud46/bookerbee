@@ -33,10 +33,10 @@ class PatientController extends Controller {
 
 		$patients_count = Patient::whereUserId(Auth::user()->id)->count();
 
-		return view('patient-index', [
-			'entries' => $entries,
-			'patients_count' => $patients_count,
-		]);
+		return view('patient-index', compact(
+			'entries',
+			'patients_count',
+		));
 	}
 
 	/**
@@ -251,10 +251,11 @@ class PatientController extends Controller {
 			"code",
 			"firstname",
 			"lastname",
+			"email",
+			"phone_number",
+			"phone_country_id",
 		])
 			->whereUserId(Auth::user()->id)
-			// // had to use the following approach to eliminate duplicates
-			// // where $request->str found in more than one orWhere
 			->where(function ($query) use ($request) {
 				$query
 					->where("code", "LIKE", "{$request->str}%")

@@ -6,7 +6,9 @@
 }
 
 body {
+	position: relative;
 	margin: 30px;
+	font-family: Arial, sans-serif;
 }
 
 $width: 192mm;
@@ -17,12 +19,35 @@ $body-div-padding: .5mm;
 $border: 0.4mm solid #000000;
 $border-double: 0.4mm solid #000000;
 
+#cancelled {
+	z-index: -1;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: $width;
+	max-width: $width;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	user-select: none;
+	// pointer-events: none;
+	opacity: 0.2;
+
+	.cancelled {
+		font-size: 7em;
+		letter-spacing: 3mm;
+		transform: rotate(-45deg);
+	// transform: translateY(-100%) rotate(-45deg);
+	// 	transform-origin: bottom left;
+	}
+}
+
 #prescription {
 	width: $width;
 	max-width: $width;
 	border-collapse: collapse;
 	border-spacing: 0;
-
 
 
 	button {
@@ -33,6 +58,10 @@ $border-double: 0.4mm solid #000000;
 	}
 
 
+	.cancelled {
+		visibility: hidden;
+	}
+
 	.bold {
 		font-weight: bold;
 	}
@@ -41,7 +70,6 @@ $border-double: 0.4mm solid #000000;
 		border-bottom: $border;
 		border-right: $border;
 		text-align: left;
-		font-family: Arial, sans-serif;
 		font-size: 2.8mm;
 		padding: 0 0 0 0.5mm;
 		overflow: hidden;

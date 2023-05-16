@@ -8,7 +8,6 @@ use App\Models\Invoice;
 use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Settings;
-use App\Models\Timezone;
 use App\Models\Type;
 use App\Models\User;
 use Carbon\Carbon;
@@ -51,7 +50,7 @@ class InvoiceController extends Controller {
 		// 	sprintf("%s{$format[1]}%s", eval(sprintf('date("y", %d);', strtotime($invoice->created_at))), $invoice->id)
 		// );
 
-		return sprintf('%s/%s', date('y', strtotime($invoice->created_at)), $invoice->id);
+		return sprintf('%s/%s', date('y', strtotime($invoice->created_at)), $invoice->serial);
 	}
 
 	/**
@@ -68,6 +67,8 @@ class InvoiceController extends Controller {
 			"doc_name",
 			"doc_date",
 		])
+			->whereActive(true)
+			->wherePatientId($patient_id)
 			->where(function ($query) use ($invoice_id) {
 				if ($invoice_id) { // update
 					return $query->where("id", "<", $invoice_id);
@@ -75,7 +76,6 @@ class InvoiceController extends Controller {
 					return $query->whereUserId(Auth::user()->id);
 				}
 			})
-			->wherePatientId($patient_id)
 			->latest()
 			->first();
 
@@ -112,12 +112,12 @@ class InvoiceController extends Controller {
 			$locations[$bisId]['disabled'] = true;
 		}
 
-		return [
-			'settings' => $settings,
-			'countries' => $countries,
-			'locations' => $locations,
-			'types' => $types,
-		];
+		return compact(
+			'settings',
+			'countries',
+			'locations',
+			'types',
+		);
 	}
 
 	/**
@@ -137,6 +137,7 @@ class InvoiceController extends Controller {
 			"invoices.id",
 			"invoices.user_id",
 			"invoices.patient_id",
+			"invoices.serial",
 			"invoices.session",
 			"invoices.name",
 			"invoices.acc_number",
@@ -152,6 +153,7 @@ class InvoiceController extends Controller {
 			"invoices.location_code",
 			"invoices.location_city",
 			"invoices.location_country_id",
+			"invoices.active",
 			"invoices.created_at",
 			"invoice_location_country.name AS location_country",
 			"patients.category AS patient_category",
@@ -227,7 +229,7 @@ class InvoiceController extends Controller {
 
 		$invoice->patient_address_country = __($invoice->patient_address_country);
 
-		$invoice->editable = $id === Invoice::getLastId($invoice->patient_id);
+		$invoice->editable = $id === Invoice::getLastActiveId($invoice->patient_id);
 
 		$lastInvoice = $this->getLastInvoice($invoice->patient_id, $invoice->id);
 
@@ -258,7 +260,7 @@ class InvoiceController extends Controller {
 		$count = Invoice::whereUserId(Auth::user()->id)->count();
 		$years = Invoice::select(DB::raw('YEAR(created_at) AS year'))
 			->whereUserId(Auth::user()->id)
-			// ->latest()
+			->latest()
 			->groupBy("year")
 			->get();
 
@@ -270,8 +272,10 @@ class InvoiceController extends Controller {
 
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
+			"invoices.active",
 			"invoices.id",
 			"invoices.patient_id",
+			"invoices.serial",
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
 			"patients.category AS patient_category",
@@ -288,27 +292,27 @@ class InvoiceController extends Controller {
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			->join("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("id", "patient_id", "created_at", "date", "name", "patient", "patient_category")
+			->groupBy("active", "id", "patient_id", "serial", "created_at", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
 
 		foreach ($invoices as $invoice) {
 			$invoice->total = currency_format($invoice->total, true);
 			$invoice->reference = $this->generateReference($invoice);
-			$invoice->editable = $invoice->id === Invoice::getLastId($invoice->patient_id);
+			$invoice->editable = $invoice->id === Invoice::getLastActiveId($invoice->patient_id);
 		}
 
 		// after signing in,
 		if (url()->previous() === route("login")) {
 		}
 
-		return view('invoice-index', [
-			'entries' => $entries,
-			'patients_count' => $patients_count,
-			'years' => $years,
-			'count' => $count,
-			'invoices' => $invoices,
-		]);
+		return view('invoice-index', compact(
+			'entries',
+			'patients_count',
+			'years',
+			'count',
+			'invoices',
+		));
 	}
 
 	/**
@@ -540,6 +544,7 @@ class InvoiceController extends Controller {
 		if (!$is_update) { // create request
 			$invoice = new Invoice();
 			$invoice->user_id = $user_id;
+			$invoice->serial = Invoice::whereUserId($user_id)->count() + 1;
 		}
 
 		foreach ($patient_object as $key => $value) {
@@ -659,6 +664,24 @@ class InvoiceController extends Controller {
 	 */
 	public function destroy(Invoice $invoice) {
 		//
+	}
+
+	/**
+	 * Disable the specified resource.
+	 *
+	 * @param  \App\Models\Invoice  $invoice
+	 * @return \Illuminate\Http\Response
+	 */
+	public function disable(Invoice $invoice) {
+		if ($invoice->user_id !== Auth::user()->id) {
+			abort(404);
+		}
+
+		$invoice->active = false;
+		$invoice->save();
+		session()->flash("success", __("The invoice has been disabled."));
+
+		return back()->withInput();
 	}
 
 	/**

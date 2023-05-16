@@ -125,6 +125,23 @@ button i {
 	}
 }
 
+.border-inactive-invoice {
+	border-color: $inactive-invoice-color !important;
+}
+
+.text-inactive-invoice {
+	color: $inactive-invoice-color;
+}
+
+.bg-inactive-invoice {
+	background-color: $inactive-invoice-color;
+}
+
+.text-bg-inactive-invoice {
+	color: #fff;
+	background-color: $inactive-invoice-color;
+}
+
 .border-national-healthcare {
 	border-color: $national-healthcare-color !important;
 }
@@ -245,7 +262,7 @@ button i {
 }
 
 .navbar {
-	z-index: 1;
+	z-index: 5;
 
 	.nav-link.dropdown-toggle {
 		padding-right: 0;

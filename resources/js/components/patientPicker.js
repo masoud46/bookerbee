@@ -25,7 +25,9 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 
 						if (typeof patients.onGotItems === 'function') {
 							patients.onGotItems(items)
-						} else if (typeof patients.setItem === 'function') {
+						}
+						
+						if (typeof patients.setItem === 'function') {
 							items.map(item => {
 								list.push({
 									label: patients.setItem(item),
@@ -51,7 +53,13 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 			}
 		},
 		onSelectItem: ({ label, value }) => {
-			window.location.assign(patients.pickedUrl.replace('?id', value))
+			if (typeof patients.onSelected === 'function') {
+				patients.onSelected({ patient: label, id: value })
+			}
+			
+			if (patients.pickedUrl) {
+				window.location.assign(patients.pickedUrl.replace('?id', value))
+			}
 		}
 	})
 
@@ -70,6 +78,7 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 	patients.setItem = null
 	patients.onGotItems = null
 	patients.onChange = null
+	patients.onSelected = null
 
 	Pickers.push({ id, patients })
 

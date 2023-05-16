@@ -19,7 +19,7 @@
 			</div>
 			<div class="modal-footer">
 				<small class="flex-grow-1 text-black-50 fst-italic">{{ __('Click on the notes to edit them.') }}</small>
-				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+				<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
 				<button type="button" class="btn btn-sm btn-primary btn-save-notes">{{ __('Save') }}</button>
 			</div>
 		</div>
