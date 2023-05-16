@@ -11,7 +11,7 @@ return new class extends Migration {
 	public function up(): void {
 		Schema::create('timezones', function (Blueprint $table) {
 			$table->id();
-			$table->integer('offset', 2);
+			$table->tinyInteger('offset');
 			$table->string('offset_str', 6)->nullable();
 			$table->string('name', 100);
 		});
