@@ -20,7 +20,6 @@ yarn-error.log
 
 .env.psychosexo
 .env.private
-package-lock.json
 /crt
 /resources/images/templates/serge.com
 /resources/scss/templates/serge.com
