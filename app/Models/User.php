@@ -50,7 +50,7 @@ class User extends Authenticatable {
 	 */
 	protected function features(): Attribute {
 		return Attribute::make(
-			get: fn (string $value) => explode(',', $value),
+			get: fn (string $value) => $value ? explode(',', $value) : [],
 		);
 	}
 
