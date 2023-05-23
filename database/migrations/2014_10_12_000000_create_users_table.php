@@ -36,6 +36,7 @@ return new class extends Migration {
 			$table->integer('address2_country_id')->unsigned()->nullable();
 			$table->string('bank_account', 50);
 			$table->string('bank_swift', 20)->nullable();
+			$table->string('features')->nullable()->comment('comma separated features');
 			$table->timestamp('created_at')->useCurrent();
 			$table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 			$table->rememberToken();

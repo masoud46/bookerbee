@@ -46,6 +46,15 @@ class User extends Authenticatable {
 	];
 
 	/**
+	 * Get the user's enabled features as an array.
+	 */
+	protected function features(): Attribute {
+		return Attribute::make(
+			get: fn (string $value) => explode(',', $value),
+		);
+	}
+
+	/**
 	 * Check if user has a secondary address.
 	 *
 	 * @return Boolean

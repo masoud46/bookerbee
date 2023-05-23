@@ -4,11 +4,11 @@
 	
 	if (in_array($domain, config('project.external_domains', []))) {
 	    $path = "templates/{$domain}";
-
+	
 	    if (file_exists(resource_path() . "/{$path}/scss/app.scss")) {
 	        $resources = ["resources/{$path}/scss/app.scss", 'resources/js/app.js'];
 	    }
-
+	
 	    if (file_exists(resource_path() . "/{$path}/js/app.js")) {
 	        $resources[] = "resources/{$path}/js/app.js";
 	    }
@@ -33,6 +33,7 @@
 	<script>
 		/* Pass php variables to javascript */
 		window.laravel = {
+			regionalLocale: '{{ LaravelLocalization::getCurrentLocaleRegional() }}',
 			locale: '{{ LaravelLocalization::getCurrentLocale() }}',
 			// TODO: To show a message if the content might need to be saved
 			modified: false,
@@ -93,9 +94,11 @@
 						<li class="nav-item">
 							<a class="nav-link" href="{{ route('patient.index') }}">{{ __('Patient') }}</a>
 						</li>
-						{{-- <li class="nav-item">
-							<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
-						</li> --}}
+						@if (in_array('agenda', Auth::user()->features))
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
+							</li>
+						@endif
 						<li class="nav-item dropdown">
 							<a id="navbarDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
 								<i class="fa-solid fa-bars fa-fw"></i>

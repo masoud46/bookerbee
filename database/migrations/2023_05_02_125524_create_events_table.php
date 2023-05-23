@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
 			$table->bigInteger('user_id')->unsigned();
 			$table->bigInteger('patient_id')->unsigned()->nullable();
-			$table->tinyInteger('category')->comment('1=RDV, 2=private');
+			$table->tinyInteger('category')->default(1)->comment('0=locked, 1=RDV, 2=private');
 			$table->string('title', 100)->nullable();
-			$table->boolean('allday');
+			$table->boolean('all_day');
 			$table->timestamp('start')->nullable();
 			$table->timestamp('end')->nullable();
 			$table->time('duration')->nullable();
@@ -25,7 +25,7 @@ return new class extends Migration
 			$table->date('rrule_until')->nullable();
 			$table->string('rrule_freq', 10)->nullable();
 			$table->string('rrule_byweekday', 40)->nullable()->comment('Comma separated short day-names: Monday=mo, Tuesday=tu ... Sunday=su');
-			$table->tinyInteger('status')->comment('1=OK, 2=Cancelled');
+			$table->boolean('status')->default(true)->comment('1=OK, 0=Cancelled');
 			$table->timestamp('created_at')->useCurrent();
 			$table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });

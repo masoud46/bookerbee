@@ -66,6 +66,28 @@
 }
 
 
+.app-calendar-overlay {
+	z-index: 10000;
+	background-color: rgba(#fff, 0.25);
+	visibility: hidden;
+	opacity: 0;
+}
+
+body.busy-agenda {
+	.app-calendar-overlay {
+		visibility: visible;
+		opacity: 1;
+	}
+}
+
+body.busy-agenda-loaded {
+	.app-calendar-overlay {
+		transition: opacity 0.25s;
+		opacity: 0;
+	}
+}
+
+
 #calendar-modal {
 	.calendar-event {
 		display: none;

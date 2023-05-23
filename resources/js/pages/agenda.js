@@ -6,7 +6,7 @@ import { Modal, Popover, Tooltip } from 'bootstrap';
 import { Calendar, globalPlugins } from '@fullcalendar/core'
 import { toMoment, toMomentDuration } from '@fullcalendar/moment'
 import momentTimezonePlugin from '@fullcalendar/moment-timezone'
-import frLocale from '@fullcalendar/core/locales/fr'
+import allLocales from '@fullcalendar/core/locales-all'
 import rrulePlugin from '@fullcalendar/rrule'
 import interactionPlugin from '@fullcalendar/interaction'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -60,6 +60,8 @@ bootstrap5Plugin.themeClasses.bootstrap5.prototype.rtlIconClasses = {
 };
 bootstrap5Plugin.themeClasses.bootstrap5.prototype.classes.button = 'btn btn-sm btn-secondary'
 
+
+// document.body.classList.add('busy', 'busy-agenda')
 
 const popoverKeyIds = ['btn-popover-add-event', 'btn-popover-lock-slot']
 const modal = document.getElementById('calendar-modal')
@@ -149,11 +151,11 @@ const setRdvInfo = patientInfo => {
 	}
 
 	modal.props.rdvInfo.classList.remove('d-none')
+	modal.props.actionButton.classList.remove('d-none')
 }
 
 // Add/Update event
-const storeEvent = async (event, action) => {
-	console.log(action, event);
+const storeEvent = async (action, event, oldEvent = null) => {
 	const method = [EVENT_ACTION_ADD, EVENT_ACTION_LOCK].indexOf(action) !== -1
 		? 'POST'
 		: (
@@ -163,25 +165,43 @@ const storeEvent = async (event, action) => {
 		)
 	const url = ['PUT', 'DELETE'].indexOf(method) === -1
 		? window.laravel.agenda.actions[action].url
-		: window.laravel.agenda.actions[action].url.replace('?id', event.extendedProps.id)
+		: window.laravel.agenda.actions[action].url.replace('?id', event.id)
 	console.log(method, url);
 
 	let message = window.laravel.agenda.actions[action].message
 	let error = false
 
+	event = JSON.parse(JSON.stringify(event))
+
+	if (event.allDay) {
+		event.start = event.startStr
+		event.end = event.endStr
+	}
+
+	delete event.startStr
+	delete event.endStr
+	delete event.jsEvent
+	delete event.view
+	console.log(action, event, oldEvent);
+
 	try {
-		const res = await utils.fetch({
+		const response = await utils.fetch({
 			method,
 			url,
-			data: event
+			data: {
+				event,
+				oldEvent,
+			}
 		})
-		console.log(res);
+		console.log(event);
+		console.log(response);
 
-		if (res.success) {
+		if (response.success) {
 			if (method === 'POST') {
+				event.id = response.id
 				calendar.addEvent(event)
 			} else if (method === 'DELETE') {
-				event.remove()
+				calendar.getEventById(response.id).remove()
 			}
 
 			customProps.action.hide()
@@ -209,6 +229,7 @@ const applyAction = () => {
 	const modalClass = [...modal.classList].find(cls => cls.startsWith(modal.props.actionClass))
 	const action = modalClass.substring(modal.props.actionClass.length)
 	const event = customProps.event
+	console.log(event);
 
 	switch (action) {
 		case EVENT_ACTION_ADD:
@@ -221,14 +242,14 @@ const applyAction = () => {
 			}
 
 			if (modal.props.patientEmail.textContent.length) {
-				event.extendedProps.email = modal.props.patientEmail.textContent
+				event.extendedProps.patient.email = modal.props.patientEmail.textContent
 			}
 
 			if (modal.props.patientPhone.textContent.length) {
-				event.extendedProps.phone = modal.props.patientPhone.textContent
+				event.extendedProps.patient.phone = modal.props.patientPhone.textContent
 			}
 
-			storeEvent(event, action)
+			storeEvent(action, event)
 			break;
 		case EVENT_ACTION_LOCK:
 			event.className = customProps.lockedClass
@@ -252,7 +273,7 @@ const applyAction = () => {
 					const end = toMoment(event.end, calendar)
 					const duration = toMomentDuration(end.diff(start), calendar)
 
-					event.duration = `${('00' + duration.hours()).slice(-2)}:${('00' + duration.minutes()).slice(-2) }`
+					event.duration = `${('00' + duration.hours()).slice(-2)}:${('00' + duration.minutes()).slice(-2)}`
 				}
 
 				if (modal.props.recurrFrequency.value == window.laravel.agenda.freq.WEEKLY.title) {
@@ -264,15 +285,40 @@ const applyAction = () => {
 				}
 
 				if (modal.props.recurrLimit.value) {
-					event.rrule.until = modal.props.recurrLimit.value.toISOString().substring(0, 10)
+					event.rrule.until = new Date(modal.props.recurrLimit.value).toISOString().substring(0, 10)
 				}
 			}
 
-			storeEvent(event, action)
+			storeEvent(action, event)
+			break;
+
+		case EVENT_ACTION_UPDATE:
+		case EVENT_ACTION_UPDATE_LOCK:
+			const newEvent = JSON.parse(JSON.stringify(customProps.event))
+			let oldEvent = null
+
+			if (!newEvent.allDay) {
+				newEvent.localStart = newEvent.start
+				newEvent.localEnd = newEvent.end
+				newEvent.start = new Date(newEvent.start).toISOString()
+				newEvent.end = new Date(newEvent.end).toISOString()
+			}
+
+			if (action === EVENT_ACTION_UPDATE) {
+				oldEvent = JSON.parse(JSON.stringify(customProps.oldEvent))
+				if (!oldEvent.allDay) {
+					oldEvent.localStart = oldEvent.start
+					oldEvent.localEnd = oldEvent.end
+					oldEvent.start = new Date(oldEvent.start).toISOString()
+					oldEvent.end = new Date(oldEvent.end).toISOString()
+				}
+			}
+
+			storeEvent(action, newEvent, oldEvent)
 			break;
 
 		default:
-			storeEvent(event, action)
+			storeEvent(action, event)
 			break;
 	}
 }
@@ -292,8 +338,8 @@ const showModal = action => {
 	removeClassStartsWith(modal, 'modal-event-')
 	modal.classList.add(`${modal.props.actionClass}${action}`)
 
-	modal.props.header.textContent = window.laravel.agenda.actions[action].header
-	modal.props.actionButton.textContent = window.laravel.agenda.actions[action].btn
+	modal.props.header.innerHTML = window.laravel.agenda.actions[action].header
+	modal.props.actionButton.innerHTML = window.laravel.agenda.actions[action].btn
 	modal.props.actionButton.classList.remove('btn-primary', 'btn-danger', 'btn-secondary')
 
 	modal.props.title.value = event.title ?? ''
@@ -326,6 +372,9 @@ const showModal = action => {
 	if (action === EVENT_ACTION_ADD) {
 		modal.props.patient.value = ''
 		modal.props.rdvInfo.classList.add('d-none')
+		modal.props.actionButton.classList.add('d-none')
+	} else {
+		modal.props.actionButton.classList.remove('d-none')
 	}
 
 	if (action === EVENT_ACTION_CANCEL || action === EVENT_ACTION_UPDATE) {
@@ -500,62 +549,6 @@ modal.props.actionButton.addEventListener('click', applyAction)
 // showModal('lock')
 
 
-// Convert database events to calendar events
-const convertEvents = events => events.map(e => {
-	const event = {
-		allday: e.allday === 1,
-		extendedProps: {
-			id: e.id,
-		}
-	}
-	const rrule = e.rrule_freq ? {
-		freq: e.rrule_freq,
-		dtstart: e.allday ? e.rrule_dtstart.substring(0, 10) : e.rrule_dtstart,
-	} : null
-
-	if (e.patient_id) {
-		event.title = e.patient_name
-		event.extendedProps.patient = {
-			id: e.patient_id,
-			name: e.patient_name,
-		}
-
-		if (e.patient_email) {
-			event.extendedProps.patient.email = e.patient_email
-		}
-
-		if (e.patient_phone_number) {
-			const prefixObj = window.laravel.agenda.prefixes.find(prefix => prefix.id == e.patient_phone_country_id)
-			event.extendedProps.patient.phone = `${prefixObj.prefix} ${e.patient_phone_number}`
-		}
-	} else {
-		event.className = customProps.lockedClass
-	}
-
-	if (rrule) {
-		event.rrule = rrule
-		event.display = 'background'
-		event.editable = false
-		event.startEditable = false
-	}
-
-	if (e.rrule_until) rrule.until = e.rrule_until
-	if (e.rrule_byweekday) rrule.byweekday = e.rrule_byweekday.split(',')
-
-	if (e.title) event.title = e.title
-	if (e.start) event.start = e.allday ? e.start.substring(0, 10) : e.start
-	if (e.end) event.end = e.allday ? e.end.substring(0, 10) : e.end
-	if (e.duration) event.duration = e.duration
-
-	return event
-})
-
-
-console.log(window.laravel.agenda.events);
-window.laravel.agenda.events = convertEvents(window.laravel.agenda.events)
-console.log(window.laravel.agenda.events);
-
-
 const calendarElement = document.getElementById('app-calendar')
 const calendar = new Calendar(calendarElement, {
 	plugins: [
@@ -567,8 +560,10 @@ const calendar = new Calendar(calendarElement, {
 		bootstrap5Plugin,
 		momentTimezonePlugin,
 	],
+	allDaySlot: window.laravel.agenda.lock,
 	timeZone: window.laravel.agenda.timezone,
-	locale: frLocale,
+	locales: allLocales,
+	locale: window.laravel.locale,
 	themeSystem: 'bootstrap5',
 	initialView: 'timeGridWeek',
 	firstDay: 1, // Monday
@@ -594,8 +589,29 @@ const calendar = new Calendar(calendarElement, {
 		minute: '2-digit',
 		// timeZoneName: 'short',
 	},
-	events: (info, successCallback, failureCallback) => {
-		successCallback(window.laravel.agenda.events)
+	events: async (info, successCallback, failureCallback) => {
+		console.log('%c*** events', 'color:#c00;');
+		const events = await utils.fetch({
+			method: 'GET',
+			url: `/events?start=${info.start.toISOString()}&end=${info.end.toISOString()}`,
+		})
+		console.log(events);
+
+		if (events !== null) {
+			calendar.removeAllEvents()
+			successCallback(events.events)
+		}
+	},
+	loading: isLoading => {
+		console.log('%c*** loading', 'color:#c00;');
+		if (isLoading) {
+			document.body.classList.add('busy-agenda')
+		} else {
+			document.body.classList.add('busy-agenda-loaded')
+			setTimeout(() => {
+				document.body.classList.remove('busy-agenda', 'busy-agenda-loaded')
+			}, 250);
+		}
 	},
 	viewDidMount: arg => {
 		console.log('%c*** viewDidMount', 'color:#c00;');
@@ -623,19 +639,22 @@ const calendar = new Calendar(calendarElement, {
 		if (arg.allDay) {
 			console.log('%c lock ALLDAY ', 'color:#fff;background-color:#999;');
 			showModal(EVENT_ACTION_LOCK)
-		} else {
+		} else if (window.laravel.agenda.lock) {
 			customProps.popover = new Popover(arg.jsEvent.target, {
 				trigger: 'manual',
 				html: true,
 				sanitize: false,
 				content: `
 					<div class="d-flex flex-column">
-						<button id="${popoverKeyIds[0]}" class="btn btn-sm btn-primary mb-3">Fixer un rendez-vous</button>
-						<button id="${popoverKeyIds[1]}" class="btn btn-sm btn-secondary">Bloquer la tranche</button>
+						<button id="${popoverKeyIds[0]}" class="btn btn-primary mb-3">${window.laravel.messages.createAppointment}</button>
+						<button id="${popoverKeyIds[1]}" class="btn btn-secondary">${window.laravel.messages.lockSlot}</button>
 					</div>
 				`,
 			})
 			customProps.popover.show()
+		} else {
+			console.log('%c add and email ', 'color:#fff;background-color:#999;')
+			showModal(EVENT_ACTION_ADD)
 		}
 
 		customProps.lastSelectOverlap = null
@@ -694,7 +713,7 @@ const calendar = new Calendar(calendarElement, {
 				start: arg.date,
 				startStr: arg.dateStr,
 				end: end.toDate(),
-				endStr: end.format(),
+				endStr: end.format('YYYY-MM-DD'),
 				// jsEvent: arg.jsEvent,
 				// view: arg.view,
 			}
@@ -705,7 +724,6 @@ const calendar = new Calendar(calendarElement, {
 	},
 	eventAdd: arg => {
 		console.log('%c*** eventAdd', 'color:#c00;');
-		// console.log(arg);
 	},
 	eventChange: arg => {
 		console.log('%c*** eventChange', 'color:#c00;');
@@ -792,5 +810,7 @@ document.body.addEventListener('click', e => {
 		}
 	}
 })
+
+
 
 

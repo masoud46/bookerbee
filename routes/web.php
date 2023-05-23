@@ -65,6 +65,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::get('/patient/{patient?}', [PatientController::class, 'show'])->name('patient.show');
 
 		Route::get('/agenda', [EventController::class, 'index'])->name('agenda.index');
+		Route::get('/events', [EventController::class, 'fetch'])->name('event.fetch');
 		Route::post('/event', [EventController::class, 'store'])->name('event.add');
 		Route::put('/event/{event}', [EventController::class, 'update'])->name('event.update');
 		Route::delete('/event/{event}', [EventController::class, 'destroy'])->name('event.cancel');
@@ -78,6 +79,8 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 
 		Route::get('/report', [ReportController::class, 'index'])->name('report');
 
+
+		Route::put('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');
 
 		Route::get('/send/change-email', [SendEmailController::class, 'sendChangeEmail'])->name('email.change-email');
 		Route::get('/send/change-password', [SendEmailController::class, 'sendChangePassword'])->name('email.change-password');

@@ -256,20 +256,16 @@ class InvoiceController extends Controller {
 	public function index($limit = null) {
 		$entries = 'resources/js/pages/index.js';
 
+		// Note: intval('all') = 0
+		$limit = $limit ? intval($limit) : config('project.load_invoice_limits')[0];
+
 		$patients_count = Patient::whereUserId(Auth::user()->id)->count();
-		$count = Invoice::whereUserId(Auth::user()->id)->count();
 		$years = Invoice::select(DB::raw('YEAR(created_at) AS year'))
 			->whereUserId(Auth::user()->id)
 			// ->latest()
 			->groupBy("year")
 			->orderBy("year", "desc")
 			->get();
-
-		if (!is_numeric($limit)) {
-			$limit = 3;
-		} else {
-			$limit = intval($limit);
-		}
 
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
@@ -284,7 +280,7 @@ class InvoiceController extends Controller {
 			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
-			->when($limit < 1000, function ($query) use ($limit) {
+			->when($limit > 0 && $limit < 1000, function ($query) use ($limit) {
 				// $query->where("invoices.created_at", ">=", (new \Carbon\Carbon)->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
 				$query->where("invoices.created_at", ">=", Carbon::now()->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
 			})
@@ -311,7 +307,6 @@ class InvoiceController extends Controller {
 			'entries',
 			'patients_count',
 			'years',
-			'count',
 			'invoices',
 		));
 	}

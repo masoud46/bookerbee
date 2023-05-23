@@ -20,6 +20,11 @@
 	        'href' => route('invoice.index', ['limit' => $year->year]),
 	    ];
 	}
+
+	$menu_items['0'] = [
+		'title' => __('All the invoices'),
+		'href' => route('invoice.index', ['limit' => 'all']),
+	];
 @endphp
 
 @section('content')
@@ -48,11 +53,14 @@
 					</button>
 					<ul class="dropdown-menu shadow">
 						@foreach ($menu_items as $key => $value)
-							<li><a href="{{ $value['href'] }}" type="button" class="dropdown-item {{ $key === $limit ? 'text-bg-secondary opacity-75 disabled' : '' }}">{{ $value['title'] }} </a></li>
+							@if ($key == 0)
+								<hr class="my-2">
+							@endif
+							<li><a href="{{ $value['href'] }}" type="button" class="dropdown-item {{ $key === $limit ? 'text-bg-secondary opacity-75 disabled' : '' }}">{{ $value['title'] }}</a></li>
 						@endforeach
 					</ul>
 				</span>
-				<small class="h-100 d-flex align-items-center text-nowrap float-end"><span class="items-table-count me-1">{{ $count }}</span>/<span class="items-table-total ms-1">{{ $count }}</span></small>
+				<small class="h-100 d-flex align-items-center text-nowrap float-end"><span class="items-table-count me-1">{{ $invoices->count() }}</span>/<span class="items-table-total ms-1">{{ $invoices->count() }}</span></small>
 			</div>
 			<div class="col-md-6 col-lg-5 col-xl-4 mt-3 mt-sm-2 d-flex">
 				<input class="items-table-filter-input form-control" placeholder="{{ __('Search') }}" value="">

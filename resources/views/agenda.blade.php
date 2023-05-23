@@ -26,13 +26,26 @@
 	        'title' => 'weekly',
 	    ],
 	];
+	
+	$date = \Carbon\Carbon::now()->next('Monday');
+	$week_days = [$date->isoFormat('ddd')];
+	for ($x = 0; $x < 6; $x++) {
+	    $date = $date->addDay();
+	    $week_days[] = $date->isoFormat('ddd');
+	}
 @endphp
+
 
 @section('content')
 	<div class="container-fluid">
 		<div class="form-group row mt-4">
-			<div class="col-12">
+			<div class="col-12 position-relative">
 				<div id="app-calendar"></div>
+				<div class="app-calendar-overlay position-absolute top-0 start-0 bottom-0 end-0 d-flex justify-content-center align-items-center">
+					<div class="spinner-border text-primary opacity-75" role="status">
+						<span class="visually-hidden">{{ __('Loading...') }}</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -96,19 +109,19 @@
 									<div class="col-12 mt-2">
 										<div class="font-monospace mt-1 d-flex justify-content-between">
 											<input class="event-recurr-day event-recurr-day-0 btn-check" type="checkbox" id="event-recurr-mo" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-mo">{{ __('Mon.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-mo">{{ $week_days[0] }}</label>
 											<input class="event-recurr-day event-recurr-day-1 btn-check" type="checkbox" id="event-recurr-tu" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-tu">{{ __('Tue.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-tu">{{ $week_days[1] }}</label>
 											<input class="event-recurr-day event-recurr-day-2 btn-check" type="checkbox" id="event-recurr-we" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-we">{{ __('Wed.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-we">{{ $week_days[2] }}</label>
 											<input class="event-recurr-day event-recurr-day-3 btn-check" type="checkbox" id="event-recurr-th" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-th">{{ __('Thu.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-th">{{ $week_days[3] }}</label>
 											<input class="event-recurr-day event-recurr-day-4 btn-check" type="checkbox" id="event-recurr-fr" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-fr">{{ __('Fri.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-fr">{{ $week_days[4] }}</label>
 											<input class="event-recurr-day event-recurr-day-5 btn-check" type="checkbox" id="event-recurr-sa" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-sa">{{ __('Sat.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-sa">{{ $week_days[5] }}</label>
 											<input class="event-recurr-day event-recurr-day-6 btn-check" type="checkbox" id="event-recurr-su" autocomplete="off">
-											<label class="btn btn-sm btn-outline-primary" for="event-recurr-su">{{ __('Sun.') }}</label>
+											<label class="btn btn-sm btn-outline-primary" for="event-recurr-su">{{ $week_days[6] }}</label>
 										</div>
 									</div>
 								</div>
@@ -145,47 +158,49 @@
 			const EVENT_ACTION_{{ $key }} = '{{ $value }}'
 		@endforeach
 
+		window.laravel.messages.createAppointment = "{{ __('Create un appointment') }}"
+		window.laravel.messages.lockSlot = "{{ __('Lock this slot') }}"
 		window.laravel.agenda = {
+			lock: {{ in_array("agenda_lock", Auth::user()->features) ? "true" : "false" }},
 			timezone: '{{ Auth::user()->timezone }}',
 			prefixes: {!! json_encode($prefixes) !!},
-			events: {!! json_encode($events) !!},
 			freq: {!! json_encode($FREQ) !!},
 			actions: {
 				[EVENT_ACTION_ADD]: {
-					header: "{{ __('Add appointment') }}",
-					btn: "{{ __('Save the appointmet') }}",
+					header: "{{ __('Add') }}",
+					btn: "{{ __('Save the appointment') }}",
 					url: "{{ route('event.add') }}",
-					message: "{{ __('Appointment added successfully.') }}",
+					message: "{{ __('Appointment has been saved successfully.') }}",
 				},
 				[EVENT_ACTION_CANCEL]: {
-					header: "{{ __('Cancel appointment') }}",
+					header: "{{ __('Cancel') }}",
 					btn: "{{ __('Cancel the appointment') }}",
 					url: "{{ route('event.cancel', ['event' => '?id']) }}",
-					message: "{{ __('Appointment is cancelled.') }}",
+					message: "{{ __('Appointment has been canceled.') }}",
 				},
 				[EVENT_ACTION_UPDATE]: {
-					header: "{{ __('Update appointment') }}",
-					btn: "{{ __('Update the appointmet') }}",
+					header: "{{ __('Update') }}",
+					btn: "{{ __('Update the appointment') }}",
 					url: "{{ route('event.update', ['event' => '?id']) }}",
-					message: "{{ __('Appointment is updated.') }}",
+					message: "{{ __('Appointment has been updated.') }}",
 				},
 				[EVENT_ACTION_LOCK]: {
-					header: "{{ __('Lock slot') }}",
+					header: "{{ __('Lock') }}",
 					btn: "{{ __('Lock the slot') }}",
 					url: "{{ route('event.add') }}",
-					message: "{{ __('Slot locked successfully.') }}",
+					message: "{{ __('Slot has been locked successfully.') }}",
 				},
 				[EVENT_ACTION_UNLOCK]: {
-					header: "{{ __('Unlock slot') }}",
+					header: "{{ __('Unlock') }}",
 					btn: "{{ __('Unlock the slot') }}",
 					url: "{{ route('event.cancel', ['event' => '?id']) }}",
-					message: "{{ __('Locked slot is unlocked.') }}",
+					message: "{{ __('Slot has been unlocked.') }}",
 				},
 				[EVENT_ACTION_UPDATE_LOCK]: {
-					header: "{{ __('Update locked slot') }}",
+					header: "{{ __('Update') }}",
 					btn: "{{ __('Update the slot') }}",
 					url: "{{ route('event.update', ['event' => '?id']) }}",
-					message: "{{ __('Locked slot is updated.') }}",
+					message: "{{ __('Slot has been updated.') }}",
 				},
 			},
 		}
