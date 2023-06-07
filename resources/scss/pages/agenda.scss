@@ -68,7 +68,7 @@
 
 .app-calendar-overlay {
 	z-index: 10000;
-	background-color: rgba(#fff, 0.25);
+	background-color: rgba(#fff, 0.5);
 	visibility: hidden;
 	opacity: 0;
 }
@@ -270,7 +270,7 @@ body.busy-agenda-loaded {
 
 	&.modal-event-recurr.modal-event-recurr-open {
 		.event-recurr-container {
-			max-height: 100px;
+			max-height: 150px;
 		}
 
 		&.modal-event-action-unlock {

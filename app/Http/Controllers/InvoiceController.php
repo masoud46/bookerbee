@@ -275,8 +275,8 @@ class InvoiceController extends Controller {
 			"invoices.serial",
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
-			"patients.category AS patient_category",
 			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
+			"patients.category AS patient_category",
 			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
@@ -288,8 +288,11 @@ class InvoiceController extends Controller {
 				$query->whereYear('invoices.created_at', $limit);
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
-			->join("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("active", "id", "patient_id", "serial", "created_at", "date", "name", "patient", "patient_category")
+			// We use left join in case that there has been an interruption
+			// between storing the invoice and storing it's sessions,
+			// which the result is an invoice with no sessions.
+			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
+			->groupBy("created_at", "active", "id", "patient_id", "serial", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
 
@@ -598,13 +601,11 @@ class InvoiceController extends Controller {
 
 		if ($is_update) {
 			session()->flash("success", __("The invoice has been updated."));
-			return back()->withInput();
+		} else {
+			session()->flash("success", __("The new invoice has been saved."));
 		}
 
-		session()->flash("success", __("The new invoice has been saved."));
-		return redirect()->route("invoice.show", [
-			'invoice' => $invoice->id,
-		]);
+		return redirect()->route("home");
 	}
 
 	/**

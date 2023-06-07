@@ -21,6 +21,15 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 				if (str.length >= patients.options.threshold) {
 					if (!patients.options.data.length) {
 						const items = await utils.fetch({ url: patients.searchUrl, data: { str } })
+
+						if (items.error) {
+							if (typeof patients.onError === 'function') {
+								patients.onError(items.code)
+							}
+
+							return
+						}
+
 						const list = []
 
 						if (typeof patients.onGotItems === 'function') {
@@ -79,6 +88,7 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 	patients.onGotItems = null
 	patients.onChange = null
 	patients.onSelected = null
+	patients.onError = null
 
 	Pickers.push({ id, patients })
 

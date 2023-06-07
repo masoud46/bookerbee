@@ -4,37 +4,44 @@
 <x-mail::message>
 # {{ __('Hello :name', ['name' => explode(', ', $event['extendedProps']['patient']['name'])[1]]) }},
 
-{!! __('Your appointment with your practitioner, :firstname :lastname, has been rescheduled. Please take note of the new schedule below.', ['firstname' => '<strong>'.Auth::user()->firstname, 'lastname' => Auth::user()->lastname.'</strong>']) !!}
+{{ __('Your appointment has been rescheduled. Please take note of the new schedule below.') }}
 
-<div style="margin-top: 30px;">{{ __('New schedule') }}</div>
-<div style="margin-top: 5px; padding: 15px 20px; background-color: #edf2f7; border: 1px solid #d8e3ee; border-radius: 4px;">
-	<table>
-		<tr>
-			<td style="text-align: right;">{{ __("Date:") }}</td>
-			<td style="font-weight: bold;">{{ Carbon\Carbon::parse($event['localStart'])->translatedFormat('l j F Y') }}</td>
-		</tr>
-		<tr>
-			<td style="text-align: right;">{{ __("Start:") }}</td>
-			<td style="font-weight: bold;">{{ Carbon\Carbon::parse($event['localStart'])->translatedFormat('H:i') }}</td>
-		</tr>
-		<tr>
-			<td style="text-align: right;">{{ __("End:") }}</td>
-			<td style="font-weight: bold;">{{ Carbon\Carbon::parse($event['localEnd'])->translatedFormat('H:i') }}</td>
-		</tr>
-	</table>
-</div>
+<x-mail::panel>
+<table>
+<tr>
+<td style="text-align: right;">{{ __("Practitioner:") }}</td>
+<td style="font-weight: bold;">{{ strtoupper(Auth::user()->lastname) }}, {{ ucfirst(Auth::user()->firstname) }}</td>
+</tr>
+<tr>
+<td style="text-align: right;">{{ __("Date:") }}</td>
+<td style="font-weight: bold;">{{ Carbon\Carbon::parse($event['localStart'])->translatedFormat('l j F Y') }}</td>
+</tr>
+<tr>
+<td style="text-align: right;">{{ __("Start:") }}</td>
+<td style="font-weight: bold;">{{ Carbon\Carbon::parse($event['localStart'])->translatedFormat('H:i') }}</td>
+</tr>
+<tr>
+<td style="text-align: right;">{{ __("End:") }}</td>
+<td style="font-weight: bold;">{{ Carbon\Carbon::parse($event['localEnd'])->translatedFormat('H:i') }}</td>
+</tr>
+</table>
+</x-mail::panel>
 
-{{-- <div style="margin-top: 30px;  padding: 15px 20px; background-color: rgba(255, 0, 0, 0.06); border-radius: 4px;"> --}}
-<div style="margin-top: 30px; xcolor: #cc6666; font-style: italic;">
-	{!! __('For your information: the initial schedule was planned for :date, from :start to :end.', [
-		'date' => '<span">'.Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y').'</span>',
-		'start' => '<span">'.Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('H:i').'</span>',
-		'end' => '<span">'.Carbon\Carbon::parse($old_event['localEnd'])->translatedFormat('H:i').'</span>',
-	]) !!}
-</div>
+<p style="font-size: 0.9em; font-style: italic;">
+{{ __('The initial schedule was planned for :date, from :start to :end.', [
+	'date' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
+	'start' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
+	'end' => Carbon\Carbon::parse($old_event['localEnd'])->translatedFormat('H:i'),
+]) }}
+</p>
 
-<div style="margin-top: 30px;">
-	{{ __('Thanks') }},<br>
-	{{ config('app.name') }}
-</div>
+<p>
+{{ __('You can import this appointment into your personal calendar by clicking on this link:') }}
+<a href="{{ route('event.export', ['id' => $event['hash_id']]) }}">{{ route('event.export', ['id' => $event['hash_id']]) }}</a>
+</p>
+
+<p style="margin-bottom: 0;">
+{{ __('Thanks') }},<br>
+{{ config('app.name') }}
+</p>
 </x-mail::message>

@@ -50,6 +50,16 @@ utils.fetch = async ({ method = 'POST', url, data = null, csrf = null }) => {
 	}
 
 	const response = await fetch(url, options)
+
+	if (response.headers.get('content-type') !== 'application/json') { // error
+		return {
+			error: true,
+			code: response.redirected
+				? 302 // session has expired -> redirected to login pages
+				: 400,
+		}
+	}
+
 	const result = await response.json()
 
 	return result
@@ -94,7 +104,7 @@ utils.toast.show = ({ message, delay, error = false }) => {
 	}, 0);
 }
 
-utils.showMessage = ({ message, timeout, error = false }) => {
+utils.showAlert = ({ message, timeout, error = false }) => {
 	const flash = utils.flash
 
 	timeout = timeout ?? error ? flash.errorTimeout : flash.timeout
@@ -112,6 +122,19 @@ utils.showMessage = ({ message, timeout, error = false }) => {
 		clearTimeout(flash.timeoutId)
 		flash.element.classList.remove('flash-message-visible')
 	}, timeout * 1000)
+}
+
+utils.showMessage = (message, onClose = null) => {
+	const modalObj = new Modal('#message-modal')
+	const modal = document.getElementById('message-modal')
+
+	modal.querySelector('.modal-body').innerHTML = message
+
+	if (typeof onClose === 'function') {
+		modal.addEventListener('hidden.bs.modal', onClose)
+	}
+
+	modalObj.show()
 }
 
 utils.showConfirmation = (message, cbYes = null, cbNo = null) => {

@@ -6,7 +6,9 @@ use App\Mail\AppointmentEmail;
 use App\Models\Country;
 use App\Models\Event;
 use App\Models\Patient;
+use App\Models\User;
 use Carbon\Carbon;
+use Hashids;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +22,7 @@ class EventController extends Controller {
 	 * @return void
 	 */
 	public function __construct() {
-		$this->middleware('auth');
+		$this->middleware('auth')->except(['export']);
 	}
 
 	/**
@@ -168,7 +170,7 @@ class EventController extends Controller {
 	 */
 	public function store(Request $request) {
 		if ( // Reject the lock request if "agenda_lock" is not in user's features
-			!isset($request->extendedProps['patient']['id']) &&
+			!isset($request->event['extendedProps']['patient']['id']) &&
 			!in_array('agenda_lock', Auth::user()->features)
 		) {
 			return response()->json(['success' => false]);
@@ -215,6 +217,9 @@ class EventController extends Controller {
 
 		$data['id'] = $event->id;
 
+		// $patient = Patient::find($event->patient_id);
+		// Mail::to($patient->email)->send(new AppointmentEmail("add", $patient, $event));
+
 		return response()->json([
 			'success' => true,
 			'id' => $event->id,
@@ -238,26 +243,32 @@ class EventController extends Controller {
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
 		$event->start = Carbon::parse($data['start']);
 		$event->end = Carbon::parse($data['end']);
+
+		$result = [
+			'success' => false,
+			'dbevent' => $event->toArray(),
+			'event' => $data,
+			'old_event' => $old_event,
+		];
+
 		$event->save();
 
-		if ($event->patient_id && isset($data['extendedProps']['patient']['email'])) {
-			// Mail::to($data['extendedProps']['patient']['email'])
+		$result['success'] = true;
+
+		$email = $data['extendedProps']['patient']['email'] ?? null;
+
+		if ($event->patient_id && $email) {
+			$data['hash_id'] = Hashids::encode($data['id']);
+
+			sleep(1);
+			// Mail::to($email)
 			// 	->send(new AppointmentEmail("update", $data, [
 			// 		'localStart' => $old_event['localStart'],
 			// 		'localEnd' => $old_event['localEnd'],
 			// 	]));
-
-			return redirect()->route("email.appointment", [
-				'action' => "update",
-				'event' => $data,
-				'old_event' => [
-					'localStart' => $old_event['localStart'],
-					'localEnd' => $old_event['localEnd'],
-				],
-			]);
 		}
 
-		return response()->json(['success' => true, 'dbevent' => $event->toArray(), 'event' => $data, 'old_event' => $old_event]);
+		return response()->json($result);
 	}
 
 	/**
@@ -274,7 +285,7 @@ class EventController extends Controller {
 			$event->save();
 
 			// $patient = Patient::find($event->patient_id);
-			// Mail::to($patient->email)->send(new AppointmentEmail('cancel', $patient, $event));
+			// Mail::to($patient->email)->send(new AppointmentEmail("cancel", $patient, $event));
 		}
 
 		return response()->json([
@@ -300,5 +311,92 @@ class EventController extends Controller {
 			],
 			'events' => $events,
 		]);
+	}
+
+	/**
+	 * Generate iCalendar content for event.
+	 *
+	 * @param  Array $event
+	 * @return String
+	 */
+	private function iCalendar($event) {
+		$ical_template =
+			"BEGIN:VCALENDAR" . PHP_EOL .
+			"VERSION:2.0" . PHP_EOL .
+			"CALSCALE:GREGORIAN" . PHP_EOL .
+			"METHOD:PUBLISH" . PHP_EOL .
+			"%sEND:VCALENDAR";
+
+		$ical_body =
+			"BEGIN:VEVENT" . PHP_EOL .
+			"DTSTART:%s" . PHP_EOL .
+			"DTEND:%s" . PHP_EOL .
+			"ORGANIZER;CN=%s:mailto:%s" . PHP_EOL .
+			"DESCRIPTION:%s" . PHP_EOL .
+			"SEQUENCE:0" . PHP_EOL .
+			"STATUS:CONFIRMED" . PHP_EOL .
+			"SUMMARY:%s" . PHP_EOL .
+			"CREATED:%s" . PHP_EOL .
+			"DTSTAMP:%s" . PHP_EOL .
+			"TRANSP:OPAQUE" . PHP_EOL .
+			"PRIORITY:1" . PHP_EOL .
+			"BEGIN:VALARM" . PHP_EOL .
+			"ACTION:DISPLAY" . PHP_EOL .
+			"TRIGGER;VALUE=DATE-TIME:%s" . PHP_EOL .
+			"END:VALARM" . PHP_EOL .
+			"END:VEVENT" . PHP_EOL;
+
+		$ical_body = sprintf(
+			$ical_body,
+			$event['local_start'],
+			$event['local_end'],
+			$event['user_name'],
+			$event['user_email'],
+			$event['user_name'] . "\\n" . $event['user_phone'],
+			$event['summary'],
+			$event['created'],
+			date("Ymd\THis"),
+			$event['alarm']
+		);
+
+		return sprintf($ical_template, $ical_body);
+	}
+
+	/**
+	 * Export event in iCalendar format.
+	 *
+	 * @param  \Illuminate\Http\Request $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function export($id) {
+		$id = Hashids::decode($id)[0];
+		$event = Event::findOrFail($id);
+		$user = User::select([
+			"users.firstname",
+			"users.lastname",
+			"users.timezone",
+			"users.email",
+			"users.phone_number",
+			"countries.prefix AS phone_prefix",
+		])
+			->join("countries", "countries.id", "=", "users.phone_country_id")
+			->where("users.id", "=", $event->user_id)
+			->first();
+
+		$event->created = Carbon::parse($event->created_at)->setTimezone($user->timezone)->format("Ymd\THis");
+		$event->local_start = Carbon::parse($event->start)->setTimezone($user->timezone)->format("Ymd\THis");
+		$event->local_end = Carbon::parse($event->end)->setTimezone($user->timezone)->format("Ymd\THis");
+		$event->user_name = strtoupper($user->lastname) . ", " . ucfirst($user->firstname);
+		$event->user_email = $user->email;
+		$event->user_phone = $user->phone_prefix . " " . $user->phone_number;
+		$event->summary = __("Appointment");
+		$event->alarm = Carbon::parse($event->start)->subDay()->setTimezone($user->timezone)->format("Ymd\THis");
+
+		$filename = "rdv_" . Carbon::parse($event->start)->setTimezone($user->timezone)->format("Y-m-d_Hi");
+		$ical = $this->iCalendar($event);
+
+		return (new \Illuminate\Http\Response($ical))
+			->header('Content-Type', 'text/calendar')
+			->header('Content-Disposition', 'filename="' . $filename . '.ics"');
 	}
 }

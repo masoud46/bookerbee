@@ -40,6 +40,7 @@
 		}
 		window.laravel.messages = {
 			unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
+			sessionError: `{{ __('Your session has been timed out, please sign back in to continue.') }}`,
 			databaseError: `{{ __('Changes could not be applied.') }}<br>{{ __('Try again.') }}`,
 			irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
 			saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
@@ -89,10 +90,49 @@
 							<a class="nav-link" href="{{ route('email.change-password') }}">Send ChangePassword Mail</a>
 						</li> --}}
 						<li class="nav-item">
-							<a class="nav-link" href="{{ route('home') }}">{{ __('Statement') }}</a>
+							<a class="nav-link" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">
+								{{ __('Remind') }}
+							</a>
+							<form id="reminder-form" action="{{ route('email.reminder') }}" method="post" class="d-none">
+								@method('put')
+								@csrf
+							</form>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="{{ route('patient.index') }}">{{ __('Patient') }}</a>
+							<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">
+								{{ __('Add') }}
+							</a>
+							<form id="add-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+								@method('put')
+								@csrf
+								<input type="hidden" name="action" value="add">
+							</form>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">
+								{{ __('Update') }}
+							</a>
+							<form id="update-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+								@method('put')
+								@csrf
+								<input type="hidden" name="action" value="update">
+							</form>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
+								{{ __('Delete') }}
+							</a>
+							<form id="delete-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+								@method('put')
+								@csrf
+								<input type="hidden" name="action" value="delete">
+							</form>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ route('home') }}">{{ __('Statements') }}</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ route('patient.index') }}">{{ __('Patients') }}</a>
 						</li>
 						@if (in_array('agenda', Auth::user()->features))
 							<li class="nav-item">
@@ -149,28 +189,17 @@
 
 	@yield('modals')
 
-	<div id="yes-no-modal" class="modal fade" tabindex="-1">
-		<div class="modal-dialog">
-			<div class="modal-content shadow">
-				<div class="modal-header shadow-sm text-bg-warning">
-					<h6 class="modal-title" id="yes-no-modal-title">{{ __('Confirmation') }}</h6>
-					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-				</div>
-				<div class="modal-body px-4" tabindex="-1"></div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-sm btn-outline-dark btn-yes">{{ __('Yes') }}</button>
-					<button type="button" class="btn btn-sm btn-outline-dark btn-no">{{ __('No') }}</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
 	<div id="flash-message" class="rounded shadow flash-message">
 		<div class="flash-message-text">Flash | Message</div>
 		<div class="flash-message-close" onclick="this.parentElement.classList.remove('flash-message-visible')"><i class="fas fa-times"></i></div>
 	</div>
 
-	<div class="body-overlay"></div>
+	<div class="sending-email-overlay">
+		<div class="spinner-wrapper">
+			<div class="spinner-border text-primary" role="status"></div>
+			<div class="icon text-primary"><i class="far fa-envelope"></i></div>
+		</div>
+	</div>
 
 	@stack('scripts')
 

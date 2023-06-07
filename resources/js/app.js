@@ -19,7 +19,7 @@ if (invalidElement) {
 }
 
 if (typeof httpFlashMessage === 'object') {
-	utils.showMessage(httpFlashMessage)
+	utils.showAlert(httpFlashMessage)
 }
 
 

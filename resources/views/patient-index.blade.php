@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-user me-2"></i>' . __('Patient')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-user me-2"></i>' . __('Patients')])
 
 @php
 	$default_country_code = config('project.default_country_code');
@@ -52,7 +52,7 @@
 									</table>
 								</div>
 								<div class="loading-overlay position-absolute top-0 start-0 bottom-0 end-0 d-flex justify-content-center align-items-center">
-									<div class="spinner-border text-secondary opacity-50" role="status">
+									<div class="spinner-border text-primary opacity-75" role="status">
 										<span class="visually-hidden">{{ __('Loading...') }}</span>
 									</div>
 								</div>
@@ -63,6 +63,10 @@
 			</div>
 		</div>
 	</div>
+@endsection
+
+@section('modals')
+	@include('shared.message-modal')
 @endsection
 
 @push('assets')

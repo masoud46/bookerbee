@@ -16,6 +16,18 @@ Pickers.forEach(picker => {
 			patientCount.textContent = count
 		}
 	}
+
+	picker.patients.onError = code => {
+		console.log('patient picker error', code);
+		const error = true
+		const message = code === 302
+			? window.laravel.messages.sessionError
+			: window.laravel.messages.unexpectedError
+
+		utils.showMessage(message, () => {
+			window.location.assign('/')
+		})
+	}
 })
 
 

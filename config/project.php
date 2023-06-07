@@ -19,6 +19,8 @@ return [
 
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),
 	'default_timezone' => env('APP_DEFAULT_TIMEZONE', 'Europe/Luxembourg'),
+	'reminder_email_time' => env('APP_REMINDER_EMAIL_TIME', '48'),
+	'reminder_sms_time' => env('APP_REMINDER_SMS_TIME', '6'),
 	'load_invoice_limits' => $limits,
 
 ];

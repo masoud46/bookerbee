@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-rectangle-list me-2"></i>' . __('Statement')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-rectangle-list me-2"></i>' . __('Statements')])
 
 @php
 	$default_country_code = config('project.default_country_code');
@@ -99,6 +99,10 @@
 			</div>
 		</div>
 	</div>
+@endsection
+
+@section('modals')
+	@include('shared.message-modal')
 @endsection
 
 @push('assets')

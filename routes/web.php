@@ -69,6 +69,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::post('/event', [EventController::class, 'store'])->name('event.add');
 		Route::put('/event/{event}', [EventController::class, 'update'])->name('event.update');
 		Route::delete('/event/{event}', [EventController::class, 'destroy'])->name('event.cancel');
+		Route::get('/event/export/{id}', [EventController::class, 'export'])->name('event.export');
 
 		Route::get('/profile', [UserController::class, 'edit'])->name('profile');
 		Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
@@ -80,7 +81,10 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::get('/report', [ReportController::class, 'index'])->name('report');
 
 
+		Route::post('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');
+		// test
 		Route::put('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');
+		Route::put('/send/reminder', [SendEmailController::class, 'sendReminderEmail'])->name('email.reminder');
 
 		Route::get('/send/change-email', [SendEmailController::class, 'sendChangeEmail'])->name('email.change-email');
 		Route::get('/send/change-password', [SendEmailController::class, 'sendChangePassword'])->name('email.change-password');

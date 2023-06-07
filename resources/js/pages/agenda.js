@@ -17,7 +17,7 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5'
 import { Pickers } from '../components/patientPicker'
 import '../../scss/components/resetable-date.scss'
 
-import './../../scss/pages/calendar.scss'
+import './../../scss/pages/agenda.scss'
 import { utils } from '../utils/utils';
 
 
@@ -184,7 +184,10 @@ const storeEvent = async (action, event, oldEvent = null) => {
 	delete event.view
 	console.log(action, event, oldEvent);
 
+	if (event.extendedProps?.patient?.email) document.body.classList.add('sending-email')
+
 	try {
+		console.log(method, url, { event, oldEvent });
 		const response = await utils.fetch({
 			method,
 			url,
@@ -219,9 +222,11 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		console.error('err', err);
 		error = true
 		message = window.laravel.messages.unexpectedError
+	} finally {
+		document.body.classList.remove('sending-email')
 	}
 
-	utils.showMessage({ message, error })
+	utils.showAlert({ message, error })
 }
 
 // Apply the modifications
@@ -377,12 +382,16 @@ const showModal = action => {
 		modal.props.actionButton.classList.remove('d-none')
 	}
 
+	if (action !== EVENT_ACTION_UPDATE && action !== EVENT_ACTION_UPDATE_LOCK) {
+		customProps.revert = null
+	}
+
 	if (action === EVENT_ACTION_CANCEL || action === EVENT_ACTION_UPDATE) {
 		// console.log(event.extendedProps);
 		const patientInfo = {
 			name: event.extendedProps.patient.name,
-			email: event.extendedProps.patient?.email ?? null,
-			phone: event.extendedProps.patient?.phone ?? null,
+			email: event.extendedProps.patient.email ?? null,
+			phone: event.extendedProps.patient.phone ?? null,
 		}
 
 		setRdvInfo(patientInfo)

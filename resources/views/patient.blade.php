@@ -149,6 +149,7 @@
 
 @section('modals')
 	@include('shared.patient-notes-modal')
+	@include('shared.yes-no-modal')
 @endsection
 
 @push('assets')

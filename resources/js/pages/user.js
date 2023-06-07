@@ -36,7 +36,7 @@ function setProfileSaved(value) {
 
 // 	if (result.success) {
 // 		editEmailModal.querySelector('.btn-close').click()
-// 		utils.showMessage({ message: window.laravelEmailChangeSuccessMessage })
+// 		utils.showAlert({ message: window.laravelEmailChangeSuccessMessage })
 // 	} else {
 // 		editEmailField.classList.add('is-invalid')
 // 		editEmailField.focus()
