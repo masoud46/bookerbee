@@ -83,51 +83,53 @@
 
 					<!-- Right Side Of Navbar -->
 					<ul class="navbar-nav ms-auto">
-						{{-- <li class="nav-item">
-							<a class="nav-link" href="{{ route('email.change-email') }}">Send ChangeEmail Mail</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('email.change-password') }}">Send ChangePassword Mail</a>
-						</li> --}}
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">
-								{{ __('Remind') }}
-							</a>
-							<form id="reminder-form" action="{{ route('email.reminder') }}" method="post" class="d-none">
-								@method('put')
-								@csrf
-							</form>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">
-								{{ __('Add') }}
-							</a>
-							<form id="add-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
-								@method('put')
-								@csrf
-								<input type="hidden" name="action" value="add">
-							</form>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">
-								{{ __('Update') }}
-							</a>
-							<form id="update-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
-								@method('put')
-								@csrf
-								<input type="hidden" name="action" value="update">
-							</form>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
-								{{ __('Delete') }}
-							</a>
-							<form id="delete-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
-								@method('put')
-								@csrf
-								<input type="hidden" name="action" value="delete">
-							</form>
-						</li>
+						@if (config('app.env') === 'local')
+							{{-- <li class="nav-item">
+								<a class="nav-link" href="{{ route('email.change-email') }}">Send ChangeEmail Mail</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('email.change-password') }}">Send ChangePassword Mail</a>
+							</li> --}}
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">
+									{{ __('Remind') }}
+								</a>
+								<form id="reminder-form" action="{{ route('email.reminder') }}" method="post" class="d-none">
+									@method('put')
+									@csrf
+								</form>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">
+									{{ __('Add') }}
+								</a>
+								<form id="add-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+									@method('put')
+									@csrf
+									<input type="hidden" name="action" value="add">
+								</form>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">
+									{{ __('Update') }}
+								</a>
+								<form id="update-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+									@method('put')
+									@csrf
+									<input type="hidden" name="action" value="update">
+								</form>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
+									{{ __('Delete') }}
+								</a>
+								<form id="delete-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+									@method('put')
+									@csrf
+									<input type="hidden" name="action" value="delete">
+								</form>
+							</li>
+						@endif
 						<li class="nav-item">
 							<a class="nav-link" href="{{ route('home') }}">{{ __('Statements') }}</a>
 						</li>

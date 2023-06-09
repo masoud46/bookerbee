@@ -156,6 +156,10 @@ class EventController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function index() {
+		if (!in_array('agenda', Auth::user()->features)) {
+			abort(404);
+		}
+
 		$entries = 'resources/js/pages/agenda.js';
 		$prefixes = Country::select(["id", "prefix"])->get()->toArray();
 
@@ -176,12 +180,9 @@ class EventController extends Controller {
 			return response()->json(['success' => false]);
 		}
 
-		$prefix = Country::select("prefix")
-			->whereId(Auth::user()->phone_country_id)
-			->first()
-			->prefix;
-
 		$data = $request->all()['event'];
+
+		DB::beginTransaction();
 
 		$event = new Event();
 		$event->user_id = Auth::user()->id;
@@ -221,22 +222,37 @@ class EventController extends Controller {
 		$event->save();
 
 		$data['id'] = $event->id;
-		$data['user_phone'] = $prefix . " " . Auth::user()->phone_number;
-
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 
-		if ($event->patient_id && $email) {
-			$data['hash_id'] = Hashids::encode($data['id']);
-
-			Mail::to($email)
-				->send(new AppointmentEmail("add", $data));
-		}
-
-		return response()->json([
+		$result = [
 			'success' => true,
 			'id' => $event->id,
 			'event' => $data,
-		]);
+		];
+
+		if ($event->patient_id && $email) {
+			$prefix = Country::select("prefix")
+				->whereId(Auth::user()->phone_country_id)
+				->first()
+				->prefix;
+
+			$data['hash_id'] = Hashids::encode($data['id']);
+			$data['user_phone'] = $prefix . " " . Auth::user()->phone_number;
+
+			try {
+				// Mail::to($email)->send(new AppointmentEmail("add", $data));
+
+				DB::commit();
+			} catch (\Throwable $th) {
+				DB::rollBack();
+
+				$result['success'] = false;
+			}
+		} else {
+			DB::commit();
+		}
+
+		return response()->json($result);
 	}
 
 	/**
@@ -251,33 +267,42 @@ class EventController extends Controller {
 		$old_event = $data['oldEvent'];
 		$data = $data['event'];
 
+		DB::beginTransaction();
+
 		$event->all_day = $data['allDay'];
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
 		$event->start = Carbon::parse($data['start']);
 		$event->end = Carbon::parse($data['end']);
 
+		$event->save();
+
+		$email = $data['extendedProps']['patient']['email'] ?? null;
+
 		$result = [
-			'success' => false,
+			'success' => true,
 			'dbevent' => $event->toArray(),
 			'event' => $data,
 			'old_event' => $old_event,
 		];
 
-		$event->save();
-
-		$result['success'] = true;
-
-		$email = $data['extendedProps']['patient']['email'] ?? null;
-
 		if ($event->patient_id && $email) {
 			$data['hash_id'] = Hashids::encode($data['id']);
 
-			// sleep(1);
-			Mail::to($email)
-				->send(new AppointmentEmail("update", $data, [
-					'localStart' => $old_event['localStart'],
-					'localEnd' => $old_event['localEnd'],
-				]));
+			try {
+				// sleep(1);
+				// Mail::to($email)->send(new AppointmentEmail("update", $data, [
+				// 	'localStart' => $old_event['localStart'],
+				// 	'localEnd' => $old_event['localEnd'],
+				// ]));
+
+				DB::commit();
+			} catch (\Throwable $th) {
+				DB::rollBack();
+
+				$result['success'] = false;
+			}
+		} else {
+			DB::commit();
 		}
 
 		return response()->json($result);
@@ -293,6 +318,8 @@ class EventController extends Controller {
 		$data = $request->all();
 		$data = $data['event'];
 
+		DB::beginTransaction();
+
 		if ($event->category === 0) {
 			$event->delete();
 		} else {
@@ -301,19 +328,28 @@ class EventController extends Controller {
 
 			$email = $data['extendedProps']['patient']['email'] ?? null;
 
-			if ($event->patient_id && $email) {
-				$data['hash_id'] = Hashids::encode($data['id']);
+			$result = [
+				'success' => true,
+				'id' => $event->id,
+				'dbevent' => $event->toArray(),
+			];
 
-				// Mail::to($email)
-				// 	->send(new AppointmentEmail("delete", $data));
+			if ($event->patient_id && $email) {
+				try {
+					// Mail::to($email)->send(new AppointmentEmail("delete", $data));
+
+					DB::commit();
+				} catch (\Throwable $th) {
+					DB::rollBack();
+
+					$result['success'] = false;
+				}
+			} else {
+				DB::commit();
 			}
 		}
 
-		return response()->json([
-			'success' => true,
-			'id' => $event->id,
-			'dbevent' => $event->toArray(),
-		]);
+		return response()->json($result);
 	}
 
 	/**

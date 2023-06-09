@@ -1,12 +1,12 @@
 <x-mail::message>
 <style>
 .panel { font-size: 16px; }
-img[alt="EmailIcon"], img[alt="PhoneIcon"] { width: 20px; }
+img[alt="EmailIcon"], img[alt="PhoneIcon"] { width: 16px; }
 </style>
 
 # {{ __('Hello :name', ['name' => explode(', ', $event['extendedProps']['patient']['name'])[1]]) }},
 
-{{ __("We confirm your appointment with the details below:") }}
+{{ __("We confirm your appointment with the following details:") }}
 
 <x-mail::panel>
 <table>
@@ -41,11 +41,26 @@ img[alt="EmailIcon"], img[alt="PhoneIcon"] { width: 20px; }
 {{ __("If you wish to cancel this appointment, contact the practitioner directly:") }}<br>
 </p>
 
-<table style="font-style: italic;"><tbody><tr><td style="padding-right: 8px; opacity: 0.5;">
+<table style="font-style: italic;">
+<tbody>
+<tr>
+<td style="padding-right: 8px; opacity: 0.5;">
 <img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon">
-</td><td><a href="mailto:{{ Auth::user()->email }}" style="font-size: 16px;">{{ Auth::user()->email }}</a></td></tr><tr><td style="padding-right: 8px; opacity: 0.5;">
+</td>
+<td>
+<a href="mailto:{{ Auth::user()->email }}" style="font-size: 16px;">{{ Auth::user()->email }}</a>
+</td>
+</tr>
+<tr>
+<td style="padding-right: 8px; opacity: 0.5;">
 <img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon">
-</td><td><a href="tel:{{ $event['user_phone'] }}" style="font-size: 16px;">{{ $event['user_phone'] }}</a></td></tr></tbody></table>
+</td>
+<td>
+<a href="tel:{{ $event['user_phone'] }}" style="font-size: 16px;">{{ $event['user_phone'] }}</a>
+</td>
+</tr>
+</tbody>
+</table>
 
 <p style="margin-top: 20px; margin-bottom: 0;">
 {{ __('Thanks') }},<br>
