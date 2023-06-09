@@ -178,7 +178,8 @@ class EventController extends Controller {
 
 		$prefix = Country::select("prefix")
 			->whereId(Auth::user()->phone_country_id)
-			->get();
+			->first()
+			->prefix;
 
 		$data = $request->all()['event'];
 
