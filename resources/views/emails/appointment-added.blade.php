@@ -42,12 +42,10 @@ img[alt="EmailIcon"], img[alt="PhoneIcon"] { width: 20px; }
 </p>
 
 <table style="font-style: italic;"><tbody><tr><td style="padding-right: 8px; opacity: 0.5;">
-{{-- <img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon"> --}}
-<img src="https://cipherfix.com/assets/img/envelope.png" alt="EmailIcon">
-</td><td><a href="mailto:{{ Auth::user()->email }}" style="position: relative; top: -2px;">{{ Auth::user()->email }}</a></td></tr><tr><td style="padding-right: 8px; opacity: 0.5;">
-{{-- <img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon"> --}}
-<img src="https://cipherfix.com/assets/img/phone.png" alt="PhoneIcon">
-</td><td><a href="tel:{{ $event['user_phone'] }}" style="position: relative; top: -2px;">{{ $event['user_phone'] }}</a></td></tr></tbody></table>
+<img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon">
+</td><td><a href="mailto:{{ Auth::user()->email }}" style="font-size: 16px;">{{ Auth::user()->email }}</a></td></tr><tr><td style="padding-right: 8px; opacity: 0.5;">
+<img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon">
+</td><td><a href="tel:{{ $event['user_phone'] }}" style="font-size: 16px;">{{ $event['user_phone'] }}</a></td></tr></tbody></table>
 
 <p style="margin-top: 20px; margin-bottom: 0;">
 {{ __('Thanks') }},<br>
