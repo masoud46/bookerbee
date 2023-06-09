@@ -4,6 +4,10 @@
 	$end = Carbon\Carbon::parse($event['end'])->setTimezone($event['timezone']);
 @endphp
 <x-mail::message>
+<style>
+.panel { font-size: 16px; }
+</style>
+
 # {{ __('Hello :name', ['name' => $event['patient_firstname']]) }},
 
 {{ __('Your next appointment with the following details, will start in about :time hours.', ['time' => config('project.reminder_email_time')]) }}

@@ -43,6 +43,7 @@ class SendEmailController extends Controller {
 			$data = $request->all();
 			$action = $data['action'];
 			$event = [
+				'user_phone' => "+352 620 123 456",
 				'allDay' => false,
 				'end' => '2023-05-31T09:00:00.000Z',
 				'extendedProps' => [

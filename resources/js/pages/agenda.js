@@ -233,7 +233,7 @@ const storeEvent = async (action, event, oldEvent = null) => {
 const applyAction = () => {
 	const modalClass = [...modal.classList].find(cls => cls.startsWith(modal.props.actionClass))
 	const action = modalClass.substring(modal.props.actionClass.length)
-	const event = customProps.event
+	const event = JSON.parse(JSON.stringify(customProps.event))
 	console.log(event);
 
 	switch (action) {
@@ -253,6 +253,9 @@ const applyAction = () => {
 			if (modal.props.patientPhone.textContent.length) {
 				event.extendedProps.patient.phone = modal.props.patientPhone.textContent
 			}
+
+			event.localStart = event.startStr
+			event.localEnd = event.endStr
 
 			storeEvent(action, event)
 			break;
@@ -299,14 +302,13 @@ const applyAction = () => {
 
 		case EVENT_ACTION_UPDATE:
 		case EVENT_ACTION_UPDATE_LOCK:
-			const newEvent = JSON.parse(JSON.stringify(customProps.event))
 			let oldEvent = null
 
-			if (!newEvent.allDay) {
-				newEvent.localStart = newEvent.start
-				newEvent.localEnd = newEvent.end
-				newEvent.start = new Date(newEvent.start).toISOString()
-				newEvent.end = new Date(newEvent.end).toISOString()
+			if (!event.allDay) {
+				event.localStart = event.start
+				event.localEnd = event.end
+				event.start = new Date(event.start).toISOString()
+				event.end = new Date(event.end).toISOString()
 			}
 
 			if (action === EVENT_ACTION_UPDATE) {
@@ -319,10 +321,13 @@ const applyAction = () => {
 				}
 			}
 
-			storeEvent(action, newEvent, oldEvent)
+			storeEvent(action, event, oldEvent)
 			break;
 
-		default:
+		case EVENT_ACTION_CANCEL:
+			event.localStart = event.start
+			event.localEnd = event.end
+
 			storeEvent(action, event)
 			break;
 	}

@@ -1,4 +1,9 @@
 <x-mail::message>
+<style>
+.panel { font-size: 16px; }
+img[alt="EmailIcon"], img[alt="PhoneIcon"] { width: 20px; }
+</style>
+
 # {{ __('Hello :name', ['name' => explode(', ', $event['extendedProps']['patient']['name'])[1]]) }},
 
 {{ __("We confirm your appointment with the details below:") }}
@@ -25,15 +30,25 @@
 </x-mail::panel>
 
 <p>
-{{ __('You can import this appointment into your personal calendar by clicking on this link:') }}
-<a href="{{ route('event.export', ['id' => $event['hash_id']]) }}">{{ route('event.export', ['id' => $event['hash_id']]) }}</a>
+{{ __('You can import this appointment into your personal calendar by clicking on the button below.') }}
 </p>
 
-<p>
-{{ __("If you wish to cancel this appointment, contact the practitioner directly.") }}
+<x-mail::button :url="route('event.export', ['id' => $event['hash_id']])">
+{{ __('Import the appointment') }}
+</x-mail::button>
+
+<p style="margin-bottom: 8px;">
+{{ __("If you wish to cancel this appointment, contact the practitioner directly:") }}<br>
 </p>
 
-<p style="margin-bottom: 0;">
+{{-- ![EmailIcon]({{ asset('build/images/at.png') }}) {{ Auth::user()->email }}<br> --}}
+<table style="font-style: italic;"><tbody><tr><td style="padding-right: 4px; opacity: 0.5;">
+<img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon">
+</td><td><a href="mailto:{{ Auth::user()->email }}">{{ Auth::user()->email }}</a></td></tr><tr><td style="padding-right: 4px; opacity: 0.5;">
+<img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon">
+</td><td><a href="tel:{{ $event['user_phone'] }}">{{ $event['user_phone'] }}</a></td></tr></tbody></table>
+
+<p style="margin-top: 20px; margin-bottom: 0;">
 {{ __('Thanks') }},<br>
 {{ config('app.name') }}
 </p>

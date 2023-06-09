@@ -2,6 +2,10 @@
     Carbon\Carbon::setlocale(config('app.locale'));
 @endphp
 <x-mail::message>
+<style>
+.panel { font-size: 16px; }
+</style>
+
 # {{ __('Hello :name', ['name' => explode(', ', $event['extendedProps']['patient']['name'])[1]]) }},
 
 {{ __('Your appointment has been rescheduled. Please take note of the new schedule below.') }}
@@ -27,7 +31,7 @@
 </table>
 </x-mail::panel>
 
-<p style="font-size: 0.9em; font-style: italic;">
+<p style="font-size: 14px; font-style: italic;">
 {{ __('The initial schedule was planned for :date, from :start to :end.', [
 	'date' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
 	'start' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
@@ -36,9 +40,12 @@
 </p>
 
 <p>
-{{ __('You can import this appointment into your personal calendar by clicking on this link:') }}
-<a href="{{ route('event.export', ['id' => $event['hash_id']]) }}">{{ route('event.export', ['id' => $event['hash_id']]) }}</a>
+{{ __('You can import this appointment into your personal calendar by clicking on the button below.') }}
 </p>
+
+<x-mail::button :url="route('event.export', ['id' => $event['hash_id']])">
+{{ __('Import the appointment') }}
+</x-mail::button>
 
 <p style="margin-bottom: 0;">
 {{ __('Thanks') }},<br>

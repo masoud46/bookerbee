@@ -1,7 +1,7 @@
 <div id="patient-notes-modal" class="modal fade" data-saved="1" tabindex="-1" aria-labelledby="patient-notes-modal-title" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-fullscreen-lg-down modal-dialog-scrollable">
 		<div class="modal-content shadow">
-			<div class="modal-header bg-dark bg-opacity-10">
+			<div class="modal-header shadow-sm">
 				<h6 class="modal-title d-flex flex-wrap" id="patient-notes-modal-title">
 					<span><i class="far fa-user fa-fw me-1"></i><span class="patient-notes-modal-name fw-bold me-3"></span></span>
 					<span><i class="far fa-envelope fa-fw me-1"></i><a class="patient-notes-modal-email me-3"></a></span>

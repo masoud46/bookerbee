@@ -1,11 +1,7 @@
 <x-mail::message>
 <style>
-	.panel {
-		border-color: #cc0000 !important;
-	}
-	.panel-content {
-		background-color: #fff4f4 !important;
-	}
+.panel { font-size: 16px; border-color: #cc0000 !important; }
+.panel-content { background-color: #fff4f4 !important; }
 </style>
 
 # {{ __('Hello :name', ['name' => explode(', ', $event['extendedProps']['patient']['name'])[1]]) }},

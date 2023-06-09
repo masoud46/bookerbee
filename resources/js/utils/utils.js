@@ -124,14 +124,14 @@ utils.showAlert = ({ message, timeout, error = false }) => {
 	}, timeout * 1000)
 }
 
-utils.showMessage = (message, onClose = null) => {
+utils.showMessage = (message, cbClose = null) => {
 	const modalObj = new Modal('#message-modal')
 	const modal = document.getElementById('message-modal')
 
 	modal.querySelector('.modal-body').innerHTML = message
 
-	if (typeof onClose === 'function') {
-		modal.addEventListener('hidden.bs.modal', onClose)
+	if (typeof cbClose === 'function') {
+		modal.addEventListener('hidden.bs.modal', cbClose)
 	}
 
 	modalObj.show()

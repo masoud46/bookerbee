@@ -176,6 +176,10 @@ class EventController extends Controller {
 			return response()->json(['success' => false]);
 		}
 
+		$prefix = Country::select("prefix")
+			->whereId(Auth::user()->phone_country_id)
+			->get();
+
 		$data = $request->all()['event'];
 
 		$event = new Event();
@@ -216,9 +220,16 @@ class EventController extends Controller {
 		$event->save();
 
 		$data['id'] = $event->id;
+		$data['user_phone'] = "{$prefix} {Auth::user()->phone_number}";
 
-		// $patient = Patient::find($event->patient_id);
-		// Mail::to($patient->email)->send(new AppointmentEmail("add", $patient, $event));
+		$email = $data['extendedProps']['patient']['email'] ?? null;
+
+		if ($event->patient_id && $email) {
+			$data['hash_id'] = Hashids::encode($data['id']);
+
+			Mail::to($email)
+				->send(new AppointmentEmail("add", $data));
+		}
 
 		return response()->json([
 			'success' => true,
@@ -260,12 +271,12 @@ class EventController extends Controller {
 		if ($event->patient_id && $email) {
 			$data['hash_id'] = Hashids::encode($data['id']);
 
-			sleep(1);
-			// Mail::to($email)
-			// 	->send(new AppointmentEmail("update", $data, [
-			// 		'localStart' => $old_event['localStart'],
-			// 		'localEnd' => $old_event['localEnd'],
-			// 	]));
+			// sleep(1);
+			Mail::to($email)
+				->send(new AppointmentEmail("update", $data, [
+					'localStart' => $old_event['localStart'],
+					'localEnd' => $old_event['localEnd'],
+				]));
 		}
 
 		return response()->json($result);
@@ -277,15 +288,24 @@ class EventController extends Controller {
 	 * @param  \App\Models\Event $event
 	 * @return \Illuminate\Http\Response
 	 */
-	public function destroy(Event $event) {
+	public function destroy(Request $request, Event $event) {
+		$data = $request->all();
+		$data = $data['event'];
+
 		if ($event->category === 0) {
 			$event->delete();
 		} else {
 			$event->status = false;
 			$event->save();
 
-			// $patient = Patient::find($event->patient_id);
-			// Mail::to($patient->email)->send(new AppointmentEmail("cancel", $patient, $event));
+			$email = $data['extendedProps']['patient']['email'] ?? null;
+
+			if ($event->patient_id && $email) {
+				$data['hash_id'] = Hashids::encode($data['id']);
+
+				// Mail::to($email)
+				// 	->send(new AppointmentEmail("delete", $data));
+			}
 		}
 
 		return response()->json([
