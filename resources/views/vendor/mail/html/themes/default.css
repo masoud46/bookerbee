@@ -262,6 +262,7 @@ img {
 .panel {
     border-left: #2d3748 solid 4px;
     margin: 21px 0;
+    font-size: 16px;
 }
 
 .panel-content {
@@ -287,4 +288,11 @@ img {
 
 .break-all {
     word-break: break-all;
+}
+
+
+
+img[alt="EmailIcon"],
+img[alt="PhoneIcon"] {
+	width: 16px;
 }

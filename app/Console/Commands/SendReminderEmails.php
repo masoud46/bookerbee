@@ -42,15 +42,19 @@ class SendReminderEmails extends Command {
 			"users.timezone",
 			"users.firstname AS user_firstname",
 			"users.lastname AS user_lastname",
+			"users.phone_number AS user_phone_number",
+			"countries.prefix AS user_phone_prefix",
 			"patients.firstname AS patient_firstname",
 			"patients.lastname AS patient_lastname",
 			"patients.email AS patient_email",
 		])
-			->where("events.category", "=", 1)
-			->where("events.reminder", "=", 0)
+			->where("events.category", "=", 1) // event is an appointment
+			->where("events.status", "=", 1) // has not been canceled
+			->where("events.reminder", "=", 0) // reminder has not been sent
 			->where("start", "<=", $time)
 			->join("users", "users.id", "=", "events.user_id")
 			->join("patients", "patients.id", "=", "events.patient_id")
+			->join("countries", "countries.id", "=", "users.phone_country_id")
 			// ->limit(1)
 			->get();
 
@@ -62,9 +66,13 @@ class SendReminderEmails extends Command {
 				if ($event->patient_email) {
 					file_put_contents(
 						__DIR__ . "/reminder.txt",
-						"{$event->user_firstname}\n{$event->patient_email}\n{$event->start} - {$event->end}\n",
+						"{$event['user_phone_prefix']} {$event['user_phone_number']}\n" .
+						"{$event->user_firstname}\n{$event->patient_email}\n{$event->start} - {$event->end}\n\n",
 						FILE_APPEND
 					);
+
+
+					$event['user_phone'] = $event['user_phone_prefix'] . " " . $event['user_phone_number'];
 
 					try {
 						// Mail::to($event->patient_email)->send(new AppointmentReminder($event->toArray()));
@@ -75,11 +83,7 @@ class SendReminderEmails extends Command {
 				}
 			}
 
-			file_put_contents(
-				__DIR__ . "/reminder.txt",
-				"\n",
-				FILE_APPEND
-			);
+			file_put_contents(__DIR__ . "/reminder.txt", "\n", FILE_APPEND);
 		}
 
 		// $events = Event::whereUserId(Auth::user()->id);

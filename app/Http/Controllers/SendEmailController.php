@@ -33,7 +33,10 @@ class SendEmailController extends Controller {
 			'patient_firstname' => 'John',
 			'patient_lastname' => 'Doe',
 			'patient_email' => 'masoudf46@gmail.com',
+			'user_phone_number' => '620 123 456',
+			'user_phone_prefix' => '+32',
 		];
+		$event['user_phone'] = $event['user_phone_prefix'] . " " . $event['user_phone_number'];
 		return new AppointmentReminder($event);
 	}
 

@@ -29,9 +29,9 @@ class EventController extends Controller {
 	 * Convert database row to FullCalendar JavaScript compatible object.
 	 *
 	 * @param  Event $event
-	 * @return Array $jsEvent
+	 * @return Array
 	 */
-	public function dbToJs(Event $e) {
+	private function dbToJs(Event $e) {
 		$event = [
 			'id' => $e->id,
 			// 'all_day' => $e->all_day === true,
@@ -83,11 +83,25 @@ class EventController extends Controller {
 	/**
 	 * Get a listing of the resource between two dates.
 	 *
+	 * @return String
+	 */
+	private function getUserPhone() {
+		$prefix = Country::select("prefix")
+			->whereId(Auth::user()->phone_country_id)
+			->first()
+			->prefix;
+
+		return $prefix . " " . Auth::user()->phone_number;
+	}
+
+	/**
+	 * Get a listing of the resource between two dates.
+	 *
 	 * @param  String $from
 	 * @param  String $to
-	 * @return \Illuminate\Http\Response
+	 * @return Array
 	 */
-	public function get($start = null, $end = null) {
+	private function get($start = null, $end = null) {
 		$start = Carbon::parse($start)->subDays(7);
 		$end = Carbon::parse($end)->addDays(7);
 
@@ -231,13 +245,8 @@ class EventController extends Controller {
 		];
 
 		if ($event->patient_id && $email) {
-			$prefix = Country::select("prefix")
-				->whereId(Auth::user()->phone_country_id)
-				->first()
-				->prefix;
-
 			$data['hash_id'] = Hashids::encode($data['id']);
-			$data['user_phone'] = $prefix . " " . Auth::user()->phone_number;
+			$data['user_phone'] = $this->getUserPhone();
 
 			try {
 				// Mail::to($email)->send(new AppointmentEmail("add", $data));
@@ -287,9 +296,9 @@ class EventController extends Controller {
 
 		if ($event->patient_id && $email) {
 			$data['hash_id'] = Hashids::encode($data['id']);
+			$data['user_phone'] = $this->getUserPhone();
 
 			try {
-				// sleep(1);
 				// Mail::to($email)->send(new AppointmentEmail("update", $data, [
 				// 	'localStart' => $old_event['localStart'],
 				// 	'localEnd' => $old_event['localEnd'],

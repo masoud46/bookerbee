@@ -49,20 +49,25 @@ utils.fetch = async ({ method = 'POST', url, data = null, csrf = null }) => {
 		}
 	}
 
-	const response = await fetch(url, options)
+	let result = []
+	try {
+		const response = await fetch(url, options)
 
-	if (response.headers.get('content-type') !== 'application/json') { // error
-		return {
-			error: true,
-			code: response.redirected
-				? 302 // session has expired -> redirected to login pages
-				: 400,
+		if (response.headers.get('content-type') !== 'application/json') { // error
+			return {
+				error: true,
+				code: response.redirected
+					? 302 // session has expired -> redirected to login pages
+					: 400,
+			}
 		}
+
+		result = await response.json()
+	} catch (error) {
+		console.error(error);
+	} finally {
+		return result
 	}
-
-	const result = await response.json()
-
-	return result
 }
 
 utils.toast.template = `
