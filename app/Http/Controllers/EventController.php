@@ -220,7 +220,7 @@ class EventController extends Controller {
 		$event->save();
 
 		$data['id'] = $event->id;
-		$data['user_phone'] = "{$prefix} {Auth::user()->phone_number}";
+		$data['user_phone'] = $prefix . " " . Auth::user()->phone_number;
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 
