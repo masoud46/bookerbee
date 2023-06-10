@@ -330,6 +330,10 @@ const applyAction = () => {
 
 			storeEvent(action, event)
 			break;
+
+		case EVENT_ACTION_UNLOCK:
+			storeEvent(action, event)
+			break;
 	}
 }
 
@@ -605,15 +609,17 @@ const calendar = new Calendar(calendarElement, {
 	},
 	events: async (info, successCallback, failureCallback) => {
 		console.log('%c*** events', 'color:#c00;');
-		const events = await utils.fetch({
+		const items = await utils.fetch({
 			method: 'GET',
 			url: `/events?start=${info.start.toISOString()}&end=${info.end.toISOString()}`,
 		})
-		console.log(events);
 
-		if (events !== null) {
-			calendar.removeAllEvents()
-			successCallback(events.events)
+		if (items.error) {
+			successCallback([])
+			utils.showMessage(window.laravel.messages.unexpectedError)
+		} else {
+			// calendar.removeAllEvents()
+			successCallback(items)
 		}
 	},
 	loading: isLoading => {

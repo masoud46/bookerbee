@@ -226,7 +226,7 @@ class EventController extends Controller {
 			}
 
 			if (isset($data['rrule']['byweekday'])) {
-				$event->byweekday = implode(',', $data['rrule']['byweekday']);
+				$event->rrule_byweekday = implode(',', $data['rrule']['byweekday']);
 			}
 		} else {
 			$event->start = Carbon::parse($data['start']);
@@ -244,12 +244,12 @@ class EventController extends Controller {
 			'event' => $data,
 		];
 
-		if ($event->patient_id && $email) {
+		if (config('app.env') === 'production' && $event->patient_id && $email) {
 			$data['hash_id'] = Hashids::encode($data['id']);
 			$data['user_phone'] = $this->getUserPhone();
 
 			try {
-				// Mail::to($email)->send(new AppointmentEmail("add", $data));
+				Mail::to($email)->send(new AppointmentEmail("add", $data));
 
 				DB::commit();
 			} catch (\Throwable $th) {
@@ -294,15 +294,15 @@ class EventController extends Controller {
 			'old_event' => $old_event,
 		];
 
-		if ($event->patient_id && $email) {
+		if (config('app.env') === 'production' && $event->patient_id && $email) {
 			$data['hash_id'] = Hashids::encode($data['id']);
 			$data['user_phone'] = $this->getUserPhone();
 
 			try {
-				// Mail::to($email)->send(new AppointmentEmail("update", $data, [
-				// 	'localStart' => $old_event['localStart'],
-				// 	'localEnd' => $old_event['localEnd'],
-				// ]));
+				Mail::to($email)->send(new AppointmentEmail("update", $data, [
+					'localStart' => $old_event['localStart'],
+					'localEnd' => $old_event['localEnd'],
+				]));
 
 				DB::commit();
 			} catch (\Throwable $th) {
@@ -324,28 +324,31 @@ class EventController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function destroy(Request $request, Event $event) {
-		$data = $request->all();
-		$data = $data['event'];
+		$data = $request->all()['event'];
+	
+		$result = [
+			'success' => false,
+			'id' => $event->id,
+			'dbevent' => $event->toArray(),
+		];
 
 		DB::beginTransaction();
 
 		if ($event->category === 0) {
 			$event->delete();
+			DB::commit();
+	
+			$result['success'] = true;
 		} else {
 			$event->status = false;
 			$event->save();
 
+			$result['success'] = true;
 			$email = $data['extendedProps']['patient']['email'] ?? null;
 
-			$result = [
-				'success' => true,
-				'id' => $event->id,
-				'dbevent' => $event->toArray(),
-			];
-
-			if ($event->patient_id && $email) {
+			if (config('app.env') === 'production' && $event->patient_id && $email) {
 				try {
-					// Mail::to($email)->send(new AppointmentEmail("delete", $data));
+					Mail::to($email)->send(new AppointmentEmail("delete", $data));
 
 					DB::commit();
 				} catch (\Throwable $th) {
@@ -370,13 +373,14 @@ class EventController extends Controller {
 	public function fetch(Request $request) {
 		$events = $this->get($request->start, $request->end);
 
-		return response()->json([
-			'request' => [
-				'start' => $request->start,
-				'end' => $request->end,
-			],
-			'events' => $events,
-		]);
+		return response()->json($events);
+		// return response()->json([
+		// 	'request' => [
+		// 		'start' => $request->start,
+		// 		'end' => $request->end,
+		// 	],
+		// 	'events' => $events,
+		// ]);
 	}
 
 	/**

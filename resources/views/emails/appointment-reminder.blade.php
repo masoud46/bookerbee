@@ -17,7 +17,7 @@
 	:end="$end->translatedFormat('H:i')"
 />
 
-<x-mail::cancel-appointment :phone="$event['user_phone']" />
+<x-mail::cancel-appointment :email="$event['user_email']" :phone="$event['user_phone']" />
 
 <x-mail::regards />
 

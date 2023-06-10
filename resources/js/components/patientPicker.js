@@ -20,11 +20,11 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 
 				if (str.length >= patients.options.threshold) {
 					if (!patients.options.data.length) {
-						const items = await utils.fetch({ url: patients.searchUrl, data: { str } })
+						const result = await utils.fetch({ url: patients.searchUrl, data: { str } })
 
-						if (items.error) {
+						if (result.error) {
 							if (typeof patients.onError === 'function') {
-								patients.onError(items.code)
+								patients.onError(result.code)
 							}
 
 							return
@@ -33,11 +33,11 @@ document.querySelectorAll('.patient-picker-component').forEach(element => {
 						const list = []
 
 						if (typeof patients.onGotItems === 'function') {
-							patients.onGotItems(items)
+							patients.onGotItems(result)
 						}
 						
 						if (typeof patients.setItem === 'function') {
-							items.map(item => {
+							result.map(item => {
 								list.push({
 									label: patients.setItem(item),
 									value: item.id,

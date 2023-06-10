@@ -18,15 +18,7 @@ Pickers.forEach(picker => {
 	}
 
 	picker.patients.onError = code => {
-		console.log('patient picker error', code);
-		const error = true
-		const message = code === 302
-			? window.laravel.messages.sessionError
-			: window.laravel.messages.unexpectedError
-
-		utils.showMessage(message, () => {
-			window.location.assign('/')
-		})
+		utils.showMessage(window.laravel.messages.unexpectedError)
 	}
 })
 
@@ -40,7 +32,7 @@ const invoices = document.querySelector('#invoices-container tbody')
 const patients = document.querySelector('#patients-container tbody')
 
 if (listFilter && input && count) {
-	const parent = invoices ?? patients ?? null
+	const parent = invoices ?? (patients ?? null)
 
 	if (parent) {
 		input.addEventListener('input', () => {

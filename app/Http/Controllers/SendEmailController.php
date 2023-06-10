@@ -25,16 +25,17 @@ class SendEmailController extends Controller {
 	// test
 	public function sendReminderEmail(Request $request) {
 		$event = [
-			'start' => '2023-05-31T07:30:00.000Z',
-			'end' => '2023-05-31T09:00:00.000Z',
+			'start' => '2023-05-31 07:30:00',
+			'end' => '2023-05-31 09:00:00',
 			'timezone' => 'Europe/Brussels',
 			'user_firstname' => 'Masoud',
 			'user_lastname' => 'Fathi',
+			'user_email' => 'masoudf46@gmail.com',
+			'user_phone_number' => '620 123 456',
+			'user_phone_prefix' => '+32',
 			'patient_firstname' => 'John',
 			'patient_lastname' => 'Doe',
 			'patient_email' => 'masoudf46@gmail.com',
-			'user_phone_number' => '620 123 456',
-			'user_phone_prefix' => '+32',
 		];
 		$event['user_phone'] = $event['user_phone_prefix'] . " " . $event['user_phone_number'];
 		return new AppointmentReminder($event);

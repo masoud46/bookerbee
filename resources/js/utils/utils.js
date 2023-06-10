@@ -49,25 +49,31 @@ utils.fetch = async ({ method = 'POST', url, data = null, csrf = null }) => {
 		}
 	}
 
-	let result = []
-	try {
-		const response = await fetch(url, options)
+	const response = await fetch(url, options)
 
-		if (response.headers.get('content-type') !== 'application/json') { // error
-			return {
-				error: true,
-				code: response.redirected
-					? 302 // session has expired -> redirected to login pages
-					: 400,
+	if (response.headers.get('content-type') !== 'application/json') { // error
+		console.log('%c non-json response ', 'color:#fff;background-color:#c00;');
+		const code = response.redirected
+			? 302 // session has expired -> redirected to login pages
+			: 400
+
+		if (code === 302) {
+			const message = window.laravel?.messages?.sessionError
+				?? 'Your session has been expired!\nPlease sign back in.'
+
+			if (document.getElementById('message-modal')) {
+				utils.showMessage(message, () => {
+					window.location.assign('/')
+				})
+			} else {
+				utils.showAlert({ message, timeout: 0, error: true })
 			}
 		}
 
-		result = await response.json()
-	} catch (error) {
-		console.error(error);
-	} finally {
-		return result
+		return { error: true, code }
 	}
+
+	return await response.json()
 }
 
 utils.toast.template = `
@@ -86,7 +92,6 @@ utils.toast.show = ({ message, delay, error = false }) => {
 	delay *= 1000
 
 	const id = document.querySelectorAll('.toast').length
-	console.log('id', id);
 	const element = utils.toast.template
 		.replace('%id', id)
 		.replace('%color', error ? 'danger' : 'success')
@@ -95,9 +100,7 @@ utils.toast.show = ({ message, delay, error = false }) => {
 	utils.toast.container.insertAdjacentHTML('beforeend', element)
 
 	setTimeout(() => {
-		console.log(utils.toast.container);
 		const element = document.getElementById(`${utils.toast.prefix}${id}`)
-		console.log(element);
 		const toast = new Toast(element, { delay, autohide: false })
 		const onHidden = () => {
 			element.removeEventListener('hidden.bs.toast', onHidden)
@@ -112,7 +115,7 @@ utils.toast.show = ({ message, delay, error = false }) => {
 utils.showAlert = ({ message, timeout, error = false }) => {
 	const flash = utils.flash
 
-	timeout = timeout ?? error ? flash.errorTimeout : flash.timeout
+	timeout = timeout ?? (error ? flash.errorTimeout : flash.timeout)
 
 	flash.element.classList.remove('flash-message-visible')
 	flash.element.querySelector('.flash-message-text').innerHTML = message
@@ -123,10 +126,13 @@ utils.showAlert = ({ message, timeout, error = false }) => {
 
 	flash.element.classList.add('flash-message-visible')
 	clearTimeout(flash.timeoutId)
-	flash.timeoutId = setTimeout(() => {
-		clearTimeout(flash.timeoutId)
-		flash.element.classList.remove('flash-message-visible')
-	}, timeout * 1000)
+
+	if (timeout > 0) {
+		flash.timeoutId = setTimeout(() => {
+			clearTimeout(flash.timeoutId)
+			flash.element.classList.remove('flash-message-visible')
+		}, timeout * 1000)
+	}
 }
 
 utils.showMessage = (message, cbClose = null) => {

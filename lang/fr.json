@@ -215,7 +215,7 @@
 	"After saving the appointment, a detailed email will be sent to the patient.": "Après avoir enregistré le rendez-vous, un email détaillé sera envoyé au patient.",
 	"Following the update, an email about the applied modifications will be sent to the patient.": "Suite à la mise à jour, un email concernant les modifications appliquées sera envoyé au patient.",
 	"Following the cancelation, an informative email will be sent to the patient.": "Suite à l'annulation, un email informatif sera envoyé au patient.",
-	"This patient does not have an email address. No notification email will be sent.": "Ce patient n'a pas d'adresse mail. Aucun e-mail de notification ne sera envoyé.",
+	"This patient does not have an email address. No notification email will be sent.": "Ce patient n'a pas d'adresse mail. Aucun mail de notification ne sera envoyé.",
 	"Lock": "Verrouiller",
 	"Unlock": "Déverrouiller",
 	"Lock the slot": "Verrouiller l'emplacement",

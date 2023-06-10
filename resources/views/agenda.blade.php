@@ -149,6 +149,9 @@
 			</div>
 		</div>
 	</div>
+	
+	@include('shared.message-modal')
+
 @endsection
 
 

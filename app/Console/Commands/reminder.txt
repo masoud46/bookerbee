@@ -1,13 +1,205 @@
-2023-06-09T12:41:49.732088Z - 2023-06-11T12:41:49.732095Z
+2023-06-10T09:22:49.353972Z - 2023-06-12T09:22:49.353978Z
 +352 621 522 932
 Masoud
 masoudf46@gmail.com
-2023-06-06 10:00:00 - 2023-06-06 12:30:00
+2023-06-11 18:30:00 - 2023-06-11 19:30:00
+FOUND (37) - Array
+(
+    [id] => 37
+    [user_id] => 2
+    [patient_id] => 1
+    [category] => 1
+    [title] => 
+    [all_day] => 0
+    [start] => 2023-06-11 18:30:00
+    [end] => 2023-06-11 19:30:00
+    [duration] => 
+    [rrule_dtstart] => 
+    [rrule_until] => 
+    [rrule_freq] => 
+    [rrule_byweekday] => 
+    [status] => 1
+    [reminder] => 0
+    [created_at] => 2023-06-09T09:37:53.000000Z
+    [updated_at] => 2023-06-09T09:37:53.000000Z
+)
 
+
+
+2023-06-10T09:23:48.402835Z - 2023-06-12T09:23:48.402841Z
+
+2023-06-10T09:23:59.163227Z - 2023-06-12T09:23:59.163233Z
+
+2023-06-10T09:24:28.214402Z - 2023-06-12T09:24:28.214408Z
+
+2023-06-10T09:24:41.319714Z - 2023-06-12T09:24:41.319720Z
+
+2023-06-10T09:25:07.465674Z - 2023-06-12T09:25:07.465681Z
+
+2023-06-10T09:25:25.973358Z - 2023-06-12T09:25:25.973364Z
+
+2023-06-10T09:25:35.741436Z - 2023-06-12T09:25:35.741442Z
 +352 621 522 932
 Masoud
 masoudf46@gmail.com
-2023-06-08 10:30:00 - 2023-06-08 12:00:00
+2023-06-12 09:00:00 - 2023-06-12 10:30:00
+FOUND (1) - Array
+(
+    [id] => 1
+    [user_id] => 2
+    [patient_id] => 1
+    [category] => 1
+    [title] => 
+    [all_day] => 0
+    [start] => 2023-06-12 09:00:00
+    [end] => 2023-06-12 10:30:00
+    [duration] => 
+    [rrule_dtstart] => 
+    [rrule_until] => 
+    [rrule_freq] => 
+    [rrule_byweekday] => 
+    [status] => 1
+    [reminder] => 0
+    [created_at] => 2023-06-04T17:37:58.000000Z
+    [updated_at] => 2023-06-10T09:25:30.000000Z
+)
+
+
+
+2023-06-10T09:36:10.395166Z - 2023-06-12T09:36:10.395174Z
+
+2023-06-10T10:53:27.332524Z - 2023-06-12T10:53:27.332529Z
+
+2023-06-10T10:55:56.514471Z - 2023-06-12T10:55:56.514477Z
+
+2023-06-10T10:56:58.369770Z - 2023-06-12T10:56:58.369776Z
+
+2023-06-10T10:57:13.092747Z - 2023-06-12T10:57:13.092753Z
+
+2023-06-10T11:00:07.642883Z - 2023-06-12T11:00:07.642889Z
+
+2023-06-10T11:01:20.911030Z - 2023-06-12T11:01:20.911036Z
+
+2023-06-10T11:03:08.679561Z - 2023-06-12T11:03:08.679567Z
+
+2023-06-10T11:03:58.997006Z - 2023-06-12T11:03:58.997013Z
+
+2023-06-10T11:15:04.501204Z - 2023-06-12T11:15:04.501210Z
+
+2023-06-10T11:15:25.269841Z - 2023-06-12T11:15:25.269848Z
+
+2023-06-10T11:17:24.001076Z - 2023-06-12T11:17:24.001082Z
+2023-06-10T11:17:53.153055Z - 2023-06-12T11:17:53.153061Z
+
+2023-06-10T11:25:57.154258Z - 2023-06-12T11:25:57.154264Z
+
+2023-06-10T11:27:44.827308Z - 2023-06-12T11:27:44.827314Z
++352 621 522 932
+Masoud
+masoudf46@gmail.com
+2023-06-10 08:00:00 - 2023-06-10 10:00:00
+ERROR! - Array
+(
+    [id] => 3
+    [start] => 2023-06-10 08:00:00
+    [end] => 2023-06-10 10:00:00
+    [timezone] => Europe/Brussels
+    [user_firstname] => Masoud
+    [user_lastname] => Fathi
+    [user_email] => masoudf46@gmail.com
+    [user_phone_number] => 621 522 932
+    [user_phone_prefix] => +352
+    [patient_firstname] => John
+    [patient_lastname] => Doe
+    [patient_email] => masoudf46@gmail.com
+    [user_phone] => +352 621 522 932
+)
+
+ArgumentCountError: 3 arguments are required, 1 given in F:\xampp\htdocs\eva\invoice\app\Console\Commands\SendReminderEmails.php:93
+Stack trace:
+#0 F:\xampp\htdocs\eva\invoice\app\Console\Commands\SendReminderEmails.php(93): sprintf('Email sent - id...')
+#1 [internal function]: App\Console\Commands\SendReminderEmails->App\Console\Commands\{closure}(Object(App\Models\Event), 0)
+#2 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Collections\Arr.php(558): array_map(Object(Closure), Array, Array)
+#3 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Collections\Collection.php(771): Illuminate\Support\Arr::map(Array, Object(Closure))
+#4 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Collection.php(344): Illuminate\Support\Collection->map(Object(Closure))
+#5 F:\xampp\htdocs\eva\invoice\app\Console\Commands\SendReminderEmails.php(74): Illuminate\Database\Eloquent\Collection->map(Object(Closure))
+#6 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(36): App\Console\Commands\SendReminderEmails->handle()
+#7 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Container\Util.php(41): Illuminate\Container\BoundMethod::Illuminate\Container\{closure}()
+#8 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(93): Illuminate\Container\Util::unwrapIfClosure(Object(Closure))
+#9 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(35): Illuminate\Container\BoundMethod::callBoundMethod(Object(Illuminate\Foundation\Application), Array, Object(Closure))
+#10 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Container\Container.php(662): Illuminate\Container\BoundMethod::call(Object(Illuminate\Foundation\Application), Array, Array, NULL)
+#11 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Console\Command.php(208): Illuminate\Container\Container->call(Array)
+#12 F:\xampp\htdocs\eva\invoice\vendor\symfony\console\Command\Command.php(312): Illuminate\Console\Command->execute(Object(Symfony\Component\Console\Input\ArgvInput), Object(Illuminate\Console\OutputStyle))
+#13 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Console\Command.php(177): Symfony\Component\Console\Command\Command->run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Illuminate\Console\OutputStyle))
+#14 F:\xampp\htdocs\eva\invoice\vendor\symfony\console\Application.php(1040): Illuminate\Console\Command->run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#15 F:\xampp\htdocs\eva\invoice\vendor\symfony\console\Application.php(314): Symfony\Component\Console\Application->doRunCommand(Object(App\Console\Commands\SendReminderEmails), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#16 F:\xampp\htdocs\eva\invoice\vendor\symfony\console\Application.php(168): Symfony\Component\Console\Application->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#17 F:\xampp\htdocs\eva\invoice\vendor\laravel\framework\src\Illuminate\Foundation\Console\Kernel.php(200): Symfony\Component\Console\Application->run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#18 F:\xampp\htdocs\eva\invoice\artisan(35): Illuminate\Foundation\Console\Kernel->handle(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#19 {main}
+
+
+2023-06-10T11:30:09.495375Z - 2023-06-12T11:30:09.495382Z
++352 621 522 932
+Masoud
+masoudf46@gmail.com
+2023-06-10 08:00:00 - 2023-06-10 10:00:00
+FOUND (3) - Array
+(
+    [id] => 3
+    [user_id] => 2
+    [patient_id] => 1
+    [category] => 1
+    [title] => 
+    [all_day] => 0
+    [start] => 2023-06-10 08:00:00
+    [end] => 2023-06-10 10:00:00
+    [duration] => 
+    [rrule_dtstart] => 
+    [rrule_until] => 
+    [rrule_freq] => 
+    [rrule_byweekday] => 
+    [status] => 1
+    [reminder] => 0
+    [created_at] => 2023-06-04T17:37:58.000000Z
+    [updated_at] => 2023-06-10T13:27:36.000000Z
+)
+
+
+
+2023-06-10T11:30:51.361896Z - 2023-06-12T11:30:51.361902Z
++352 621 522 932
+Masoud
+masoudf46@gmail.com
+2023-06-10 08:00:00 - 2023-06-10 10:00:00
+FOUND (3) - Array
+(
+    [id] => 3
+    [user_id] => 2
+    [patient_id] => 1
+    [category] => 1
+    [title] => 
+    [all_day] => 0
+    [start] => 2023-06-10 08:00:00
+    [end] => 2023-06-10 10:00:00
+    [duration] => 
+    [rrule_dtstart] => 
+    [rrule_until] => 
+    [rrule_freq] => 
+    [rrule_byweekday] => 
+    [status] => 1
+    [reminder] => 0
+    [created_at] => 2023-06-04T17:37:58.000000Z
+    [updated_at] => 2023-06-10T13:30:48.000000Z
+)
+
+
+
+2023-06-10T11:35:16.908551Z - 2023-06-12T11:35:16.908557Z
++352 621 522 932
+Masoud
+masoudf46@gmail.com
+2023-06-10 08:00:00 - 2023-06-10 10:00:00
 
 +352 621 522 932
 J. Ewa
@@ -15,16 +207,33 @@ masoudf46@gmail.com
 2023-06-06 08:30:00 - 2023-06-06 10:00:00
 
 
-2023-06-09T12:42:09.127033Z - 2023-06-11T12:42:09.127039Z
+2023-06-10T11:37:42.414098Z - 2023-06-12T11:37:42.414104Z
 +352 621 522 932
 Masoud
 masoudf46@gmail.com
-2023-06-06 10:00:00 - 2023-06-06 12:30:00
+2023-06-10 08:00:00 - 2023-06-10 10:00:00
 
 +352 621 522 932
 Masoud
 masoudf46@gmail.com
-2023-06-08 10:30:00 - 2023-06-08 12:00:00
+2023-06-11 12:30:00 - 2023-06-11 14:00:00
+
++352 621 522 932
+J. Ewa
+masoudf46@gmail.com
+2023-06-06 08:30:00 - 2023-06-06 10:00:00
+
+
+2023-06-10T11:38:50.772497Z - 2023-06-12T11:38:50.772503Z
++352 621 522 932
+Masoud
+masoudf46@gmail.com
+2023-06-10 08:00:00 - 2023-06-10 10:00:00
+
++352 621 522 932
+Masoud
+masoudf46@gmail.com
+2023-06-11 12:30:00 - 2023-06-11 14:00:00
 
 +352 621 522 932
 J. Ewa

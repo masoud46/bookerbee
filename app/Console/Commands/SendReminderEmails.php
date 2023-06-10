@@ -4,12 +4,10 @@ namespace App\Console\Commands;
 
 use App\Mail\AppointmentReminder;
 use App\Models\Event;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use PhpParser\Node\Stmt\TryCatch;
 
 class SendReminderEmails extends Command {
 	/**
@@ -27,21 +25,25 @@ class SendReminderEmails extends Command {
 	protected $description = 'Send the user an email of their upcoming appointments';
 
 	/**
+	 * Log the job.
+	 */
+	private function log() {
+	}
+
+	/**
 	 * Execute the console command.
 	 */
 	public function handle() {
-		// test
-		// $time = Carbon::now();
-		// file_put_contents(__DIR__ . "/reminder.txt", "reminder - {$time->toString()}\n", FILE_APPEND);
-
-		$now = Carbon::now();
-		$time = Carbon::now()->addHours(config('project.reminder_email_time'));
+		$hours = config('project.reminder_email_time');
+		$time = Carbon::now()->addHours($hours);
 		$events = Event::select([
+			"events.id",
 			"events.start",
 			"events.end",
 			"users.timezone",
 			"users.firstname AS user_firstname",
 			"users.lastname AS user_lastname",
+			"users.email AS user_email",
 			"users.phone_number AS user_phone_number",
 			"countries.prefix AS user_phone_prefix",
 			"patients.firstname AS patient_firstname",
@@ -51,6 +53,7 @@ class SendReminderEmails extends Command {
 			->where("events.category", "=", 1) // event is an appointment
 			->where("events.status", "=", 1) // has not been canceled
 			->where("events.reminder", "=", 0) // reminder has not been sent
+			->where("patients.email", "<>", null) // reminder has not been sent
 			->where("start", "<=", $time)
 			->join("users", "users.id", "=", "events.user_id")
 			->join("patients", "patients.id", "=", "events.patient_id")
@@ -58,39 +61,39 @@ class SendReminderEmails extends Command {
 			// ->limit(1)
 			->get();
 
-		echo var_export($events->toArray(), true);
+		if (config('app.env') === 'local') echo var_export($events->toArray(), true);
 
-		if ($events->count()) {
-			file_put_contents(__DIR__ . "/reminder.txt", "{$now->toISOString()} - {$time->toISOString()}\n", FILE_APPEND);
-			foreach ($events as $event) {
-				if ($event->patient_email) {
-					file_put_contents(
-						__DIR__ . "/reminder.txt",
-						"{$event['user_phone_prefix']} {$event['user_phone_number']}\n" .
-						"{$event->user_firstname}\n{$event->patient_email}\n{$event->start} - {$event->end}\n\n",
-						FILE_APPEND
-					);
+		Log::channel('reminder')->info(sprintf("<JOB STARTED> +%s hours -> %s", $hours, $time->format("Y-m-d H:i:s")));
+
+		$events->map(function ($event) {
+			if ($event->patient_email) {
+				Log::channel('reminder')->info("User: {$event->user_firstname}");
+				Log::channel('reminder')->info("{$event['user_phone_prefix']} {$event['user_phone_number']}");
+				Log::channel('reminder')->info($event->patient_email);
+				Log::channel('reminder')->info("{$event->start} - {$event->end}");
 
 
-					$event['user_phone'] = $event['user_phone_prefix'] . " " . $event['user_phone_number'];
+				$event_array = $event->toArray();
+				$event_array['user_phone'] = "{$event->user_phone_prefix} {$event->user_phone_number}";
 
-					try {
-						// Mail::to($event->patient_email)->send(new AppointmentReminder($event->toArray()));
-						// $event->reminder = 1;
-						// $event->save();
-					} catch (\Throwable $th) {
-					}
+				try {
+					// Mail::to($event->patient_email)->send(new AppointmentReminder($event_array));
+					Log::channel('reminder')->info(sprintf(
+						"<Email sent> event: %s, email: %s",
+						$event->id,
+						$event->patient_email
+					));
+
+					Event::whereId($event->id)->update(['reminder' => 1]);
+					Log::channel('reminder')->info("<Event updated> event: {$event->id}");
+				} catch (\Throwable $th) {
+					Log::channel('reminder')->info("!!! ERROR !!!");
+					Log::channel('reminder')->info($th->__toString());
+					Log::channel('reminder')->info(print_r($event_array, true));
 				}
 			}
+		});
 
-			file_put_contents(__DIR__ . "/reminder.txt", "\n", FILE_APPEND);
-		}
-
-		// $events = Event::whereUserId(Auth::user()->id);
-		// $users->map(function ($user) {
-		// 	Mail::to($user->email)
-		// 		->send(new AppointmentReminder($event));
-		// 	// $user->notify(new AppointmentReminder($event));
-		// });
+		Log::channel('reminder')->info(null);
 	}
 }
