@@ -27,7 +27,7 @@
 
 	<title>{{ config('app.name', 'Laravel') }}</title>
 
-	<link rel="icon" sizes="192x192" href="{{ Vite::asset('resources/img/favicon.png') }}">
+	<link rel="icon" sizes="192x192" href="{{ asset('build/images/favicon.png') }}">
 
 	@include('layouts.fonts')
 	<link rel="stylesheet" href="{{ asset('/build/fonts/fontawesome/css/all.min.css') }}">
