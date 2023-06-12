@@ -23,6 +23,8 @@
 
 	<title>{{ config('app.name', 'Laravel') }}</title>
 
+	<link rel="icon" sizes="192x192" href="{{ Vite::asset('resources/img/favicon.png') }}">
+
 	<!-- Scripts -->
 	@vite($resources)
 
