@@ -240,6 +240,7 @@
 	"Your appointment has been rescheduled, please take note of the new schedule:": "Votre rendez-vous a été reporté, merci de prendre connaissance du nouveau planning :",
 	"The initial schedule was planned for :date, from :start to :end.": "Le planning initial était prévu pour le :date, de :start à :end.",
 	"Your appointment with the following details has been canceled:": "Votre rendez-vous avec les détails suivants a été annulé :",
+	"Please do not reply to this message. Emails sent to this address are not processed.": "Veuillez ne pas répondre à ce message. Les mails envoyés à cette adresse ne sont pas traitées.",
 	"Import the appointment": "Importer le rendez-vous",
 	"Old schedule:": "Ancien planning :",
 	"New schedule": "Nouveau planning",

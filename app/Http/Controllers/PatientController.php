@@ -116,6 +116,7 @@ class PatientController extends Controller {
 			'patient-address_code' => "required",
 			'patient-address_city' => "required",
 			'patient-address_country_id' => "required|numeric",
+			'patient-locale' => "required",
 		];
 
 		$params_messages = [
@@ -132,6 +133,7 @@ class PatientController extends Controller {
 			'patient-address_city.required' => app('ERRORS')['required'],
 			'patient-address_country_id.required' => app('ERRORS')['required'],
 			'patient-address_country_id.numeric' => app('ERRORS')['numeric'],
+			'patient-locale.required' => app('ERRORS')['required'],
 		];
 
 		$validator = Validator::make($params, $params_rules, $params_messages);
