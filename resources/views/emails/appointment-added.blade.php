@@ -16,6 +16,6 @@
 
 <x-mail::cancel-appointment :email="Auth::user()->email" :phone="$event['user_phone']" />
 
-<x-mail::regards />
+<x-mail::no-reply />
 
 </x-mail::message>

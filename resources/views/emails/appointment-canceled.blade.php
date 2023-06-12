@@ -17,6 +17,6 @@
 />
 
 
-<x-mail::regards />
+<x-mail::no-reply />
 
 </x-mail::message>
