@@ -6,7 +6,7 @@
 {{ __("If you wish to cancel this appointment, contact the practitioner directly:") }}<br>
 </p>
 
-<table style="font-style: italic; line-height: 1.8; margin-bottom: 20px;" cellpadding="0" cellspacing="0" role="presentation">
+<table style="line-height: 1.8; margin-bottom: 20px;" cellpadding="0" cellspacing="0" role="presentation">
 <tbody>
 <tr>
 <td style="padding-top: 6px; padding-right: 15px; opacity: 0.5;">
