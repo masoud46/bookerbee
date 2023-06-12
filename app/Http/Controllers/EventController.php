@@ -498,7 +498,7 @@ class EventController extends Controller {
 
 		return (new \Illuminate\Http\Response($ical))
 			->header('Content-Type', 'text/calendar')
-			->header('Content-Disposition', 'filename="' . $filename . '.ics"');
+			->header('Content-Disposition', 'inline; filename="' . $filename . '.ics"');
 
 		// return \Illuminate\Support\Facades\Response::make($ical, 200, [
 		// 	'Content-Type' => 'text/calendar',
