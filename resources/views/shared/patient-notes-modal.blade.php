@@ -13,8 +13,10 @@
 				<div class="modal-body-container">
 					<div class="modal-notes-content form-control bg-transparent" contenteditable="true" data-empty="{{ __('There is no note.') }}"></div>
 				</div>
-				<div class="modal-waiting position-absolute top-0 start-0 bottom-0 end-0 d-flex justify-content-center align-items-center fs-1">
-					<i class="fas fa-spinner fa-spin text-secondary opacity-25" style="--fa-animation-duration: 1s;"></i>
+				<div class="modal-waiting position-absolute top-0 start-0 bottom-0 end-0 d-flex justify-content-center align-items-center">
+					<div class="spinner-border text-primary opacity-75" role="status">
+						<span class="visually-hidden">{{ __('Loading...') }}</span>
+					</div>
 				</div>
 			</div>
 			<div class="modal-footer">

@@ -12,10 +12,9 @@
 	:end="Carbon\Carbon::parse($event['localEnd'])->translatedFormat('H:i')"
 />
 
-
 <x-mail::import-appointment :url="route('event.export', ['id' => $event['hash_id']])" />
 
-<x-mail::cancel-appointment :phone="$event['user_phone']" />
+<x-mail::cancel-appointment :email="Auth::user()->email" :phone="$event['user_phone']" />
 
 <x-mail::regards />
 

@@ -53,9 +53,10 @@ class SendEmailController extends Controller {
 				'extendedProps' => [
 					'category' => 1,
 					'patient' => [
-						'email' => 'masoudf46@gmail.com',
 						'id' => 1,
 						'name' => 'Doe, John',
+						'locale' => 'en',
+						'email' => 'masoudf46@gmail.com',
 						'phone' => '+32 621 654 987',
 					],
 				],
@@ -72,9 +73,10 @@ class SendEmailController extends Controller {
 				'extendedProps' => [
 					'category' => 1,
 					'patient' => [
-						'email' => 'masoudf46@gmail.com',
 						'id' => 1,
 						'name' => 'Doe, John',
+						'locale' => 'en',
+						'email' => 'masoudf46@gmail.com',
 						'phone' => '+32 621 654 987',
 					],
 				],

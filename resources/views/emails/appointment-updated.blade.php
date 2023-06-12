@@ -1,6 +1,3 @@
-@php
-    Carbon\Carbon::setlocale(config('app.locale'));
-@endphp
 <x-mail::message>
 
 <x-mail::hello :name="explode(', ', $event['extendedProps']['patient']['name'])[1]" />
@@ -25,7 +22,7 @@
 
 <x-mail::import-appointment :url="route('event.export', ['id' => $event['hash_id']])" />
 
-<x-mail::cancel-appointment :phone="$event['user_phone']" />
+<x-mail::cancel-appointment :email="Auth::user()->email" :phone="$event['user_phone']" />
 
 <x-mail::regards />
 

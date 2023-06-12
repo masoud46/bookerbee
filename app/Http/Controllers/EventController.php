@@ -14,6 +14,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class EventController extends Controller {
 	/**
@@ -49,6 +50,7 @@ class EventController extends Controller {
 			$event['extendedProps']['patient'] = [
 				'id' => $e->patient_id,
 				'name' => $e->patient_name,
+				'locale' => $e->patient_locale,
 			];
 
 			if ($e->patient_email) {
@@ -128,6 +130,7 @@ class EventController extends Controller {
 			"patients.email AS patient_email",
 			"patients.phone_number AS patient_phone_number",
 			"patients.phone_country_id AS patient_phone_country_id",
+			"patients.locale AS patient_locale",
 		])
 			->where("events.user_id", "=", Auth::user()->id)
 			->where("events.status", "=", true)
@@ -237,19 +240,25 @@ class EventController extends Controller {
 
 		$data['id'] = $event->id;
 		$email = $data['extendedProps']['patient']['email'] ?? null;
-
 		$result = [
 			'success' => true,
 			'id' => $event->id,
 			'event' => $data,
 		];
 
-		if (config('app.env') === 'production' && $event->patient_id && $email) {
+		if ($event->patient_id && $email) {
+			// $locale = LaravelLocalization::getCurrentLocale();
+			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
+
 			$data['hash_id'] = Hashids::encode($data['id']);
 			$data['user_phone'] = $this->getUserPhone();
 
 			try {
-				Mail::to($email)->send(new AppointmentEmail("add", $data));
+				if (config('app.env') === 'production') {
+					Mail::to($email)->send(new AppointmentEmail("add", $data));
+				} else if (config('project.send_emails')) {
+					Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("add", $data));
+				}
 
 				DB::commit();
 			} catch (\Throwable $th) {
@@ -257,6 +266,8 @@ class EventController extends Controller {
 
 				$result['success'] = false;
 			}
+
+			// LaravelLocalization::setLocale($locale);
 		} else {
 			DB::commit();
 		}
@@ -286,7 +297,6 @@ class EventController extends Controller {
 		$event->save();
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
-
 		$result = [
 			'success' => true,
 			'dbevent' => $event->toArray(),
@@ -294,22 +304,35 @@ class EventController extends Controller {
 			'old_event' => $old_event,
 		];
 
-		if (config('app.env') === 'production' && $event->patient_id && $email) {
+		if ($event->patient_id && $email) {
+			// $locale = LaravelLocalization::getCurrentLocale();
+			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
+
 			$data['hash_id'] = Hashids::encode($data['id']);
 			$data['user_phone'] = $this->getUserPhone();
 
 			try {
-				Mail::to($email)->send(new AppointmentEmail("update", $data, [
-					'localStart' => $old_event['localStart'],
-					'localEnd' => $old_event['localEnd'],
-				]));
+				if (config('app.env') === 'production') {
+					Mail::to($email)->send(new AppointmentEmail("update", $data, [
+						'localStart' => $old_event['localStart'],
+						'localEnd' => $old_event['localEnd'],
+					]));
+				} else if (config('project.send_emails')) {
+					Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("update", $data, [
+						'localStart' => $old_event['localStart'],
+						'localEnd' => $old_event['localEnd'],
+					]));
+				}
 
 				DB::commit();
 			} catch (\Throwable $th) {
 				DB::rollBack();
 
+				$result['error'] = $th->__toString();
 				$result['success'] = false;
 			}
+
+			// LaravelLocalization::setLocale($locale);
 		} else {
 			DB::commit();
 		}
@@ -325,7 +348,6 @@ class EventController extends Controller {
 	 */
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
-	
 		$result = [
 			'success' => false,
 			'id' => $event->id,
@@ -337,7 +359,7 @@ class EventController extends Controller {
 		if ($event->category === 0) {
 			$event->delete();
 			DB::commit();
-	
+
 			$result['success'] = true;
 		} else {
 			$event->status = false;
@@ -346,9 +368,16 @@ class EventController extends Controller {
 			$result['success'] = true;
 			$email = $data['extendedProps']['patient']['email'] ?? null;
 
-			if (config('app.env') === 'production' && $event->patient_id && $email) {
+			if ($event->patient_id && $email) {
+				// $locale = LaravelLocalization::getCurrentLocale();
+				LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
+
 				try {
-					Mail::to($email)->send(new AppointmentEmail("delete", $data));
+					if (config('app.env') === 'production') {
+						Mail::to($email)->send(new AppointmentEmail("delete", $data));
+					} else if (config('project.send_emails')) {
+						Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("delete", $data));
+					}
 
 					DB::commit();
 				} catch (\Throwable $th) {
@@ -356,6 +385,8 @@ class EventController extends Controller {
 
 					$result['success'] = false;
 				}
+
+				// LaravelLocalization::setLocale($locale);
 			} else {
 				DB::commit();
 			}
@@ -468,5 +499,20 @@ class EventController extends Controller {
 		return (new \Illuminate\Http\Response($ical))
 			->header('Content-Type', 'text/calendar')
 			->header('Content-Disposition', 'filename="' . $filename . '.ics"');
+
+		// return \Illuminate\Support\Facades\Response::make($ical, 200, [
+		// 	'Content-Type' => 'text/calendar',
+		// 	'Content-Disposition' => 'attachment; filename="' . $filename . '.ics"',
+		// ]);
+
+		return (new \Illuminate\Http\Response($ical))
+			->header('Content-Type', 'text/calendar')
+			->header('Content-Disposition', 'inline; filename="' . $filename . '.ics"')
+			->header("Content-Length:", strlen($ical))
+			->header("Content-Description", "File Transfer")
+			->header("Content-Transfer-Encoding", "binary")
+			->header("Cache-Control", "must-revalidate, post-check=0, pre-check=0")
+			->header("Expires", "0")
+			->header("Pragma", "public");
 	}
 }

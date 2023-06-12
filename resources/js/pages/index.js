@@ -18,7 +18,9 @@ Pickers.forEach(picker => {
 	}
 
 	picker.patients.onError = code => {
-		utils.showMessage(window.laravel.messages.unexpectedError)
+		if (code !== 302) { // handled in utils.fetch
+			utils.showMessage(window.laravel.messages.unexpectedError)
+		}
 	}
 })
 
@@ -80,13 +82,23 @@ if (patients) {
 
 		while (patients.firstChild) patients.removeChild(patients.firstChild)
 
-		const list = await utils.fetch({ url: '/patient/list' })
+		const result = await utils.fetch({ url: '/patient/list' })
 
-		total.textContent = list.length
-		count.textContent = list.length
+		if (result.error) {
+			container.classList.remove('loading')
+
+			if (result.code !== 302) { // handled by utils.fetch
+				utils.showAlert({ message: window.laravel.messages.unexpectedError, error: true })
+			}
+
+			return
+		}
+
+		total.textContent = result.length
+		count.textContent = result.length
 		input.value = ''
 
-		list.forEach(patient => {
+		result.forEach(patient => {
 			const row = document.createElement('tr')
 			let cells = [...Array(5)] // equals to Array(5).fill()
 

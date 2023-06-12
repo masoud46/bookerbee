@@ -6,7 +6,7 @@
 
 <x-mail::hello :name="explode(', ', $event['extendedProps']['patient']['name'])[1]" />
 
-{{ __("Your appointment with the following details has been cancelled:") }}
+{{ __("Your appointment with the following details has been canceled:") }}
 
 <x-mail::appointment
 	:firstname="ucfirst(Auth::user()->firstname)"

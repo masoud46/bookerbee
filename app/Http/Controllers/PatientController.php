@@ -252,6 +252,7 @@ class PatientController extends Controller {
 			"email",
 			"phone_number",
 			"phone_country_id",
+			"locale",
 		])
 			->whereUserId(Auth::user()->id)
 			->where(function ($query) use ($request) {

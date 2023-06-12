@@ -1,7 +1,6 @@
 @php
-    Carbon\Carbon::setlocale(config('app.locale'));
-	$start = Carbon\Carbon::parse($event['start'])->setTimezone($event['timezone']);
-	$end = Carbon\Carbon::parse($event['end'])->setTimezone($event['timezone']);
+$start = Carbon\Carbon::parse($event['start'])->setTimezone($event['timezone']);
+$end = Carbon\Carbon::parse($event['end'])->setTimezone($event['timezone']);
 @endphp
 <x-mail::message>
 

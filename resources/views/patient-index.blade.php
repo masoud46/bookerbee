@@ -65,10 +65,6 @@
 	</div>
 @endsection
 
-@section('modals')
-	@include('shared.message-modal')
-@endsection
-
 @push('assets')
 	@vite($entries)
 @endpush

@@ -84,6 +84,29 @@ return [
 				'log',
 			],
 		],
+
+		'brevo' => [
+			'transport' => 'smtp',
+			'host' => env('BREVO_MAIL_HOST', 'smtp.mailgun.org'),
+			'port' => env('BREVO_MAIL_PORT', 587),
+			'encryption' => env('BREVO_MAIL_ENCRYPTION', 'tls'),
+			'username' => env('BREVO_MAIL_USERNAME'),
+			'password' => env('BREVO_MAIL_PASSWORD'),
+			'timeout' => null,
+			'local_domain' => env('MAIL_EHLO_DOMAIN'),
+		],
+
+		'mailtrap' => [
+			'transport' => 'smtp',
+			'host' => env('MAILTRAP_MAIL_HOST', 'smtp.mailgun.org'),
+			'port' => env('MAILTRAP_MAIL_PORT', 2525),
+			'encryption' => env('MAILTRAP_MAIL_ENCRYPTION', 'tls'),
+			'username' => env('MAILTRAP_MAIL_USERNAME'),
+			'password' => env('MAILTRAP_MAIL_PASSWORD'),
+			'timeout' => null,
+			'local_domain' => env('MAIL_EHLO_DOMAIN'),
+		],
+
 	],
 
 	/*

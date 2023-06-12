@@ -9,7 +9,7 @@
 	
 	foreach ($limits as $months) {
 	    $menu_items[$months] = [
-	        'title' => __('The last :months months', ['months' => $months]),
+	        'title' => __('Past :months months', ['months' => $months]),
 	        'href' => route('invoice.index', ['limit' => $months]),
 	    ];
 	}
@@ -33,7 +33,7 @@
 	<div class="container">
 		<div class="row">
 			<div id="patient-picker" class="col-md-6 my-4">
-				<h4 class="border-bottom pb-2">{{ __('New invoice') }}</h4>
+				<h4 class="border-bottom pb-2">{{ __('New statement') }}</h4>
 				<label class="col-12 col-form-label position-relative">
 					{{ __('Patient') }}
 					<small class="position-absolute bottom-0 end-0 me-2"><span class="patient-count me-1">0</span> / {{ $patients_count }}</small>
@@ -44,7 +44,7 @@
 		</div>
 		<div id="items-table-filter" class="row justify-content-between">
 			<div class="col-12 mt-4">
-				<h4 class="border-bottom pb-2">{{ __('Invoices') }}</h4>
+				<h4 class="border-bottom pb-2">{{ __('My statements') }}</h4>
 			</div>
 			<div class="col-md-6 col-lg-7 col-xl-8 mt-2">
 				<span class="dropdown">
@@ -99,10 +99,6 @@
 			</div>
 		</div>
 	</div>
-@endsection
-
-@section('modals')
-	@include('shared.message-modal')
 @endsection
 
 @push('assets')

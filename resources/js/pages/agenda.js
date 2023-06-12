@@ -98,7 +98,7 @@ const customProps = {
 	oldEvent: null,
 	revert: null,
 	popover: null,
-	action: new Modal(modal)
+	action: new Modal(modal),
 }
 
 
@@ -131,6 +131,7 @@ const removeClassStartsWith = (node, className) => {
 const setRdvInfo = patientInfo => {
 	modal.props.patientName.textContent = patientInfo.name
 	modal.props.patientName.setAttribute('data-patient-id', patientInfo.id)
+	modal.props.patientName.setAttribute('data-patient-locale', patientInfo.locale)
 	modal.props.patientEmail.textContent = patientInfo.email ?? ''
 	modal.props.patientPhone.textContent = patientInfo.phone ?? ''
 
@@ -188,7 +189,7 @@ const storeEvent = async (action, event, oldEvent = null) => {
 
 	try {
 		console.log(method, url, { event, oldEvent });
-		const response = await utils.fetch({
+		const result = await utils.fetch({
 			method,
 			url,
 			data: {
@@ -197,29 +198,41 @@ const storeEvent = async (action, event, oldEvent = null) => {
 			}
 		})
 		console.log(event);
-		console.log(response);
+		console.log(result);
 
-		if (response.success) {
+		if (result.success) {
 			if (method === 'POST') {
-				event.id = response.id
+				event.id = result.id
 				calendar.addEvent(event)
 			} else if (method === 'DELETE') {
-				calendar.getEventById(response.id).remove()
+				calendar.getEventById(result.id).remove()
 			}
 
 			customProps.action.hide()
 		} else {
 			console.log('%c failed! ', 'color:white;background-color:red;');
+			document.body.classList.remove('sending-email')
+
 			if (customProps.revert) {
 				customProps.revert()
 				customProps.revert = null
 			}
 
-			error = true
-			message = window.laravel.messages.databaseError
+			if (result.error && result?.code === 302) { // handled by utils.fetch
+				customProps.action.hide()
+				return
+			} else {
+				error = true
+				message = window.laravel.messages.databaseError
+			}
 		}
 	} catch (err) {
 		console.error('err', err);
+		if (customProps.revert) {
+			customProps.revert()
+			customProps.revert = null
+		}
+
 		error = true
 		message = window.laravel.messages.unexpectedError
 	} finally {
@@ -243,6 +256,7 @@ const applyAction = () => {
 				patient: {
 					id: modal.props.patientName.getAttribute('data-patient-id'),
 					name: event.title,
+					locale: modal.props.patientName.getAttribute('data-patient-locale'),
 				}
 			}
 
@@ -399,6 +413,7 @@ const showModal = action => {
 		// console.log(event.extendedProps);
 		const patientInfo = {
 			name: event.extendedProps.patient.name,
+			locale: event.extendedProps.patient.locale,
 			email: event.extendedProps.patient.email ?? null,
 			phone: event.extendedProps.patient.phone ?? null,
 		}
@@ -609,17 +624,20 @@ const calendar = new Calendar(calendarElement, {
 	},
 	events: async (info, successCallback, failureCallback) => {
 		console.log('%c*** events', 'color:#c00;');
-		const items = await utils.fetch({
+		const result = await utils.fetch({
 			method: 'GET',
 			url: `/events?start=${info.start.toISOString()}&end=${info.end.toISOString()}`,
 		})
 
-		if (items.error) {
+		if (result.error) {
 			successCallback([])
-			utils.showMessage(window.laravel.messages.unexpectedError)
+
+			if (code !== 302) { // handled by utils.fetch
+				utils.showMessage(window.laravel.messages.unexpectedError)
+			}
 		} else {
 			// calendar.removeAllEvents()
-			successCallback(items)
+			successCallback(result)
 		}
 	},
 	loading: isLoading => {

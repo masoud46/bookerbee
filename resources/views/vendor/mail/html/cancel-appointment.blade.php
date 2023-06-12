@@ -9,7 +9,7 @@
 <table style="font-style: italic; line-height: 1.8; margin-bottom: 20px;" cellpadding="0" cellspacing="0" role="presentation">
 <tbody>
 <tr>
-<td style="padding-right: 15px; opacity: 0.5;">
+<td style="padding-top: 6px; padding-right: 15px; opacity: 0.5;">
 <img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon">
 </td>
 <td>
@@ -17,7 +17,7 @@
 </td>
 </tr>
 <tr>
-<td style="padding-right: 15px; opacity: 0.5;">
+<td style="padding-top: 4px; padding-right: 15px; opacity: 0.5;">
 <img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon">
 </td>
 <td>

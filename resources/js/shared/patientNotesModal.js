@@ -1,3 +1,4 @@
+import { Modal } from 'bootstrap'
 import { utils } from '../utils/utils'
 
 
@@ -53,7 +54,7 @@ async function fetchPatientNotes() {
 		}
 
 		setTimeout(() => { body.classList.remove('modal-is-waiting') }, 0);
-	} else {
+	} else if (result.code !== 302) { // handled by utils.fetch
 		utils.showAlert({ message: window.laravel.messages.unexpectedError, error: true })
 	}
 }
@@ -118,7 +119,7 @@ saveBtn.addEventListener('click', async () => {
 		utils.showAlert({ message: window.laravel.messages.modificationSaved })
 		insertNotes(result.data)
 		modal.setAttribute('data-saved', "1")
-	} else {
+	} else if (result.code !== 302) { // handled by utils.fetch
 		utils.showAlert({ message: window.laravel.messages.unexpectedError, error: true })
 	}
 

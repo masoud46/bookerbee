@@ -30,7 +30,7 @@
 				</div>
 				<div class="col-lg-6">
 					<div class="mb-3 row">
-						<label for="patient-code" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Registration number') }}</span></label>
+						<label for="patient-code" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Reg. number') }}</span></label>
 						<div class="col-sm-8">
 							<input id="patient-code" name="patient-code" class="form-control @error('patient-code') is-invalid @enderror" value="{{ old('patient-code', $update ? $patient->code : '') }}">
 							@error('patient-code')
@@ -79,7 +79,7 @@
 					</div>
 				</div>
 				<div class="col-lg-6">
-					<div class="row">
+					<div class="mb-3 row">
 						<label for="patient-address_line1" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Address') }}</span></label>
 						<div class="col-sm-8">
 							<div class="mb-1">
@@ -107,7 +107,7 @@
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
-								<div class="mb-3 col-12">
+								<div class="col-12">
 									<select style="appearance:none;" id="patient-address_country_id" name="patient-address_country_id" class="form-select @error('patient-address_country_id') is-invalid @enderror">
 										<option value="" selected hidden>{{ __('Country') }}</option>
 										@foreach ($countries as $country)
@@ -123,6 +123,24 @@
 									@enderror
 								</div>
 							</div>
+						</div>
+					</div>
+					<div class="mb-3 row">
+						<label for="patient-locale" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Language') }}</span></label>
+						<div class="col-sm-8">
+							<select style="appearance:none;" id="patient-locale" name="patient-locale" class="form-select @error('patient-locale') is-invalid @enderror">
+								<option value="" selected hidden>{{ __('Language') }}</option>
+								@foreach (LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
+									@php($selected = $update ? $localeCode === $patient->locale : $country->code === config('app.locale'))
+									@if (old('patient-locale'))
+										{{ $selected = old('patient-locale') === $localeCode }}
+									@endif
+									<option value="{{ $localeCode }}" {{ $selected ? 'selected' : '' }}>{{ $properties['native'] }}</option>
+								@endforeach
+							</select>
+							@error('patient-locale')
+								<div class="invalid-feedback">{{ $message }}</div>
+							@enderror
 						</div>
 					</div>
 				</div>

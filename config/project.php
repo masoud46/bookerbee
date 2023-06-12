@@ -21,6 +21,7 @@ return [
 	'default_timezone' => env('APP_DEFAULT_TIMEZONE', 'Europe/Luxembourg'),
 	'reminder_email_time' => env('APP_REMINDER_EMAIL_TIME', '48'),
 	'reminder_sms_time' => env('APP_REMINDER_SMS_TIME', '6'),
+	'send_emails' => env('APP_SEND_EMAILS', true),
 	'load_invoice_limits' => $limits,
 
 ];

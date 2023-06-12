@@ -139,7 +139,13 @@ utils.showMessage = (message, cbClose = null) => {
 	const modalObj = new Modal('#message-modal')
 	const modal = document.getElementById('message-modal')
 
+	const onShown = () => {
+		modal.removeEventListener('shown.bs.modal', onShown)
+		modal.querySelector('.btn[data-bs-dismiss="modal"]').focus()
+	}
+
 	modal.querySelector('.modal-body').innerHTML = message
+	modal.addEventListener('shown.bs.modal', onShown)
 
 	if (typeof cbClose === 'function') {
 		modal.addEventListener('hidden.bs.modal', cbClose)

@@ -168,7 +168,7 @@
 						@php($locales = LaravelLocalization::getSupportedLocales())
 						@if (count($locales) > 1)
 							<li class="nav-item dropdown">
-								<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-language me-1"></i><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
+								<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
 								<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarLangDropdown">
 									@foreach ($locales as $localeCode => $properties)
 										<a class="dropdown-item" rel="alternate" hreflang="{{ $localeCode }}" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
@@ -190,6 +190,21 @@
 	</div>
 
 	@yield('modals')
+
+	<div id="message-modal" class="modal fade" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content shadow">
+				<div class="modal-header shadow-sm">
+					<h6 class="modal-title" id="message-modal-title">{{ __('Information') }}</h6>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body px-4" tabindex="-1"></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<div id="flash-message" class="rounded shadow flash-message">
 		<div class="flash-message-text">Flash | Message</div>
