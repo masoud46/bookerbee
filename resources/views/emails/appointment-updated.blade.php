@@ -2,7 +2,7 @@
 
 <x-mail::hello :name="explode(', ', $event['extendedProps']['patient']['name'])[1]" />
 
-{{ __('Your appointment of :date at :start has been rescheduled. The new appointment is:', [
+{{ __('Your original appointment of :date at :start has been rescheduled. The new appointment is:', [
 	'date' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
 	'start' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
 ]) }}
