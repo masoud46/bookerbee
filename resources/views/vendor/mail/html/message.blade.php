@@ -2,8 +2,8 @@
 {{-- Header --}}
 <x-slot:header>
 <x-mail::header :url="config('app.url')">
-{{ config('app.name') }}
-<img src="{{ asset('build/images/email-icon.png') }}" style="width: 18px; height: auto; opacity: 0.6; position: relative; top: -2px; left: -2px;" alt="BookerBee">
+<span style="color: #0088cc;">{{ substr(config('app.name'), 0, 6) }}</span><span style="color: #444444;">{{ substr(config('app.name'), 6) }}</span>
+<img src="{{ asset('build/images/email-icon.png') }}" style="width: 18px; height: auto; opacity: 0.75; position: relative; top: -2px; left: -2px;" alt="BookerBee">
 </x-mail::header>
 </x-slot:header>
 
