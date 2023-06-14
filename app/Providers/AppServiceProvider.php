@@ -35,6 +35,7 @@ class AppServiceProvider extends ServiceProvider {
 		App::singleton('ERRORS', function () {
 			return [
 				'form' => __("Please correct the fields marked in red."),
+				'form2' => __("Please verify the provided information."),
 				'all_required' => __("All fields are mandatory."),
 				'required' => __("This field is required."),
 				'email' => __("Please verify the email address."),

@@ -184,7 +184,7 @@
 			<div class="row">
 				<div class="col-12">
 					<h6 class="text-{{ $title_color }} text-center mt-2 mb-0 pt-2">
-						<span class="fw-bold">{{ __('INVOICE') }} {!! $category === 1 ? '- CNS' : '' !!}</span>
+						<span class="fw-bold">{{ __('STATEMENT') }} {!! $category === 1 ? '- CNS' : '' !!}</span>
 					</h6>
 					<div class="border-bottom d-flex flex-wrap justify-content-center text-left">
 						<div class="invoice-session-container d-flex flex-wrap justify-content-center align-items-center text-{{ $title_color }} my-1 {{ $editable ? 'py-2 px-3 border' : 'mb-2' }} rounded-1 border-{{ $title_color }}">

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class InvoiceController extends Controller {
@@ -440,11 +441,11 @@ class InvoiceController extends Controller {
 			'invoice-session' => "required|gte:{$form_key['initial_session']}",
 			'invoice-name' => "required",
 			'invoice-acc_number' => "",
-			'invoice-acc_date' => "nullable|date",
+			'invoice-acc_date' => "nullable|date_format:Y-m-d",
 			'invoice-doc_code' => "required",
-			'invoice-doc_date' => "required|date",
+			'invoice-doc_date' => "required|date_format:Y-m-d",
 			'invoice-prepayment' => "nullable|regex:{$currency_regex}",
-			'invoice-granted_at' => "nullable|date",
+			'invoice-granted_at' => "nullable|date_format:Y-m-d",
 		];
 
 		$params_messages = [
@@ -482,7 +483,7 @@ class InvoiceController extends Controller {
 					unset($date);
 					unset($regex);
 					if ($key === "done_at") {
-						$date = "|date";
+						$date = "|date_format:Y-m-d";
 						$params_messages["{$items['key']}.date"] = app('ERRORS')['date'];
 					}
 					if (in_array($key, ["amount", "insurance"])) {
@@ -534,69 +535,82 @@ class InvoiceController extends Controller {
 
 		$invoice_object['patient_id'] = $form_key['patient_id'];
 
-		$patient = Patient::find($form_key['patient_id']);
-		if ($patient === null) {
-			session()->flash("error", __("Patient not found."));
-			return back()->withInput();
-		}
+		DB::beginTransaction();
 
-		if (!$is_update) { // create request
-			$invoice = new Invoice();
-			$invoice->user_id = $user_id;
-			$invoice->serial = Invoice::whereUserId($user_id)->count() + 1;
-		}
-
-		foreach ($patient_object as $key => $value) {
-			$patient[$key] = $value;
-		}
-		$patient->save();
-
-		foreach ($invoice_object as $key => $value) {
-			$invoice[$key] = $value;
-		}
-		if ($invoice['prepayment']) {
-			$prepayment = currency_parse($invoice['prepayment']);
-			$invoice['prepayment'] = intval($prepayment);
-		}
-		$invoice->save();
-
-		// get all the sessions of the invoice
-		$sessions = Session::whereInvoiceId($invoice->id)
-			->orderBy("id")
-			->get();
-
-		for ($i = 0; $i < count($visible_sessions); $i++) {
-			if ($sessions->count()) {
-				$session = $sessions->first();
-				$first_key = $sessions->keys()->first();
-				$sessions = $sessions->forget($first_key);
-			} else {
-				$session = new Session();
+		try {
+			$patient = Patient::find($form_key['patient_id']);
+			if ($patient === null) {
+				session()->flash("error", __("Patient not found."));
+				return back()->withInput();
 			}
 
-			foreach ($visible_sessions[$i] as $key => $field) {
-				if (in_array($key, ["amount", "insurance"])) {
-					$field['value'] = intval(currency_parse($field['value']));
+			if (!$is_update) { // create request
+				$invoice = new Invoice();
+				$invoice->user_id = $user_id;
+				$invoice->serial = Invoice::whereUserId($user_id)->count() + 1;
+			}
 
-					if ($field['value'] === 0) {
-						$field['value'] = null;
-					}
+			foreach ($patient_object as $key => $value) {
+				$patient[$key] = $value;
+			}
+			$patient->save();
+
+			foreach ($invoice_object as $key => $value) {
+				$invoice[$key] = $value;
+			}
+			if ($invoice['prepayment']) {
+				$prepayment = currency_parse($invoice['prepayment']);
+				$invoice['prepayment'] = intval($prepayment);
+			}
+			$invoice->save();
+
+			// get all the sessions of the invoice
+			$sessions = Session::whereInvoiceId($invoice->id)
+				->orderBy("id")
+				->get();
+
+			for ($i = 0; $i < count($visible_sessions); $i++) {
+				if ($sessions->count()) {
+					$session = $sessions->first();
+					$first_key = $sessions->keys()->first();
+					$sessions = $sessions->forget($first_key);
+				} else {
+					$session = new Session();
 				}
 
-				$session[$key] = $field['value'];
+				foreach ($visible_sessions[$i] as $key => $field) {
+					if (in_array($key, ["amount", "insurance"])) {
+						$field['value'] = intval(currency_parse($field['value']));
+
+						if ($field['value'] === 0) {
+							$field['value'] = null;
+						}
+					}
+
+					$session[$key] = $field['value'];
+				}
+
+				// remember: disabled inputs are not in POST/PUT query ("description" here)
+				if (!isset($visible_sessions[$i]['description'])) $session->description = null;
+				if (!isset($visible_sessions[$i]['insurance'])) $session->insurance = null;
+
+				$session->invoice_id = $invoice->id;
+				$session->save();
 			}
 
-			// remember: disabled inputs are not in POST/PUT query ("description" here)
-			if (!isset($visible_sessions[$i]['description'])) $session->description = null;
-			if (!isset($visible_sessions[$i]['insurance'])) $session->insurance = null;
+			// delete any extra old sessions from database
+			foreach ($sessions as $session) {
+				$session->delete();
+			}
 
-			$session->invoice_id = $invoice->id;
-			$session->save();
-		}
+			DB::commit();
+		} catch (\Throwable $th) {
+			DB::rollBack();
 
-		// delete any extra old sessions from database
-		foreach ($sessions as $session) {
-			$session->delete();
+			Log::debug($th->__toString());
+
+			session()->flash("error", app('ERRORS')['form2']);
+			return back()->withErrors($validator->errors())->withInput();
 		}
 
 		if ($is_update) {
