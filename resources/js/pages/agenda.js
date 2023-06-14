@@ -239,7 +239,7 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		document.body.classList.remove('sending-email')
 	}
 
-	utils.showAlert({ message, error })
+	utils.showAlert({ message, type: error ? 'error' : 'success' })
 }
 
 // Apply the modifications
@@ -582,6 +582,7 @@ modal.props.actionButton.addEventListener('click', applyAction)
 // showModal('lock')
 
 
+console.log(window.laravel.settings);
 const calendarElement = document.getElementById('app-calendar')
 const calendar = new Calendar(calendarElement, {
 	plugins: [
@@ -593,6 +594,7 @@ const calendar = new Calendar(calendarElement, {
 		bootstrap5Plugin,
 		momentTimezonePlugin,
 	],
+	height: 'auto',
 	allDaySlot: window.laravel.agenda.lock,
 	timeZone: window.laravel.agenda.timezone,
 	locales: allLocales,
@@ -600,8 +602,9 @@ const calendar = new Calendar(calendarElement, {
 	themeSystem: 'bootstrap5',
 	initialView: 'timeGridWeek',
 	firstDay: 1, // Monday
-	// slotMinTime: '07:00:00',
-	// slotMaxTime: '21:00:00',
+	slotMinTime: window.laravel.settings.cal_min_time,
+	slotMaxTime: window.laravel.settings.cal_max_time,
+	slotDuration: `00:${window.laravel.settings.cal_slot}:00`,
 	defaultTimedEventDuration: '01:00:00',
 	forceEventDuration: true,
 	dayMaxEvents: true, // allow "more" link when too many events
@@ -617,9 +620,15 @@ const calendar = new Calendar(calendarElement, {
 		center: 'title',
 		right: 'timeGridWeek,timeGridDay,listWeek'
 	},
+	slotLabelFormat: {
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false,
+	},
 	eventTimeFormat: {
 		hour: '2-digit',
 		minute: '2-digit',
+		hour12: false,
 		// timeZoneName: 'short',
 	},
 	events: async (info, successCallback, failureCallback) => {

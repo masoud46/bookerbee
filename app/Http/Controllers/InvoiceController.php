@@ -134,6 +134,8 @@ class InvoiceController extends Controller {
 			abort(404);
 		}
 
+		$settings = Settings::whereUserId(Auth::user()->id)->first();
+
 		$invoice = DB::table("invoices")->select([
 			"invoices.id",
 			"invoices.user_id",
@@ -242,6 +244,7 @@ class InvoiceController extends Controller {
 
 		return [
 			'key' => $key,
+			'settings' => $settings,
 			'invoice' => $invoice,
 			'sessions' => $sessions,
 			'lastInvoice' => $lastInvoice,
@@ -459,12 +462,12 @@ class InvoiceController extends Controller {
 			'invoice-session.required' => app('ERRORS')['required'],
 			'invoice-session.gte' => str_replace(':initial_session', $form_key['initial_session'], app('ERRORS')['session']),
 			'invoice-name.required' => app('ERRORS')['required'],
-			'invoice-acc_date.date' => app('ERRORS')['date'],
+			'invoice-acc_date.date_format' => app('ERRORS')['date'],
 			'invoice-doc_code.required' => app('ERRORS')['required'],
 			'invoice-doc_date.required' => app('ERRORS')['required'],
-			'invoice-doc_date.date' => app('ERRORS')['date'],
+			'invoice-doc_date.date_format' => app('ERRORS')['date'],
 			'invoice-prepayment.regex' => app('ERRORS')['regex']['price'],
-			'invoice-granted_at.date' => app('ERRORS')['date'],
+			'invoice-granted_at.date_format' => app('ERRORS')['date'],
 			'invoice-location.required' => app('ERRORS')['all_required'],
 			'invoice-location_country_id.numeric' => app('ERRORS')['numeric'],
 		];
@@ -484,7 +487,7 @@ class InvoiceController extends Controller {
 					unset($regex);
 					if ($key === "done_at") {
 						$date = "|date_format:Y-m-d";
-						$params_messages["{$items['key']}.date"] = app('ERRORS')['date'];
+						$params_messages["{$items['key']}.date_format"] = app('ERRORS')['date'];
 					}
 					if (in_array($key, ["amount", "insurance"])) {
 						$regex = "|regex:{$currency_regex}";

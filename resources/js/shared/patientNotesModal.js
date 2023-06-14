@@ -28,7 +28,7 @@ function insertNotes(data) {
 // patient notes modal event listeners
 async function fetchPatientNotes() {
 	if (options.formKey === null) {
-		utils.showAlert({ message: 'formKey is missing!', error: true })
+		utils.showAlert({ message: 'formKey is missing!', type: 'error' })
 		return
 	}
 
@@ -55,7 +55,7 @@ async function fetchPatientNotes() {
 
 		setTimeout(() => { body.classList.remove('modal-is-waiting') }, 0);
 	} else if (result.code !== 302) { // handled by utils.fetch
-		utils.showAlert({ message: window.laravel.messages.unexpectedError, error: true })
+		utils.showAlert({ message: window.laravel.messages.unexpectedError, type: 'error' })
 	}
 }
 
@@ -90,7 +90,7 @@ content.addEventListener('input', () => {
 
 saveBtn.addEventListener('click', async () => {
 	if (options.formKey === null) {
-		utils.showAlert({ message: 'formKey is missing!', error: true })
+		utils.showAlert({ message: 'formKey is missing!', type: 'error' })
 		return
 	}
 
@@ -120,7 +120,7 @@ saveBtn.addEventListener('click', async () => {
 		insertNotes(result.data)
 		modal.setAttribute('data-saved', "1")
 	} else if (result.code !== 302) { // handled by utils.fetch
-		utils.showAlert({ message: window.laravel.messages.unexpectedError, error: true })
+		utils.showAlert({ message: window.laravel.messages.unexpectedError, type: 'error' })
 	}
 
 	modal.classList.remove('saving-content')

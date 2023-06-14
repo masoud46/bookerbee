@@ -196,8 +196,6 @@ button i {
 	transform: translate(-50%);
 	width: calc(100% - 30px);
 	min-height: 40px;
-	color: #fff;
-	background-color: $green;
 	transition: top 0.4s;
 
 	> div {
@@ -231,7 +229,18 @@ button i {
 		}
 	}
 
+	&.flash-message-success {
+		color: #fff;
+		background-color: $green;
+	}
+
+	&.flash-message-warning {
+		color: #000;
+		background-color: $yellow;
+	}
+
 	&.flash-message-error {
+		color: #fff;
 		background-color: $red;
 	}
 

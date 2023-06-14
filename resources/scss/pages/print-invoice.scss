@@ -38,8 +38,8 @@ $border-double: 0.4mm solid #000000;
 		font-size: 7em;
 		letter-spacing: 3mm;
 		transform: rotate(-45deg);
-	// transform: translateY(-100%) rotate(-45deg);
-	// 	transform-origin: bottom left;
+		// transform: translateY(-100%) rotate(-45deg);
+		// 	transform-origin: bottom left;
 	}
 }
 
@@ -243,13 +243,30 @@ $border-double: 0.4mm solid #000000;
 			}
 		}
 
-		.patient-code,
-		.patient-name,
+		// .patient-code,
+		// .patient-name,
 		.patient-acc-num,
 		.patient-acc-date,
 		.prescriber {
 			> div:first-child {
 				width: 30mm;
+			}
+		}
+
+		.patient-code,
+		.patient-name {
+			> div:first-child {
+				// width: auto;
+				margin-right: 1mm;
+			}
+		}
+
+		.patient-name {
+			> div:last-child {
+				width: calc($header-left-width - 20mm);
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
 			}
 		}
 

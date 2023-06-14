@@ -6,6 +6,7 @@ use App\Mail\AppointmentEmail;
 use App\Models\Country;
 use App\Models\Event;
 use App\Models\Patient;
+use App\Models\Settings;
 use App\Models\User;
 use Carbon\Carbon;
 use Hashids;
@@ -178,9 +179,10 @@ class EventController extends Controller {
 		}
 
 		$entries = 'resources/js/pages/agenda.js';
+		$settings = Settings::whereUserId(Auth::user()->id)->first()->toArray();
 		$prefixes = Country::select(["id", "prefix"])->get()->toArray();
 
-		return view('agenda', compact('entries', 'prefixes'));
+		return view('agenda', compact('entries', 'settings', 'prefixes'));
 	}
 
 	/**
@@ -293,6 +295,10 @@ class EventController extends Controller {
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
 		$event->start = Carbon::parse($data['start']);
 		$event->end = Carbon::parse($data['end']);
+
+		$hours = config('project.reminder_email_time');
+		$time = Carbon::now()->addHours($hours);
+		$event->reminder = $event->start->greaterThan($time);
 
 		$event->save();
 

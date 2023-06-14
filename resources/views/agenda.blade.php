@@ -161,6 +161,7 @@
 
 		window.laravel.messages.createAppointment = "{{ __('Create un appointment') }}"
 		window.laravel.messages.lockSlot = "{{ __('Lock this slot') }}"
+		window.laravel.settings = {!! json_encode($settings) !!}
 		window.laravel.agenda = {
 			lock: {{ in_array("agenda_lock", Auth::user()->features) ? "true" : "false" }},
 			timezone: '{{ Auth::user()->timezone }}',

@@ -12,7 +12,7 @@ sort($limits);
 
 return [
 	'external_domains' => [
-		'booker.psychosexo.lu',
+		'office.psychosexo.lu',
 		'invoice.psychosexo.clinic',
 		'serge.com',
 		'manager.eva.com',

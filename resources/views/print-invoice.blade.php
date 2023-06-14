@@ -102,7 +102,9 @@
 									@if ($invoice->patient_address_line3)
 										<div>{{ $invoice->patient_address_line3 }}</div>
 									@endif
-									<div>{{ $invoice->patient_address_country }} - {{ $invoice->patient_address_code }} {{ $invoice->patient_address_city }}</div>
+									<div>{{ $invoice->patient_address_city }}</div>
+									<div>{{ $invoice->patient_address_code }}</div>
+									<div>{{ $invoice->patient_address_country }}</div>
 								</div>
 							</div>
 							<div class="header-right-date">

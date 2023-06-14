@@ -34,6 +34,9 @@ const sessionTypes = JSON.parse(document.getElementById('invoice-sessions-types'
 const patientCategory = JSON.parse(document.getElementById('invoice-patient-category').value)
 const disableInvoiceBtn = document.getElementById('disable-invoice')
 
+const typeChangeAlert = document.getElementById('type-change-alert').value != 0
+
+
 // reset the the given parent's form elements
 function resetChildrenValues(parent) {
 	parent.querySelectorAll(utils.editableElements).forEach(element => {
@@ -68,6 +71,7 @@ function reIndexSessions() {
 function resetSessionNumber(session = null) {
 	const visibleSessions = invoiceSessions.querySelectorAll('[name^="session-visible-"][value="visible"]')
 
+	let changed = false
 	visibleSessions.forEach((type, index) => {
 		const parent = type.parentElement
 		const wrapper = parent.querySelector('.session-type-wrapper')
@@ -83,20 +87,23 @@ function resetSessionNumber(session = null) {
 
 		let id = 0
 		let description = ''
-		for (const type of sessionTypes) {
-			if (!type.max_sessions) {
-				type.max_sessions = 100000 // estimated max sessions!!
+		for (const sessionType of sessionTypes) {
+			if (!sessionType.max_sessions) {
+				sessionType.max_sessions = 100000 // estimated max sessions!!
 			}
 
-			if (newSession <= type.max_sessions) {
-				id = type.id
+			if (newSession <= sessionType.max_sessions) {
+				id = sessionType.id
 				if (id !== prevId) {
+					changed = true
+
 					if (patientCategory === 1) {
-						description = type.description
+						description = sessionType.description
 					}
 				} else {
 					description = prevDescription
 				}
+
 				break
 			}
 		}
@@ -112,6 +119,24 @@ function resetSessionNumber(session = null) {
 			}, 0);
 		}
 	})
+
+	// when session type changes, show a warning message
+	if (typeChangeAlert && changed) {
+		const message = window.laravel.messages.sessionWarning
+		if (session) { // a new session added
+			const sessions = [...invoiceSessions.querySelectorAll('.session-item:not(.d-none)')]
+			const addedSession = sessions.pop()
+			const prevSession = sessions.pop()
+			const addedMaxSessions = sessionTypes.find(type => type.id == addedSession.querySelector('.session-type').value).max_sessions
+			const prevMaxSessions = sessionTypes.find(type => type.id == prevSession.querySelector('.session-type').value).max_sessions
+
+			if (addedMaxSessions !== prevMaxSessions) {
+				utils.showAlert({ message, timeout: 0, type: 'warning' })
+			}
+		} else { // initial session changed
+			utils.showAlert({ message, timeout: 0, type: 'warning' })
+		}
+	}
 }
 
 invoiceForm.addEventListener('submit', () => {
@@ -154,22 +179,20 @@ if (document.querySelector('.session-description').getAttribute('disabled') !== 
 }
 
 // manage add session button
-if (addSession) {
-	addSession.addEventListener('click', e => {
-		const session = invoiceSessions.querySelector('.session-item.d-none')
+addSession?.addEventListener('click', e => {
+	const session = invoiceSessions.querySelector('.session-item.d-none')
 
-		if (session) {
-			session.querySelector('[name^="session-visible-"]').value = 'visible'
-			session.classList.remove('d-none')
-			setInvoiceSaved(false)
-			resetSessionNumber(session)
-		}
+	if (session) {
+		session.querySelector('[name^="session-visible-"]').value = 'visible'
+		session.classList.remove('d-none')
+		setInvoiceSaved(false)
+		resetSessionNumber(session)
+	}
 
-		if (invoiceSessions.querySelectorAll('.session-item.d-none').length === 0) {
-			addSession.classList.add('d-none')
-		}
-	})
-}
+	if (invoiceSessions.querySelectorAll('.session-item.d-none').length === 0) {
+		addSession.classList.add('d-none')
+	}
+})
 
 // manage remove session button
 removeSession.forEach(btn => {
@@ -205,6 +228,15 @@ disableInvoiceBtn?.addEventListener('click', e => {
 	})
 })
 
+
+if (typeChangeAlert && addSession) { // if Add session button is visible
+	for (const type of sessionTypes) {
+		if (currentSession.value - 1 == type.max_sessions) {
+			utils.showAlert({ message: window.laravel.messages.sessionWarning, timeout: 0, type: 'warning' })
+			break
+		}
+	}
+}
 
 
 // resetSessionNumber()

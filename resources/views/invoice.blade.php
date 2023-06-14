@@ -39,8 +39,9 @@
 
 @section('content')
 	<div class="container">
-		<form id="invoice-form" method="post" action="{{ route('invoice.store') }}" class="form {{ $inactive ? "inactive-invoice" : '' }}" autocomplete="off" autofill="off">
+		<form id="invoice-form" method="post" action="{{ route('invoice.store') }}" class="form {{ $inactive ? 'inactive-invoice' : '' }}" autocomplete="off" autofill="off">
 			@csrf
+			<input type="hidden" id="type-change-alert" value="{{ $settings->type_change_alert ? 1 : 0 }}">
 			<input type="hidden" id="patient-email" value="{{ $update ? $invoice->patient_email : $patient->email }}">
 			<input type="hidden" id="patient-phone_prefix" value="{{ $update ? $invoice->patient_phone_prefix : $patient->phone_prefix }}">
 			<input type="hidden" id="patient-phone_number" value="{{ $update ? $invoice->patient_phone_number : $patient->phone_number }}">
@@ -184,7 +185,7 @@
 			<div class="row">
 				<div class="col-12">
 					<h6 class="text-{{ $title_color }} text-center mt-2 mb-0 pt-2">
-						<span class="fw-bold">{{ __('STATEMENT') }} {!! $category === 1 ? '- CNS' : '' !!}</span>
+						<span class="fw-bold">{{ __('STATEMENT') }} {{ isset($invoice) ? $invoice->reference : '' }} {!! $category === 1 ? '- CNS' : '' !!}</span>
 					</h6>
 					<div class="border-bottom d-flex flex-wrap justify-content-center text-left">
 						<div class="invoice-session-container d-flex flex-wrap justify-content-center align-items-center text-{{ $title_color }} my-1 {{ $editable ? 'py-2 px-3 border' : 'mb-2' }} rounded-1 border-{{ $title_color }}">
@@ -404,31 +405,12 @@
 	@include('shared.yes-no-modal')
 @endsection
 
+@push('scripts')
+	<script>
+		window.laravel.messages.sessionWarning = '<div style="padding: 30px">{{ __('Session warning bla bla bla...') }}'
+	</script>
+@endpush
+
 @push('assets')
 	@vite($entries)
 @endpush
-
-{{-- <div id="invoice-search-offcanvas" class="offcanvas offcanvas-end" tabindex="-1" aria-labelledby="invoice-search-offcanvas-label">
-	<div class="offcanvas-header py-2">
-		<h5 id="invoice-search-offcanvas-label" class="offcanvas-title">{{ __("My invoices") }}</h5>
-		<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-	</div>
-	<div class="offcanvas-body d-flex flex-column pe-0">
-		<div class="search-list d-flex align-items-center">
-			<div class="dropdown xdropdown-sm">
-				<button class="btn xbtn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-					{{ __("Les 3 derniers mois") }}
-				</button>
-				<ul class="dropdown-menu shadow">
-					<li><button type="button" class="dropdown-item" data-limit="3">{{ __("Les 3 derniers mois") }} </button></li>
-					<li><button type="button" class="dropdown-item" data-limit="6">{{ __("Les 6 derniers mois") }} </button></li>
-					@foreach ($years as $year)
-						<li><button type="button" class="dropdown-item" data-limit="{{ $year->year }}">{{ $year->year }} </button></li>
-					@endforeach
-				</ul>
-			</div>
-			<div class="opacity-50 fw-bold ms-3"><span class="invoice-search-total"></span> / {{ $count }}</div>
-		</div>
-		<div class="invoice-search-result flex-grow-1 overflow-auto mt-3 pe-3 user-select-none"></div>
-	</div>
-</div> --}}

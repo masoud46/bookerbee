@@ -99,11 +99,15 @@ class SettingsController extends Controller {
 			}
 		}
 
+		$settings_object['type_change_alert'] = $request->has('settings-type_change_alert');
 		$currency_regex = currency_regex();
 
 		$params_rules = [
 			'settings-amount' => "required|regex:{$currency_regex}",
 			'settings-location' => "required",
+			'settings-cal_min_time' => "required",
+			'settings-cal_max_time' => "required",
+			'settings-cal_slot' => "required",
 		];
 
 		$params_messages = [
@@ -111,6 +115,9 @@ class SettingsController extends Controller {
 			'settings-amount.regex' => app('ERRORS')['regex']['price'],
 			'settings-location.required' => app('ERRORS')['required'],
 			'settings-location.not_in' => app('ERRORS')['regex']['location'],
+			'settings-cal_min_time.required' => app('ERRORS')['required'],
+			'settings-cal_max_time.required' => app('ERRORS')['required'],
+			'settings-cal_slot.required' => app('ERRORS')['required'],
 		];
 
 		// check location against secondary address

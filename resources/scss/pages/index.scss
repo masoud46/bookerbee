@@ -1,6 +1,51 @@
 @import '../variables';
 
 
+.search-filter {
+	position: relative;
+
+	.btn-search-filter {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 0.75rem;
+		height: 100%;
+		width: 2rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		.search-filter-active {
+			display: none;
+			font-size: 1.2em;
+		}
+
+		.search-filter-inactive {
+			pointer-events: none;
+			user-select: none;
+			opacity: 0.25;
+		}
+
+		&.filter-active {
+			cursor: pointer;
+			opacity: 0.75;
+			transition: opacity 0.25s;
+
+			&:hover {
+				opacity: 1;
+			}
+
+			.search-filter-active {
+				display: block;
+			}
+
+			.search-filter-inactive {
+				display: none;
+			}
+		}
+	}
+}
+
 #invoices-container {
 
 	.items-table-item {
@@ -29,10 +74,10 @@
 
 		&.inactive-invoice {
 			td {
-					color: $inactive-invoice-color;
-					text-decoration: line-through;
-					opacity: 0.75;
-				}
+				color: $inactive-invoice-color;
+				text-decoration: line-through;
+				opacity: 0.75;
+			}
 		}
 
 		.invoice-item-print {

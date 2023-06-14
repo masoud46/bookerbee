@@ -27,6 +27,7 @@ Pickers.forEach(picker => {
 
 const listFilter = document.getElementById('items-table-filter')
 const input = listFilter.querySelector('.items-table-filter-input')
+const button = listFilter.querySelector('.btn-search-filter')
 const total = listFilter.querySelector('.items-table-total')
 const count = listFilter.querySelector('.items-table-count')
 
@@ -54,6 +55,18 @@ if (listFilter && input && count) {
 			setTimeout(() => {
 				count.textContent = parent.querySelectorAll('.items-table-item:not(.d-none)').length
 			}, 0);
+
+			if (input.value.length) {
+				button.classList.add('filter-active')
+			} else {
+				button.classList.remove('filter-active')
+			}
+		})
+
+		button.addEventListener('click', () => {
+			input.value = ''
+			input.focus()
+			input.dispatchEvent(new Event('input'))
 		})
 	}
 }
@@ -88,7 +101,7 @@ if (patients) {
 			container.classList.remove('loading')
 
 			if (result.code !== 302) { // handled by utils.fetch
-				utils.showAlert({ message: window.laravel.messages.unexpectedError, error: true })
+				utils.showAlert({ message: window.laravel.messages.unexpectedError, type: 'error' })
 			}
 
 			return

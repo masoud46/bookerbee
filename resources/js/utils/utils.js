@@ -66,7 +66,7 @@ utils.fetch = async ({ method = 'POST', url, data = null, csrf = null }) => {
 					window.location.assign('/')
 				})
 			} else {
-				utils.showAlert({ message, timeout: 0, error: true })
+				utils.showAlert({ message, timeout: 0, type: 'error' })
 			}
 		}
 
@@ -86,9 +86,7 @@ utils.toast.template = `
 `
 
 utils.toast.show = ({ message, delay, error = false }) => {
-	if (!message) return
-	if (!delay) delay = error ? utils.toast.errorTimeout : utils.toast.timeout
-
+	delay = delay ?? (error ? utils.toast.errorTimeout : utils.toast.timeout)
 	delay *= 1000
 
 	const id = document.querySelectorAll('.toast').length
@@ -112,17 +110,17 @@ utils.toast.show = ({ message, delay, error = false }) => {
 	}, 0);
 }
 
-utils.showAlert = ({ message, timeout, error = false }) => {
+utils.showAlert = ({ message, timeout, type = 'success' }) => {
 	const flash = utils.flash
 
-	timeout = timeout ?? (error ? flash.errorTimeout : flash.timeout)
+	timeout = timeout ?? (type === 'success' ? flash.timeout : flash.errorTimeout)
 
 	flash.element.classList.remove('flash-message-visible')
 	flash.element.querySelector('.flash-message-text').innerHTML = message
 	flash.element.style.top = `-${flash.element.offsetHeight + 30}px`
 
-	if (error) flash.element.classList.add('flash-message-error')
-	else flash.element.classList.remove('flash-message-error')
+	flash.element.classList.remove('flash-message-success', 'flash-message-warning', 'flash-message-error')
+	flash.element.classList.add(`flash-message-${type}`)
 
 	flash.element.classList.add('flash-message-visible')
 	clearTimeout(flash.timeoutId)
