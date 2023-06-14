@@ -6,13 +6,14 @@ export const utils = {
 	toast: {
 		container: document.querySelector('body'),
 		prefix: 'toast-', // seconds
-		timeout: 2.4, // seconds
+		// timeout: 2.5, // seconds
 		errorTimeout: 5, // seconds
 	},
 	flash: {
 		element: document.getElementById('flash-message'),
-		timeout: 2.5, // seconds
-		errorTimeout: 4, // seconds
+//		timeout: 2.5, // seconds
+		timeout: 0, // seconds
+		errorTimeout: 5, // seconds
 		timeoutId: null,
 	},
 	removeDiacritics: str => {

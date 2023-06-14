@@ -59,7 +59,7 @@
 		<script>
 			const httpFlashMessage = {
 				message: JSON.stringify("{{ session('success') ?? session('error') }}"),
-				error: {{ session()->has('error') ? 'true' : 'false' }},
+				type: "{{ session()->has('error') ? 'error' : 'success' }}",
 			}
 			httpFlashMessage.message = httpFlashMessage.message.substring(1, httpFlashMessage.message.length - 1)
 		</script>
