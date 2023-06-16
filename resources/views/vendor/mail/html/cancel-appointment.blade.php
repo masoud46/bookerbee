@@ -21,7 +21,7 @@
 <img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon">
 </td>
 <td>
-<a href="tel:{{ $phone }}" style="font-size: 16px;">{{ $phone }}</a>
+<a href="tel:{{ preg_replace('/\s+/', '', $phone) }}" style="font-size: 16px;">{{ $phone }}</a>
 </td>
 </tr>
 </tbody>

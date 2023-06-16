@@ -85,6 +85,7 @@ class SendReminderEmails extends Command {
 					Log::channel('reminder')->info("<EMAIL SENT> {$event->patient_email}");
 
 					Event::whereId($event->id)->update(['reminder' => 1]);
+
 					Log::channel('reminder')->info("<EVENT UPDATED> {$event->id}");
 				} catch (\Throwable $th) {
 					Log::channel('reminder')->info("<!!! ERROR !!!>");

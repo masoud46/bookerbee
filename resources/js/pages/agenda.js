@@ -1,7 +1,5 @@
 
-import axios from 'axios';
-
-import { Modal, Popover, Tooltip } from 'bootstrap';
+import { Modal, Popover } from 'bootstrap';
 
 import { Calendar, globalPlugins } from '@fullcalendar/core'
 import { toMoment, toMomentDuration } from '@fullcalendar/moment'
@@ -167,7 +165,6 @@ const storeEvent = async (action, event, oldEvent = null) => {
 	const url = ['PUT', 'DELETE'].indexOf(method) === -1
 		? window.laravel.agenda.actions[action].url
 		: window.laravel.agenda.actions[action].url.replace('?id', event.id)
-	console.log(method, url);
 
 	let message = window.laravel.agenda.actions[action].message
 	let error = false
@@ -183,12 +180,10 @@ const storeEvent = async (action, event, oldEvent = null) => {
 	delete event.endStr
 	delete event.jsEvent
 	delete event.view
-	console.log(action, event, oldEvent);
 
 	if (event.extendedProps?.patient?.email) document.body.classList.add('sending-email')
 
 	try {
-		console.log(method, url, { event, oldEvent });
 		const result = await utils.fetch({
 			method,
 			url,
@@ -197,8 +192,6 @@ const storeEvent = async (action, event, oldEvent = null) => {
 				oldEvent,
 			}
 		})
-		console.log(event);
-		console.log(result);
 
 		if (result.success) {
 			if (method === 'POST') {
@@ -247,7 +240,6 @@ const applyAction = () => {
 	const modalClass = [...modal.classList].find(cls => cls.startsWith(modal.props.actionClass))
 	const action = modalClass.substring(modal.props.actionClass.length)
 	const event = JSON.parse(JSON.stringify(customProps.event))
-	console.log(event);
 
 	switch (action) {
 		case EVENT_ACTION_ADD:
@@ -353,8 +345,6 @@ const applyAction = () => {
 
 // Set modal elements according to the action 
 const showModal = action => {
-	// console.log('event', event);
-	// console.log('old event', customProps.oldEvent);
 	const format = 'DD/MM/YYYY'
 	const event = customProps.event
 	const rrule = event._def?.recurringDef ?? false
@@ -410,7 +400,6 @@ const showModal = action => {
 	}
 
 	if (action === EVENT_ACTION_CANCEL || action === EVENT_ACTION_UPDATE) {
-		// console.log(event.extendedProps);
 		const patientInfo = {
 			name: event.extendedProps.patient.name,
 			locale: event.extendedProps.patient.locale,
@@ -508,7 +497,6 @@ modal.props.recurrCheck.addEventListener('change', () => {
 
 			if (endDOW < 0) endDOW = 6 // Sunday
 
-			console.log(startDOW, endDOW);
 			let day = 0
 			while (day <= endDOW) {
 				modal.props.recurrDays[day].disabled = true
@@ -579,10 +567,8 @@ modal.addEventListener('hidden.bs.modal', () => {
 	}
 })
 modal.props.actionButton.addEventListener('click', applyAction)
-// showModal('lock')
 
 
-console.log(window.laravel.settings);
 const calendarElement = document.getElementById('app-calendar')
 const calendar = new Calendar(calendarElement, {
 	plugins: [
@@ -777,8 +763,6 @@ const calendar = new Calendar(calendarElement, {
 		// Bypass background event which the end has been set manually in "eventClick" callback
 		if (arg.event._def.ui.display === 'background') return
 
-		console.log(arg.oldEvent.start.toISOString());
-		console.log(arg.event.start.toISOString());
 		customProps.event = arg.event
 		customProps.oldEvent = arg.oldEvent
 		customProps.revert = arg.revert
@@ -835,7 +819,6 @@ Pickers.forEach(picker => {
 
 		patientInfo.name = name
 		patientInfo.phone = prefixObj ? `${prefixObj.prefix} ${patientInfo.phone_number}` : null
-		console.log(patientInfo);
 		setRdvInfo(patientInfo)
 	}
 })

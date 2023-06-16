@@ -84,6 +84,18 @@ class EventController extends Controller {
 	}
 
 	/**
+	 * Return the reminder according to start time and the "reminder_email_time" config.
+	 *
+	 * @return Boolean
+	 */
+	private function setReminder($event) {
+		$hours = config('project.reminder_email_time');
+		$time = Carbon::now()->addHours($hours);
+		
+		return $event->start->lessThanOrEqualTo($time);
+	}
+
+	/**
 	 * Get a listing of the resource between two dates.
 	 *
 	 * @return String
@@ -238,6 +250,8 @@ class EventController extends Controller {
 			$event->end = Carbon::parse($data['end']);
 		}
 
+		$event->reminder = $this->setReminder($event);
+
 		$event->save();
 
 		$data['id'] = $event->id;
@@ -249,7 +263,6 @@ class EventController extends Controller {
 		];
 
 		if ($event->patient_id && $email) {
-			// $locale = LaravelLocalization::getCurrentLocale();
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
 			$data['hash_id'] = Hashids::encode($data['id']);
@@ -268,8 +281,6 @@ class EventController extends Controller {
 
 				$result['success'] = false;
 			}
-
-			// LaravelLocalization::setLocale($locale);
 		} else {
 			DB::commit();
 		}
@@ -295,10 +306,7 @@ class EventController extends Controller {
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
 		$event->start = Carbon::parse($data['start']);
 		$event->end = Carbon::parse($data['end']);
-
-		$hours = config('project.reminder_email_time');
-		$time = Carbon::now()->addHours($hours);
-		$event->reminder = $event->start->greaterThan($time);
+		$event->reminder = $this->setReminder($event);
 
 		$event->save();
 
@@ -311,7 +319,6 @@ class EventController extends Controller {
 		];
 
 		if ($event->patient_id && $email) {
-			// $locale = LaravelLocalization::getCurrentLocale();
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
 			$data['hash_id'] = Hashids::encode($data['id']);
@@ -337,8 +344,6 @@ class EventController extends Controller {
 				$result['error'] = $th->__toString();
 				$result['success'] = false;
 			}
-
-			// LaravelLocalization::setLocale($locale);
 		} else {
 			DB::commit();
 		}
@@ -375,7 +380,6 @@ class EventController extends Controller {
 			$email = $data['extendedProps']['patient']['email'] ?? null;
 
 			if ($event->patient_id && $email) {
-				// $locale = LaravelLocalization::getCurrentLocale();
 				LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
 				try {
@@ -391,8 +395,6 @@ class EventController extends Controller {
 
 					$result['success'] = false;
 				}
-
-				// LaravelLocalization::setLocale($locale);
 			} else {
 				DB::commit();
 			}
