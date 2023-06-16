@@ -93,7 +93,7 @@
 			</div>
 			<div class="col-md-6 col-lg-5 col-xl-4 mt-3 mt-sm-2 d-flex search-filter position-relative">
 				<input class="items-table-filter-input form-control" placeholder="{{ __('Search') }}" value="">
-				<div class="btn-search-filter position-absolute"><i class="fas fa-filter search-filter-inactive"></i><i class="fas fa-times search-filter-active"></i></div>
+				<div class="btn-search-filter position-absolute"><i class="fas fa-magnifying-glass search-filter-inactive"></i><i class="fas fa-times search-filter-active"></i></div>
 			</div>
 		</div>
 		<div id="invoices-container" class="row mt-3">
