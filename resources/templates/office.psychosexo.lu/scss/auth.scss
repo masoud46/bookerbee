@@ -82,11 +82,11 @@ input:-webkit-autofill:active {
 	}
 
 	.btn-locale {
-		background-color: transparent;
-		transition: background-color 0.25s;
+		transition: color 0.25s, background-color 0.25s;
 
 		&.active-locale {
 			pointer-events: none;
+			color: #fff;
 			background-color: $color-purple;
 		}
 

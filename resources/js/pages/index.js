@@ -63,6 +63,12 @@ if (listFilter && input && count) {
 			}
 		})
 
+		input.addEventListener('keydown', e => {
+			if (e.key === 'Escape') {
+				button.click()
+			}
+		})
+
 		button.addEventListener('click', () => {
 			input.value = ''
 			input.focus()

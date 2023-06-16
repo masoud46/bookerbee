@@ -25,7 +25,7 @@
 	<!-- CSRF Token for AJAX calls -->
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 
-	<title>{{ config('app.name', 'Laravel') }}</title>
+	<title>{{ config('app.name', 'BookerBee') }}</title>
 
 	<link rel="icon" sizes="192x192" href="{{ asset('build/images/favicon.png') }}">
 
@@ -72,9 +72,9 @@
 		<nav class="navbar navbar-expand navbar-light bg-white shadow-sm">
 			<div class="container">
 				{{-- <a class="navbar-brand" href="{{ url('/') }}">
-					{{ config('app.name', 'Laravel') }}
+					{{ config('app.name', 'BookerBee') }}
 				</a> --}}
-				<h5 class="navbar-brand mb-0">{!! $page_title ?? config('app.name', 'Laravel') !!}</h5>
+				<h5 class="navbar-brand mb-0">{!! $page_title ?? config('app.name', 'BookerBee') !!}</h5>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
 					<span class="navbar-toggler-icon"></span>
 				</button>

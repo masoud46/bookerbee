@@ -12,7 +12,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>{{ config('app.name', 'Laravel') }} - Invoice</title>
+	<title>{{ config('app.name', 'BookerBee') }} - Invoice</title>
 
 	@vite('resources/scss/pages/print-invoice.scss')
 </head>
