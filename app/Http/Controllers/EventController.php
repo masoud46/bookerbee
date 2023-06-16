@@ -91,7 +91,7 @@ class EventController extends Controller {
 	private function setReminder($event) {
 		$hours = config('project.reminder_email_time');
 		$time = Carbon::now()->addHours($hours);
-		
+
 		return $event->start->lessThanOrEqualTo($time);
 	}
 
@@ -360,44 +360,35 @@ class EventController extends Controller {
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
 		$result = [
-			'success' => false,
+			'success' => true,
 			'id' => $event->id,
 			'dbevent' => $event->toArray(),
 		];
 
 		DB::beginTransaction();
 
-		if ($event->category === 0) {
-			$event->delete();
-			DB::commit();
+		$event->delete();
 
-			$result['success'] = true;
-		} else {
-			$event->status = false;
-			$event->save();
+		$email = $data['extendedProps']['patient']['email'] ?? null;
 
-			$result['success'] = true;
-			$email = $data['extendedProps']['patient']['email'] ?? null;
+		if ($event->patient_id && $email) {
+			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			if ($event->patient_id && $email) {
-				LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
-
-				try {
-					if (config('app.env') === 'production') {
-						Mail::to($email)->send(new AppointmentEmail("delete", $data));
-					} else if (config('project.send_emails')) {
-						Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("delete", $data));
-					}
-
-					DB::commit();
-				} catch (\Throwable $th) {
-					DB::rollBack();
-
-					$result['success'] = false;
+			try {
+				if (config('app.env') === 'production') {
+					Mail::to($email)->send(new AppointmentEmail("delete", $data));
+				} else if (config('project.send_emails')) {
+					Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("delete", $data));
 				}
-			} else {
+
 				DB::commit();
+			} catch (\Throwable $th) {
+				DB::rollBack();
+
+				$result['success'] = false;
 			}
+		} else {
+			DB::commit();
 		}
 
 		return response()->json($result);
