@@ -18,8 +18,8 @@ if (invalidElement) {
 	invalidElement.focus()
 }
 
-if (typeof httpFlashMessage === 'object') {
-	utils.showAlert(httpFlashMessage)
+if (typeof window.laravel.flash === 'object') {
+	utils.showAlert(window.laravel.flash)
 }
 
 

@@ -39,14 +39,14 @@
 			locale: '{{ LaravelLocalization::getCurrentLocale() }}',
 			// TODO: To show a message if the content might need to be saved
 			modified: false,
-		}
-		window.laravel.messages = {
-			unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
-			sessionError: `{{ __('Your session has been timed out, please sign back in to continue.') }}`,
-			databaseError: `{{ __('Changes could not be applied.') }}<br>{{ __('Try again.') }}`,
-			irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
-			saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
-			modificationSaved: `{{ __('Changes have been saved.') }}`,
+			messages: {
+				unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
+				sessionError: `{{ __('Your session has been timed out, please sign back in to continue.') }}`,
+				databaseError: `{{ __('Changes could not be applied.') }}<br>{{ __('Try again.') }}`,
+				irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
+				saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
+				modificationSaved: `{{ __('Changes have been saved.') }}`,
+			}
 		}
 	</script>
 
@@ -56,12 +56,15 @@
 	@stack('assets')
 
 	@if (session()->has('success') || session()->has('error'))
+		@php
+			$message = substr(json_encode(session('success') ?? session('error')), 1, -1);
+			$type = session()->has('error') ? 'error' : 'success';
+		@endphp
 		<script>
-			const httpFlashMessage = {
-				message: JSON.stringify("{{ session('success') ?? session('error') }}"),
-				type: "{{ session()->has('error') ? 'error' : 'success' }}",
+			window.laravel.flash = {
+				message: '{{ $message }}',
+				type: '{{ $type }}',
 			}
-			httpFlashMessage.message = httpFlashMessage.message.substring(1, httpFlashMessage.message.length - 1)
 		</script>
 	@endif
 
@@ -74,7 +77,7 @@
 				{{-- <a class="navbar-brand" href="{{ url('/') }}">
 					{{ config('app.name', 'BookerBee') }}
 				</a> --}}
-				<h5 class="navbar-brand mb-0">{!! $page_title ?? config('app.name', 'BookerBee') !!}</h5>
+				<h5 class="navbar-brand mb-0 d-flex flex-wrap align-items-center">{!! $page_title ?? config('app.name', 'BookerBee') !!}</h5>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
 					<span class="navbar-toggler-icon"></span>
 				</button>
@@ -84,54 +87,7 @@
 					<ul class="navbar-nav me-auto"></ul>
 
 					<!-- Right Side Of Navbar -->
-					<ul class="navbar-nav ms-auto">
-						@if (config('app.env') === 'local')
-							{{-- <li class="nav-item">
-								<a class="nav-link" href="{{ route('email.change-email') }}">Send ChangeEmail Mail</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route('email.change-password') }}">Send ChangePassword Mail</a>
-							</li> --}}
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">
-									{{ __('Remind') }}
-								</a>
-								<form id="reminder-form" action="{{ route('email.reminder') }}" method="post" class="d-none">
-									@method('put')
-									@csrf
-								</form>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">
-									{{ __('Add') }}
-								</a>
-								<form id="add-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
-									@method('put')
-									@csrf
-									<input type="hidden" name="action" value="add">
-								</form>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">
-									{{ __('Update') }}
-								</a>
-								<form id="update-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
-									@method('put')
-									@csrf
-									<input type="hidden" name="action" value="update">
-								</form>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
-									{{ __('Delete') }}
-								</a>
-								<form id="delete-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
-									@method('put')
-									@csrf
-									<input type="hidden" name="action" value="delete">
-								</form>
-							</li>
-						@endif
+					<ul class="navbar-nav ms-auto d-flex flex-wrap">
 						<li class="nav-item">
 							<a class="nav-link" href="{{ route('home') }}">{{ __('Statements') }}</a>
 						</li>

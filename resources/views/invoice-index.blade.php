@@ -20,16 +20,45 @@
 	        'href' => route('invoice.index', ['limit' => $year->year]),
 	    ];
 	}
-
+	
 	$menu_items['0'] = [
-		'title' => __('All the invoices'),
-		'href' => route('invoice.index', ['limit' => 'all']),
+	    'title' => __('All the invoices'),
+	    'href' => route('invoice.index', ['limit' => 'all']),
 	];
 @endphp
 
 @section('content')
 	<input type="hidden" id="invoice-show-url" value="{{ route('invoice.show', ['invoice' => '?id']) }}">
 	<input type="hidden" id="invoice-print-url" value="{{ route('invoice.print', ['invoice' => '?id']) }}">
+	@if (config('app.env') === 'local')
+		<div class="d-flex justify-content-evenly">
+			<a class="nav-link" href="{{ route('email.change-email') }}">ChangeEmail</a>
+			<a class="nav-link" href="{{ route('email.change-password') }}">ChangePassword</a>
+			<a class="nav-link" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">Remind</a>
+			<form id="reminder-form" action="{{ route('email.reminder') }}" method="post" class="d-none">
+				@method('put')
+				@csrf
+			</form>
+			<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">Add</a>
+			<form id="add-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+				@method('put')
+				@csrf
+				<input type="hidden" name="action" value="add">
+			</form>
+			<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">Update</a>
+			<form id="update-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+				@method('put')
+				@csrf
+				<input type="hidden" name="action" value="update">
+			</form>
+			<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">Delete</a>
+			<form id="delete-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
+				@method('put')
+				@csrf
+				<input type="hidden" name="action" value="delete">
+			</form>
+		</div>
+	@endif
 	<div class="container">
 		<div class="row">
 			<div id="patient-picker" class="col-md-6 my-4">
