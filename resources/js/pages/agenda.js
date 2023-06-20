@@ -604,6 +604,7 @@ const calendar = new Calendar(calendarElement, {
 	headerToolbar: {
 		left: 'prev,next today',
 		center: 'title',
+		// right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
 		right: 'timeGridWeek,timeGridDay,listWeek'
 	},
 	slotLabelFormat: {
