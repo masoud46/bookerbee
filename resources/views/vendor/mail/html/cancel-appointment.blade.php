@@ -9,16 +9,16 @@
 <table style="line-height: 1.8; margin-bottom: 20px;" cellpadding="0" cellspacing="0" role="presentation">
 <tbody>
 <tr>
-<td style="padding-top: 6px; padding-right: 15px; opacity: 0.5;">
-<img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon">
+<td style="padding-top: 6px; padding-right: 10px; opacity: 0.5;">
+<img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon" width="20">
 </td>
 <td>
 <a href="mailto:{{ $email }}" style="font-size: 16px;">{{ $email }}</a>
 </td>
 </tr>
 <tr>
-<td style="padding-top: 4px; padding-right: 15px; opacity: 0.5;">
-<img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon">
+<td style="padding-top: 4px; padding-right: 10px; opacity: 0.5;">
+<img src="{{ asset('build/images/phone.png') }}" alt="PhoneIcon" width="20">
 </td>
 <td>
 <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}" style="font-size: 16px;">{{ $phone }}</a>

@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2.1",
         "mcamara/laravel-localization": "^1.8",
+        "ovh/ovh": "^3.2",
         "vinkla/hashids": "^11.0"
     },
     "require-dev": {

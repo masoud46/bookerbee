@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Country;
+use App\Models\Event;
 use App\Models\Patient;
 use Hashids;
 use Illuminate\Database\Query\Builder;
@@ -158,6 +159,25 @@ class PatientController extends Controller {
 
 		$patient->firstname = ucfirst($patient->firstname);
 		$patient->lastname = ucfirst($patient->lastname);
+
+		// // adjust reminders according to email and phone
+		// if ($is_update) {
+		// 	$events = Event::select('id')
+		// 		->wherePatientId($patient->id)
+		// 		->where("start", ">", date("Y-m-d H:i:00"))
+		// 		->get();
+			
+		// 	foreach ($events as $id) {
+		// 		$event = Event::find($id)->first();
+		// 		$event->setReminders([
+		// 			'email' => $patient->email,
+		// 			'phone' => $patient->phone_number,
+		// 		]);
+
+		// 		$event->save();
+		// 	}
+		// }
+
 		$patient->save();
 
 		if ($is_update) {

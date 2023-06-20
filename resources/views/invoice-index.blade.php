@@ -1,6 +1,239 @@
 @extends('layouts.app', ['page_title' => '<i class="fas fa-rectangle-list me-2"></i>' . __('Statements')])
 
 @php
+	// function calculateTimeDelta()
+	// {
+	//	  $headers = [
+	//			'X-Ovh-Application' => config('project.sms.ovh.application_key'),
+	//			'Content-Type' => 'application/json; charset=utf-8',
+	//	  ];
+	
+	//	  $client = new \GuzzleHttp\Client([
+	//			'timeout' => 30,
+	//			'connect_timeout' => 5,
+	//	  ]);
+	
+	//	  $request = new \GuzzleHttp\Psr7\Request('GET', 'https://eu.api.ovh.com/1.0/auth/time', $headers);
+	//	  $response = $client->send($request, ['headers' => $headers]);
+	
+	//	  $serverTimestamp = (int) (string) $response->getBody();
+	//	  $time_delta = $serverTimestamp - (int) \time();
+	
+	//	  return $time_delta;
+	// }
+	
+	// $url = 'https://eu.api.ovh.com/1.0/sms/sms-ms1296984-1';
+	// $url_hlr = $url . '/hlr';
+	// $url_hlr_id = $url_hlr . '/:id';
+	
+	// $headers = [
+	//	  'Content-Type' => 'application/json; charset=utf-8',
+	//	  'X-Ovh-Application' => config('project.sms.ovh.application_key'),
+	//	  'X-Ovh-Consumer' => config('project.sms.ovh.consumer_key'),
+	// ];
+	
+	// $client = new \GuzzleHttp\Client([
+	//	  'timeout' => 30,
+	//	  'connect_timeout' => 5,
+	// ]);
+	
+	// echo '<pre>';
+	
+	// // $method = 'GET';
+	// // $url = str_replace(':id', '11698476', $url_hlr_id); // done
+	// // // $url = str_replace(':id', '11698471', $url_hlr_id); // error
+	// // $body = '';
+	
+	// // $now = time() + calculateTimeDelta();
+	// // $toSign = config('project.sms.ovh.application_secret') . '+' . config('project.sms.ovh.consumer_key') . '+' . $method . '+' . $url . '+' . $body . '+' . $now;
+	// // $signature = '$1$' . sha1($toSign);
+	// // $headers['X-Ovh-Signature'] = $signature;
+	// // $headers['X-Ovh-Timestamp'] = $now;
+	
+	// // $request = new \GuzzleHttp\Psr7\Request($method, $url, $headers);
+	// // $res = $client->sendAsync($request, ['headers' => $headers])->wait();
+	// // dd(json_decode($res->getBody(), true));
+	
+	// $method = 'POST';
+	// $url = $url_hlr;
+	// $to = '+32472877055';
+	// $to = preg_replace('/\s+/', '', $to);
+	// $content = [
+	//	  'receivers' => [$to],
+	// ];
+	// $body = json_encode($content, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+	
+	// $now = time() + calculateTimeDelta();
+	// $toSign = config('project.sms.ovh.application_secret') . '+' . config('project.sms.ovh.consumer_key') . '+' . $method . '+' . $url . '+' . $body . '+' . $now;
+	// $signature = '$1$' . sha1($toSign);
+	// $headers['X-Ovh-Signature'] = $signature;
+	// $headers['X-Ovh-Timestamp'] = $now;
+	
+	// $request = new \GuzzleHttp\Psr7\Request($method, $url, $headers, $body);
+	// $res = $client->sendAsync($request, ['headers' => $headers])->wait();
+	// $res_array = json_decode($res->getBody(), true, 512, JSON_THROW_ON_ERROR);
+	// print_r($res_array);
+	
+	// $hlr_id = $res_array['ids'][0];
+	// echo PHP_EOL . 'hlr_id: ' . $hlr_id . PHP_EOL;
+	
+	// $method = 'GET';
+	// $url = str_replace(':id', $hlr_id, $url_hlr_id); // done
+	// $body = '';
+	
+	// do {
+	//	  $now = time() + calculateTimeDelta();
+	//	  $toSign = config('project.sms.ovh.application_secret') . '+' . config('project.sms.ovh.consumer_key') . '+' . $method . '+' . $url . '+' . $body . '+' . $now;
+	//	  $signature = '$1$' . sha1($toSign);
+	//	  $headers['X-Ovh-Signature'] = $signature;
+	//	  $headers['X-Ovh-Timestamp'] = $now;
+	
+	//	  $request = new \GuzzleHttp\Psr7\Request($method, $url, $headers);
+	//	  $res = $client->sendAsync($request, ['headers' => $headers])->wait();
+	//	  $res_array = json_decode($res->getBody(), true, 512, JSON_THROW_ON_ERROR);
+	
+	//	  $status = $res_array['status'];
+	// } while ($status === 'todo');
+	
+	// print_r($res_array);
+	// echo '</pre>';
+	// dd('done');
+	
+	// echo '<pre>';
+	
+	// $sms = new \App\Notifications\SmsMessage(['provider' => 'smsto']);
+	// $sms_to = $sms
+	//	  ->to(preg_replace('/\s+/', '', '+32 472 87 70 55'))
+	//	  ->line('Hello World!')
+	//	  ->line(':o)')
+	//	  ->dryRun()
+	//	  ->send();
+	// print_r($sms_to);
+	
+	// $sms = new \App\Notifications\SmsMessage();
+	// $ovh = $sms
+	//	  ->to(preg_replace('/\s+/', '', '+32 0472 87 70 55'))
+	//	  ->line('Hello World!')
+	//	  ->line(':o)')
+	//	  ->dryRun()
+	//	  ->send();
+	// print_r($ovh);
+
+	// /* SendGrid */
+	// $url = 'https://api.brevo.com/v3/smtp/email';
+	// $api_key = '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';
+	
+	// $postData = [
+	// 	'sender' => ['name' => 'BookerBee', 'email' => 'no-reply@bookerbee.com'],
+	// 	'to' => [['name' => 'John DOE', 'email' => 'masoudf46@gmail.com']],
+	// 	'subject' => 'Test email',
+	// 	'htmlContent' => '<html><head></head><body><img src={{ params.LOGO_IMAGE_URL}} alt="BookerBee" height="35"><br><h1>Héllo this îs a test email from œuf</h1></body></html>',
+	// 	'headers' => [
+	// 		// 'X-Mailin-custom' => 'custom_header_1:custom_value_1|custom_header_2:custom_value_2|custom_header_3:custom_value_3',
+	// 		'charset' => 'iso-8859-1',
+	// 	],
+	// 	'params' => [
+	// 		'LOGO_IMAGE_URL' => 'https://bookerbee.com/build/images/logo.png',
+	// 	],
+	// ];
+	
+	// // $payload = json_encode($postData, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+	// $payload = json_encode($postData);
+	
+	// $ch = curl_init($url);
+	// $headers = [
+	// 	'accept: application/json',
+	// 	'content-type: application/json',
+	// 	'api-key: ' . $api_key,
+	// ];
+	
+	// curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+	// curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+	// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+	// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+	// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	
+	// $response = curl_exec($ch);
+	// curl_close($ch);
+	
+	// if ($response === false) {
+	// 	 print 'Could not get a response';
+	// } else {
+	// 	 var_dump($response);
+	// }
+
+	// /* Brevo */
+	// $url = 'https://api.sendgrid.com/v3/mail/send';
+	// $api_key = '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';
+	// $path = __DIR__ . '/../../../public/build/images/logo.png';
+	// $data = file_get_contents($path);
+	// $logo = base64_encode($data);
+	
+	// $postData = [
+	//     'personalizations' => [
+	//         [
+	//             'to' => [
+	//                 [
+	//                     'email' => 'masoudf46@gmail.com',
+	//                     'name' => 'John DOE',
+	//                 ],
+	//             ],
+	//         ],
+	//     ],
+	//     'from' => [
+	//         'email' => 'no-reply@bookerbee.com',
+	//         'name' => 'BookerBee',
+	//     ],
+	//     'subject' => 'Sénding with SendGrid îs œuf',
+	//     'content' => [
+	//         [
+	//             'type' => 'text/plain',
+	//             'value' => '& Sénding with SendGrid îs œuf',
+	//         ],
+	//         [
+	//             'type' => 'text/html',
+	//             // 'value' => '<html><head></head><body><h1><img src="https://bookerbee.com/build/images/logo.png" width="120" alt="BookerBee"><br>& Sénding with SendGrid îs œuf</h1></body></html>',
+	//             'value' => '<html><head></head><body><h1><img src="cid:header_logo" height="35" alt="BookerBee"><br>& Sénding with SendGrid îs œuf</h1></body></html>',
+	//         ],
+	//     ],
+	//     'attachments' => [
+	//         [
+	//             'type' => 'image/png',
+	//             'filename' => 'logo.png',
+	//             'disposition' => 'inline',
+	//             'content_id' => 'header_logo',
+	//             'content' => $logo,
+	//         ],
+	//     ],
+	// ];
+	
+	// // $payload = json_encode($postData, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+	// $payload = json_encode($postData);
+	
+	// $ch = curl_init($url);
+	// $headers = [
+	//     'Content-Type: application/json',
+	//     'Authorization: Bearer ' . $api_key,
+	// ];
+	
+	// curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+	// curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+	// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+	// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+	// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	
+	// $response = false;
+	// // $response = curl_exec($ch);
+	// // curl_close($ch);
+	
+	// if ($response === false) {
+	//     print 'Could not get a response';
+	// } else {
+	//     var_dump($response);
+	// }
+	
+	// echo '</pre>';
+	
 	$default_country_code = config('project.default_country_code');
 	$limits = config('project.load_invoice_limits');
 	$default_limit = $limits[0];
@@ -31,27 +264,27 @@
 	<input type="hidden" id="invoice-show-url" value="{{ route('invoice.show', ['invoice' => '?id']) }}">
 	<input type="hidden" id="invoice-print-url" value="{{ route('invoice.print', ['invoice' => '?id']) }}">
 	@if (config('app.env') === 'local')
-		<div class="d-flex justify-content-evenly">
-			<a class="nav-link" href="{{ route('email.change-email') }}">ChangeEmail</a>
-			<a class="nav-link" href="{{ route('email.change-password') }}">ChangePassword</a>
-			<a class="nav-link" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">Remind</a>
+		<div class="d-flex justify-content-end mt-2">
+			{{-- <a class="nav-link me-3" href="{{ route('email.change-email') }}">ChangeEmail</a>
+			<a class="nav-link me-3" href="{{ route('email.change-password') }}">ChangePassword</a> --}}
+			<a class="nav-link me-3" href="{{ route('email.reminder') }}" onclick="event.preventDefault(); document.getElementById('reminder-form').submit();">Remind</a>
 			<form id="reminder-form" action="{{ route('email.reminder') }}" method="post" class="d-none">
 				@method('put')
 				@csrf
 			</form>
-			<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">Add</a>
+			<a class="nav-link me-3" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('add-form').submit();">Add</a>
 			<form id="add-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
 				@method('put')
 				@csrf
 				<input type="hidden" name="action" value="add">
 			</form>
-			<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">Update</a>
+			<a class="nav-link me-3" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('update-form').submit();">Update</a>
 			<form id="update-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
 				@method('put')
 				@csrf
 				<input type="hidden" name="action" value="update">
 			</form>
-			<a class="nav-link" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">Delete</a>
+			<a class="nav-link me-3" href="{{ route('email.appointment') }}" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">Delete</a>
 			<form id="delete-form" action="{{ route('email.appointment') }}" method="post" class="d-none">
 				@method('put')
 				@csrf

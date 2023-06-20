@@ -12,14 +12,14 @@ class Kernel extends ConsoleKernel {
 	 * @var array
 	 */
 	protected $commands = [
-		'App\Console\Commands\SendReminderEmails'
+		'App\Console\Commands\SendReminders'
 	];
 
 	/**
 	 * Define the application's command schedule.
 	 */
 	protected function schedule(Schedule $schedule): void {
-		$schedule->command("emails:send-reminders")->everyFiveMinutes();
+		$schedule->command("send:reminders")->everyFiveMinutes();
 	}
 
 	/**

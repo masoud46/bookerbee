@@ -27,6 +27,7 @@ class SendEmailController extends Controller {
 		$event = [
 			'start' => '2023-05-31 07:30:00',
 			'end' => '2023-05-31 09:00:00',
+			'remaining_time' => 26,
 			'timezone' => 'Europe/Brussels',
 			'user_firstname' => 'Masoud',
 			'user_lastname' => 'Fathi',

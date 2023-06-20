@@ -2,7 +2,7 @@
 
 @php
 	$default_country_code = config('project.default_country_code');
-	$cal_slots = [15, 30, 45, 60];
+	$cal_slots = [10, 15, 30, 45, 60];
 	$cal_times = [];
 	$time = Carbon\Carbon::parse('00:00:00');
 	

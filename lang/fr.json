@@ -242,6 +242,8 @@
 	"Your appointment has been canceled": "Votre rendez-vous a été annulé",
 	"Hello :name": "Bonjour :name",
 	"Your next appointment with the following details, will start in about :time hours.": "Votre prochain rendez-vous avec les détails suivants, commencera dans environ :time heures.",
+	"Your appointment with :name will start in about :time hours.": "Votre rendez-vous avec :name commencera dans environ :time heures.",
+	"A detailed email has been sent to you.": "Un mail détaillé vous a été envoyé.",
 	"We confirm your appointment with the following details:": "Nous vous confirmons votre rendez-vous avec les détails suivants :",
 	"If you wish to cancel this appointment, contact the practitioner directly:": "Si vous souhaitez annuler ce rendez-vous, prenez directement contact avec le praticien :",
 	"You can import this appointment into your personal calendar by clicking on the button below.": "Vous pouvez importer ce rendez-vous dans votre agenda personnel en cliquant sur le bouton ci-dessous.",

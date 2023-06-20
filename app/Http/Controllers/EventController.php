@@ -84,18 +84,6 @@ class EventController extends Controller {
 	}
 
 	/**
-	 * Return the reminder according to start time and the "reminder_email_time" config.
-	 *
-	 * @return Boolean
-	 */
-	private function setReminder($event) {
-		$hours = config('project.reminder_email_time');
-		$time = Carbon::now()->addHours($hours);
-
-		return $event->start->lessThanOrEqualTo($time);
-	}
-
-	/**
 	 * Get a listing of the resource between two dates.
 	 *
 	 * @return String
@@ -246,11 +234,13 @@ class EventController extends Controller {
 				$event->rrule_byweekday = implode(',', $data['rrule']['byweekday']);
 			}
 		} else {
-			$event->start = Carbon::parse($data['start']);
-			$event->end = Carbon::parse($data['end']);
+			$event->start = Carbon::parse($data['start'])->format('Y-m-d H:i:s');
+			$event->end = Carbon::parse($data['end'])->format('Y-m-d H:i:s');
 		}
 
-		$event->reminder = $this->setReminder($event);
+		if ($event->category === 1) {
+			$event->setReminders($data['extendedProps']['patient']);
+		}
 
 		$event->save();
 
@@ -304,9 +294,12 @@ class EventController extends Controller {
 
 		$event->all_day = $data['allDay'];
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
-		$event->start = Carbon::parse($data['start']);
-		$event->end = Carbon::parse($data['end']);
-		$event->reminder = $this->setReminder($event);
+		$event->start = Carbon::parse($data['start'])->format('Y-m-d H:i:s');
+		$event->end = Carbon::parse($data['end'])->format('Y-m-d H:i:s');
+
+		if ($event->category === 1) {
+			$event->setReminders($data['extendedProps']['patient']);
+		}
 
 		$event->save();
 

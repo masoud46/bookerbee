@@ -291,8 +291,3 @@ img {
 }
 
 
-
-img[alt="EmailIcon"],
-img[alt="PhoneIcon"] {
-	width: 20px;
-}

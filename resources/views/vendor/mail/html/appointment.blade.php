@@ -8,20 +8,20 @@
 <x-mail::panel>
 <table>
 <tr>
-<td style="text-align: right;">{{ __("Practitioner:") }}</td>
-<td style="font-weight: bold;">{{ $lastname }}, {{ $firstname }}</td>
+<td style="text-align: right; font-size: 0.9em; font-style: italic;">{{ __("Practitioner:") }}</td>
+<td>{{ $lastname }}, {{ $firstname }}</td>
 </tr>
 <tr>
-<td style="text-align: right;">{{ __("Date:") }}</td>
-<td style="font-weight: bold;">{{ $date }}</td>
+<td style="text-align: right; font-size: 0.9em; font-style: italic;">{{ __("Date:") }}</td>
+<td>{{ $date }}</td>
 </tr>
 <tr>
-<td style="text-align: right;">{{ __("Start:") }}</td>
-<td style="font-weight: bold;">{{ $start }}</td>
+<td style="text-align: right; font-size: 0.9em; font-style: italic;">{{ __("Start:") }}</td>
+<td>{{ $start }}</td>
 </tr>
 <tr>
-<td style="text-align: right;">{{ __("End:") }}</td>
-<td style="font-weight: bold;">{{ $end }}</td>
+<td style="text-align: right; font-size: 0.9em; font-style: italic;">{{ __("End:") }}</td>
+<td>{{ $end }}</td>
 </tr>
 </table>
 </x-mail::panel>

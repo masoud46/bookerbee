@@ -50,7 +50,18 @@ class User extends Authenticatable {
 	 */
 	protected function features(): Attribute {
 		return Attribute::make(
-			get: fn ($value) => $value ? explode(',', $value) : [],
+			// get: fn ($value) => $value ? explode(',', $value) : [],
+			get: function ($value) {
+				$features = [];
+
+				if ($value) {
+					foreach ($features = explode(",", $value) as $index => $feature) {
+						$features[$index] = trim($feature);
+					}
+				}
+			
+				return $features;
+			},
 		);
 	}
 
