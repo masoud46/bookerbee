@@ -534,7 +534,7 @@ class EventController extends Controller {
 
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
-		$result = ['success' => false];
+		$result = ['success' => false, 'id' => $event->id];
 		// $result = [
 		// 	'success' => true,
 		// 	'id' => $event->id,
