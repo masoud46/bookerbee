@@ -244,7 +244,7 @@
 	"Your next appointment with the following details, will start in about :time hours.": "Votre prochain rendez-vous avec les détails suivants, commencera dans environ :time heures.",
 	"Your appointment with :name will start in about :time hours.": "Votre rendez-vous avec :name commencera dans environ :time heures.",
 	"Your appointment of :date at :start with :name has been confirmed.": "Votre rendez-vous du :date à :start avec :nom a été confirmé.",
-	"Your appointment of :old_date at :old_start with :name has been rescheduled. New appointment: :date at :start.": "Votre rendez-vous du :old_date à :old_start avec :name a été reporté. Nouveau rendez-vous : :date à :start.",
+	"Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.": "Votre rendez-vous du :old_date à :old_start avec :name a été reporté au :date à :start.",
 	"Your appointment of :date at :start with :name has been canceled.": "Votre rendez-vous du :date à :start avec :nom a été annulé.",
 	"A detailed email has been sent to you.": "Un mail détaillé vous a été envoyé.",
 	"Your appointment with the following details has been confirmed:": "Votre rendez-vous avec les détails suivants a été confirmé :",

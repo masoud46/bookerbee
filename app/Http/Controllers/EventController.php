@@ -234,25 +234,25 @@ class EventController extends Controller {
 		$to = $event['extendedProps']['patient']['phone'];
 		$message = __("Your appointment of :date at :start with :name has been confirmed.", [
 			'name' => $user_name,
-			'date' => Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
-			'start' => Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+			'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
+			'start' => Carbon::parse($event['localStart'])->format('H:i'),
 		]);
 
 		switch ($type) {
 			case 'update':
-				$message = __("Your appointment of :old_date at :old_start with :name has been rescheduled. New appointment: :date at :start.", [
+				$message = __("Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.", [
 					'name' => $user_name,
-					'old_date' => Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
-					'old_start' => Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
-					'date' => Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
-					'start' => Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+					'old_date' => Carbon::parse($old_event['localStart'])->format('d/m/Y'),
+					'old_start' => Carbon::parse($old_event['localStart'])->format('H:i'),
+					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
+					'start' => Carbon::parse($event['localStart'])->format('H:i'),
 				]);
 				break;
 			case 'delete':
 				$message = __("Your appointment of :date at :start with :name has been canceled.", [
 					'name' => $user_name,
-					'date' => Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
-					'start' => Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
+					'start' => Carbon::parse($event['localStart'])->format('H:i'),
 				]);
 				break;
 		}
