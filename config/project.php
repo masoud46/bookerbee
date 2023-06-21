@@ -20,11 +20,24 @@ return [
 
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),
 	'default_timezone' => env('APP_DEFAULT_TIMEZONE', 'Europe/Luxembourg'),
+	'load_invoice_limits' => $limits,
+
 	'send_emails' => env('APP_SEND_EMAILS', true),
 	'send_sms' => env('APP_SEND_SMS', true),
 	'reminder_email_time' => env('APP_REMINDER_EMAIL_TIME', '48'),
 	'reminder_sms_time' => env('APP_REMINDER_SMS_TIME', '26'),
-	'load_invoice_limits' => $limits,
+
+	'mail' => [
+		'default_provider' => env('MAIL_DEFAULT_PROVIDER', 'sendgrid'),
+		'default_dev_provider' => env('MAIL_DEFAULT_DEV_PROVIDER', 'brevo'),
+		'sendgrid' => [
+			'api_key' => env('SENDGRID_API_KEY', null),
+		],
+		'brevo' => [
+			'api_key' => env('BREVO_API_KEY', null),
+			'smtp_key' => env('BREVO_SMTP_KEY', null),
+		],
+	],
 
 	'sms' => [
 		'default_provider' => env('SMS_DEFAULT_PROVIDER', 'ovh'),

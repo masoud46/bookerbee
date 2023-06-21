@@ -74,7 +74,7 @@ modal.props = {
 	patientEmail: modal.querySelector('.event-patient-email'),
 	patientPhone: modal.querySelector('.event-patient-phone'),
 	rdvHasEmail: modal.querySelector('.calendar-event-has-email'),
-	rdvNoEmail: modal.querySelector('.calendar-event-no-email'),
+	rdvNoNotification: modal.querySelector('.calendar-event-no-notification'),
 	startDate: modal.querySelector('.calendar-event-start-date'),
 	startTime: modal.querySelector('.calendar-event-start-time'),
 	endDate: modal.querySelector('.calendar-event-end-date'),
@@ -133,14 +133,14 @@ const setRdvInfo = patientInfo => {
 	modal.props.patientEmail.textContent = patientInfo.email ?? ''
 	modal.props.patientPhone.textContent = patientInfo.phone ?? ''
 
-	if (patientInfo.email) {
+	if (patientInfo.email || patientInfo.phone) {
 		modal.props.patientEmail.parentNode.classList.remove('d-none')
 		modal.props.rdvHasEmail.classList.remove('d-none')
-		modal.props.rdvNoEmail.classList.add('d-none')
+		modal.props.rdvNoNotification.classList.add('d-none')
 	} else {
 		modal.props.patientEmail.parentNode.classList.add('d-none')
 		modal.props.rdvHasEmail.classList.add('d-none')
-		modal.props.rdvNoEmail.classList.remove('d-none')
+		modal.props.rdvNoNotification.classList.remove('d-none')
 	}
 
 	if (patientInfo.phone) {
@@ -181,7 +181,7 @@ const storeEvent = async (action, event, oldEvent = null) => {
 	delete event.jsEvent
 	delete event.view
 
-	if (event.extendedProps?.patient?.email) document.body.classList.add('sending-email')
+	document.body.classList.add('sending-email')
 
 	try {
 		const result = await utils.fetch({
@@ -401,6 +401,7 @@ const showModal = action => {
 
 	if (action === EVENT_ACTION_CANCEL || action === EVENT_ACTION_UPDATE) {
 		const patientInfo = {
+			id: event.extendedProps.patient.id,
 			name: event.extendedProps.patient.name,
 			locale: event.extendedProps.patient.locale,
 			email: event.extendedProps.patient.email ?? null,
@@ -818,6 +819,7 @@ Pickers.forEach(picker => {
 		const patientInfo = modal.props.patients.find(patient => patient.id == id)
 		const prefixObj = window.laravel.agenda.prefixes.find(prefix => prefix.id == patientInfo.phone_country_id)
 
+		patientInfo.id = id
 		patientInfo.name = name
 		patientInfo.phone = prefixObj ? `${prefixObj.prefix} ${patientInfo.phone_number}` : null
 		setRdvInfo(patientInfo)

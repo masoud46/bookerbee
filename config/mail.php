@@ -85,13 +85,24 @@ return [
 			],
 		],
 
+		'sendgrid' => [
+			'transport' => env('SENDGRID_MAILER'),
+			'host' => env('SENDGRID_HOST'),
+			'port' => env('SENDGRID_PORT'),
+			'encryption' => env('SENDGRID_ENCRYPTION'),
+			'username' => env('SENDGRID_USERNAME'),
+			'password' => env('SENDGRID_PASSWORD'),
+			'timeout' => null,
+			'local_domain' => env('MAIL_EHLO_DOMAIN'),
+		],
+
 		'brevo' => [
-			'transport' => 'smtp',
-			'host' => env('BREVO_MAIL_HOST', 'smtp.mailgun.org'),
-			'port' => env('BREVO_MAIL_PORT', 587),
-			'encryption' => env('BREVO_MAIL_ENCRYPTION', 'tls'),
-			'username' => env('BREVO_MAIL_USERNAME'),
-			'password' => env('BREVO_MAIL_PASSWORD'),
+			'transport' => env('BREVO_MAILER'),
+			'host' => env('BREVO_HOST'),
+			'port' => env('BREVO_PORT'),
+			'encryption' => env('BREVO_ENCRYPTION'),
+			'username' => env('BREVO_USERNAME'),
+			'password' => env('BREVO_PASSWORD'),
 			'timeout' => null,
 			'local_domain' => env('MAIL_EHLO_DOMAIN'),
 		],
@@ -120,9 +131,13 @@ return [
     |
     */
 
+	// 'from' => [
+	// 	'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+	// 	'name' => env('MAIL_FROM_NAME', 'Example'),
+	// ],
 	'from' => [
-		'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-		'name' => env('MAIL_FROM_NAME', 'Example'),
+		'address' => env(strtoupper(env('MAIL_DEFAULT_PROVIDER', 'sendgrid')).'_FROM_ADDRESS', 'hello@example.com'),
+		'name' => env(strtoupper(env('MAIL_DEFAULT_PROVIDER', 'sendgrid')) . '_FROM_NAME', 'Example'),
 	],
 
 	/*

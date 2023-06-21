@@ -170,9 +170,8 @@
 	</div>
 
 	<div class="sending-email-overlay">
-		<div class="spinner-wrapper">
-			<div class="spinner-border text-primary" role="status"></div>
-			<div class="icon text-primary"><i class="far fa-envelope"></i></div>
+		<div class="spinner-border text-primary" role="status">
+			<span class="visually-hidden">Loading...</span>
 		</div>
 	</div>
 

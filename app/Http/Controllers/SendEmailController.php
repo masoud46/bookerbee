@@ -90,33 +90,7 @@ class SendEmailController extends Controller {
 			return new AppointmentEmail($action, $event, $old_event);
 		}
 
-		// dd($request->event['extendedProps']['patient']['email']);
-		// Mail::to($request->event['extendedProps']['patient']['email'])
-		// 	->send(new AppointmentEmail($request->action, $request->event, $request->old_event));
-
-		// session()->flash("success", __("The email has been sent."));
-		// return back();
-
-		// $patient = Patient::find($patient);
-		// $event = Event::find($event);
-
-		// dd($request->all());
 		return new AppointmentEmail($request->action, $request->event, $request->old_event);
 	}
 
-	public function sendChangeEmail(Request $request) {
-		$email = Auth::user()->email;
-		$name = Auth::user()->firstname;
-		Mail::to($email)
-			->send(new ChangeEmail($name));
-		return redirect()->route('home');
-	}
-
-	public function sendChangePassword() {
-		$email = Auth::user()->email;
-		$name = Auth::user()->firstname;
-		Mail::to($email)
-			->send(new ChangePassword($name));
-		return redirect()->route('home');
-	}
 }

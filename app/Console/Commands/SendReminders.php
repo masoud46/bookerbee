@@ -84,7 +84,7 @@ class SendReminders extends Command {
 		}
 
 		// send reminders
-		$events->map(function ($event) use($sms_time) {
+		$events->map(function ($event) use ($sms_time) {
 			Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
 			Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
 			Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
@@ -106,54 +106,60 @@ class SendReminders extends Command {
 			if ($start->lessThanOrEqualTo($sms_time)) {
 
 				if ($event->patient_email && $event->reminder_email < 2) {
-					Log::channel('reminder')->info("<SENDING SECOND EMAIL>");
+					$mail_provider = config('app.env') === 'production'
+						? config('project.mail.default_provider')
+						: config('project.mail.default_dev_provider');
 
-					try {
-						if (config('app.env') === 'production') {
-							Mail::to($event->patient_email)->send(new AppointmentReminder($event_array));
-						} else if (config('project.send_emails')) {
-							Mail::mailer('brevo')->to($event->patient_email)->send(new AppointmentReminder($event_array));
+					if (config('app.env') === 'production' || config('project.send_emails')) {
+						try {
+							Log::channel('reminder')->info("<SENDING SECOND EMAIL>");
+
+							Mail::mailer($mail_provider)
+								->to($event->patient_email)
+								->send(new AppointmentReminder($event_array));
+
+							Log::channel('reminder')->info("<EMAIL SENT> {$event->patient_email}");
+
+							if (config('app.env') === 'production') {
+								Event::whereId($event->id)->update(['reminder_email' => 2]);
+							}
+
+							Log::channel('reminder')->info("<EVENT REMINDER_EMAIL UPDATED TO 2> {$event->id}");
+						} catch (\Throwable $th) {
+							Log::channel('reminder')->info("<!!! ERROR !!!>");
+							Log::channel('reminder')->info($th->__toString());
+							Log::channel('reminder')->info(print_r($event_array, true));
 						}
-
-						Log::channel('reminder')->info("<EMAIL SENT> {$event->patient_email}");
-
-						if (config('app.env') === 'production') {
-							Event::whereId($event->id)->update(['reminder_email' => 2]);
-						}
-
-						Log::channel('reminder')->info("<EVENT REMINDER_EMAIL UPDATED TO 2> {$event->id}");
-					} catch (\Throwable $th) {
-						Log::channel('reminder')->info("<!!! ERROR !!!>");
-						Log::channel('reminder')->info($th->__toString());
-						Log::channel('reminder')->info(print_r($event_array, true));
 					}
 				}
 
 				if (
 					$event->patient_phone_number &&
 					in_array("sms", $features) &&
-					$event->reminder_sms === 0) {
-					Log::channel('reminder')->info("<SENDING SMS>");
+					$event->reminder_sms === 0
+				) {
+
+					$result = ['success' => true];
+					$user_name = ucfirst($event->user_firstname) . " " . strtoupper($event->user_lastname);
+					$patient_name = ucfirst($event->patient_firstname);
+					$number = ltrim($event->patient_phone_number, '0');
+					$number = "{$event->patient_phone_prefix} {$number}";
+					$message = __("Your appointment with :name will start in about :time hours.", [
+						'name' => $user_name,
+						'time' => $event_array['remaining_time'],
+					]);
+
+					if ($event->patient_email) {
+						$message .= " " . __("A detailed email has been sent to you.");
+					}
+
+					$sms = new \App\Notifications\SmsMessage(['xxxprovider' => "smsto"]);
+					$sms = $sms->to(preg_replace('/\s+/', '', $number))
+						->line(__("Hello :name", ['name' => $patient_name]) . ",")
+						->line($message);
 
 					try {
-						$result = ['success' => true];
-						$user_name = ucfirst($event->user_firstname) . " " . strtoupper($event->user_lastname);
-						$patient_name = ucfirst($event->patient_firstname);
-						$number = ltrim($event->patient_phone_number, '0');
-						$number = "{$event->patient_phone_prefix} {$number}";
-						$message = __("Your appointment with :name will start in about :time hours.", [
-							'name' => $user_name,
-							'time' => config('project.reminder_sms_time'),
-						]);
-
-						if ($event->patient_email) {
-							$message .= " " . __("A detailed email has been sent to you.");
-						}
-
-						$sms = new \App\Notifications\SmsMessage(['xxxprovider' => "smsto"]);
-						$sms = $sms->to(preg_replace('/\s+/', '', $number))
-							->line(__("Hello :name", ['name' => $patient_name]) . ",")
-							->line($message);
+						Log::channel('reminder')->info("<SENDING SMS> {$number}");
 
 						if (config('app.env') === 'production') {
 							$result = $sms->send();
@@ -163,7 +169,7 @@ class SendReminders extends Command {
 						}
 
 						if ($result['success']) {
-							Log::channel('reminder')->info("<SMS SENT> {$number}");
+							Log::channel('reminder')->info("<SMS SENT>");
 
 							if (config('app.env') === 'production') {
 								Event::whereId($event->id)->update(['reminder_sms' => 1]);
@@ -184,26 +190,30 @@ class SendReminders extends Command {
 					}
 				}
 			} else if ($event->reminder_email === 0 && $event->patient_email) {
-				Log::channel('reminder')->info("<SENDING FIRST EMAIL>");
+				$mail_provider = config('app.env') === 'production'
+					? config('project.mail.default_provider')
+					: config('project.mail.default_dev_provider');
 
-				try {
-					if (config('app.env') === 'production') {
-						Mail::to($event->patient_email)->send(new AppointmentReminder($event_array));
-					} else if (config('project.send_emails')) {
-						Mail::mailer('brevo')->to($event->patient_email)->send(new AppointmentReminder($event_array));
+				if (config('app.env') === 'production' || config('project.send_emails')) {
+					try {
+						Log::channel('reminder')->info("<SENDING FIRST EMAIL>");
+
+						Mail::mailer($mail_provider)
+							->to($event->patient_email)
+							->send(new AppointmentReminder($event_array));
+
+						Log::channel('reminder')->info("<EMAIL SENT> {$event->patient_email}");
+
+						if (config('app.env') === 'production') {
+							Event::whereId($event->id)->update(['reminder_email' => 1]);
+						}
+
+						Log::channel('reminder')->info("<EVENT REMINDER_EMAIL UPDATED TO 1> {$event->id}");
+					} catch (\Throwable $th) {
+						Log::channel('reminder')->info("<!!! ERROR !!!>");
+						Log::channel('reminder')->info($th->__toString());
+						Log::channel('reminder')->info(print_r($event_array, true));
 					}
-
-					Log::channel('reminder')->info("<EMAIL SENT> {$event->patient_email}");
-
-					if (config('app.env') === 'production') {
-						Event::whereId($event->id)->update(['reminder_email' => 1]);
-					}
-
-					Log::channel('reminder')->info("<EVENT REMINDER_EMAIL UPDATED TO 1> {$event->id}");
-				} catch (\Throwable $th) {
-					Log::channel('reminder')->info("<!!! ERROR !!!>");
-					Log::channel('reminder')->info($th->__toString());
-					Log::channel('reminder')->info(print_r($event_array, true));
 				}
 			}
 

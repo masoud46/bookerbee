@@ -6,13 +6,13 @@
 {{ __("If you wish to cancel this appointment, contact the practitioner directly:") }}<br>
 </p>
 
-<table style="line-height: 1.8; margin-bottom: 20px;" cellpadding="0" cellspacing="0" role="presentation">
+<table style="margin-bottom: 20px;" cellpadding="0" cellspacing="0" role="presentation">
 <tbody>
 <tr>
-<td style="padding-top: 6px; padding-right: 10px; opacity: 0.5;">
+<td style="padding-top: 6px; padding-bottom: 6px; padding-right: 10px; opacity: 0.5;">
 <img src="{{ asset('build/images/envelope.png') }}" alt="EmailIcon" width="20">
 </td>
-<td>
+<td style="padding-bottom: 6px;">
 <a href="mailto:{{ $email }}" style="font-size: 16px;">{{ $email }}</a>
 </td>
 </tr>

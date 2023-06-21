@@ -1,6 +1,6 @@
 <x-mail::message>
 
-<x-mail::hello :name="explode(', ', $event['extendedProps']['patient']['name'])[1]" />
+<x-mail::hello :name="ucfirst(trim(explode(', ', $event['extendedProps']['patient']['name'])[1]))" />
 
 {{ __("We confirm your appointment with the following details:") }}
 

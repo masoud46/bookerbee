@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -169,6 +170,135 @@ class EventController extends Controller {
 	}
 
 	/**
+	 * Send notification email.
+	 *
+	 * @param  String $to
+	 * @param  String $type
+	 * @param  Array $event
+	 * @param  Array $old_event
+	 * @return Array $result
+	 */
+	private function sendEmail($type, $event, $old_event = null) {
+		if (config('app.env') !== 'production' && !config('project.send_emails')) {
+			return ['success' => true];
+		}
+
+		$result = ['success' => false];
+
+		$provider = config('app.env') === 'production' ?
+			config('project.mail.default_provider') :
+			config('project.mail.default_dev_provider');
+
+		$to = $event['extendedProps']['patient']['email'];
+
+		try {
+			Log::channel('agenda')->info("<SENDING EMAIL> {$to}");
+
+			Mail::mailer($provider)
+				->to($to)
+				->send(new AppointmentEmail($type, $event, $old_event));
+
+			$result['success'] = true;
+
+			Log::channel('agenda')->info("<EMAIL SENT>");
+		} catch (\Throwable $th) {
+			Log::channel('agenda')->info("<!!! ERROR !!!>");
+			Log::channel('agenda')->info($th->__toString());
+
+			$result['error'] = $th->getMessage();
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Send notification SMS.
+	 *
+	 * @param  String $name
+	 * @param  Boolean $email
+	 * @param  String $to
+	 * @param  String $type
+	 * @param  Array $event
+	 * @param  Array $old_event
+	 * @return Array $result
+	 */
+	private function sendSMS($type, $event, $old_event = null) {
+		if (config('app.env') !== 'production' && !config('project.send_sms')) {
+			return ['success' => true];
+		}
+
+		$result = ['success' => false];
+
+		$user_name = ucfirst(Auth::user()->firstname) . " " . strtoupper(Auth::user()->lastname);
+		$name = ucfirst(trim(explode(",", $event['extendedProps']['patient']['name'])[1]));
+		$to = $event['extendedProps']['patient']['phone'];
+		$message = __("Your appointment of :date at :start with :name has been confirmed.", [
+			'name' => $user_name,
+			'date' => Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
+			'start' => Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+		]);
+
+		switch ($type) {
+			case 'update':
+				$message = __("Your appointment of :old_date at :old_start with :name has been rescheduled. New appointment: :date at :start.", [
+					'name' => $user_name,
+					'old_date' => Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
+					'old_start' => Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
+					'date' => Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
+					'start' => Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+				]);
+				break;
+			case 'delete':
+				$message = __("Your appointment of :date at :start with :name has been canceled.", [
+					'name' => $user_name,
+					'date' => Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
+					'start' => Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+				]);
+				break;
+		}
+
+		if (isset($event['extendedProps']['patient']['email'])) {
+			$message .= " " . __("A detailed email has been sent to you.");
+		}
+
+		try {
+			Log::channel('agenda')->info("<SENDING SMS> {$to}");
+
+			$sms = new \App\Notifications\SmsMessage();
+			$sms = $sms->to(preg_replace('/\s+/', '', $to))
+				->line(__("Hello :name", ['name' => $name]) . ",")
+				->line($message);
+
+			$res = ['success' => false, 'data' => null];
+
+			if (config('app.env') === 'production') {
+				$res = $sms->send();
+			} else if (config('project.send_sms')) {
+				// $res = $sms->send();
+				$res = $sms->dryRun()->send();
+			}
+
+			if ($res['success']) {
+				Log::channel('agenda')->info("<SMS SENT>");
+
+				$result['success'] = true;
+			} else {
+				Log::channel('agenda')->info("<!!! SMS ERROR !!!>");
+				Log::channel('agenda')->info(print_r($res, true));
+
+				$result['error'] = $res['data'];
+			}
+		} catch (\Throwable $th) {
+			Log::channel('agenda')->info("<!!! ERROR !!!>");
+			Log::channel('agenda')->info($th->__toString());
+
+			$result['error'] = $th->getMessage();
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Display a listing of the resource.
 	 *
 	 * @return \Illuminate\Http\Response
@@ -246,33 +376,58 @@ class EventController extends Controller {
 
 		$data['id'] = $event->id;
 		$email = $data['extendedProps']['patient']['email'] ?? null;
-		$result = [
-			'success' => true,
-			'id' => $event->id,
-			'event' => $data,
-		];
+		$phone = $data['extendedProps']['patient']['phone'] ?? null;
+		$send_sms = $phone && in_array("sms", Auth::user()->features);
 
-		if ($event->patient_id && $email) {
+		$sms_result = ['success' => true];
+		$email_result = ['success' => true];
+		$result = ['success' => false];
+		// $result = [
+		// 	'success' => false,
+		// 	'id' => $event->id,
+		// 	'event' => $data,
+		// ];
+
+		if ($event->patient_id && ($email || $send_sms)) {
+			Log::channel('agenda')->info(
+				"Event ADD: {$event->id} - email " .
+					($email ? "YES" : "NO") . " - phone " .
+					($phone ? "YES" : "NO") . " - sms " .
+					($send_sms ? "YES" : "NO")
+			);
+
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			$data['hash_id'] = Hashids::encode($data['id']);
-			$data['user_phone'] = $this->getUserPhone();
+			if ($send_sms) {
+				$sms_result = $this->sendSMS("add", $data);
+			}
 
-			try {
-				if (config('app.env') === 'production') {
-					Mail::to($email)->send(new AppointmentEmail("add", $data));
-				} else if (config('project.send_emails')) {
-					Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("add", $data));
-				}
+			if ($email) {
+				$data['hash_id'] = Hashids::encode($data['id']);
+				$data['user_phone'] = $this->getUserPhone();
+
+				$email_result = $this->sendEmail("add", $data);
+			}
+
+			// Successful if either SMS or email passes
+			$result['success'] = $sms_result['success'] || $email_result['success'];
+
+			if ($result['success']) {
+				$result['id'] = $event->id;
 
 				DB::commit();
-			} catch (\Throwable $th) {
+			} else {
 				DB::rollBack();
 
-				$result['success'] = false;
+				if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
+				if (!$email_result['success']) $result['email_error'] = $email_result['error'];
 			}
+
+			Log::channel('agenda')->info("------------------------------------------------------------");
 		} else {
 			DB::commit();
+
+			$result['success'] = true;
 		}
 
 		return response()->json($result);
@@ -304,41 +459,57 @@ class EventController extends Controller {
 		$event->save();
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
-		$result = [
-			'success' => true,
-			'dbevent' => $event->toArray(),
-			'event' => $data,
-			'old_event' => $old_event,
-		];
+		$phone = $data['extendedProps']['patient']['phone'] ?? null;
+		$send_sms = $phone && in_array("sms", Auth::user()->features);
 
-		if ($event->patient_id && $email) {
+		$sms_result = ['success' => true];
+		$email_result = ['success' => true];
+		$result = ['success' => false];
+		// $result = [
+		// 	'success' => true,
+		// 	'dbevent' => $event->toArray(),
+		// 	'event' => $data,
+		// 	'old_event' => $old_event,
+		// ];
+
+		if ($event->patient_id && ($email || $send_sms)) {
+			Log::channel('agenda')->info(
+				"Event UPDATE: {$event->id} - email " .
+				($email ? "YES" : "NO") . " - phone " .
+				($phone ? "YES" : "NO") . " - sms " .
+				($send_sms ? "YES" : "NO")
+			);
+
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			$data['hash_id'] = Hashids::encode($data['id']);
-			$data['user_phone'] = $this->getUserPhone();
+			if ($send_sms) {
+				$sms_result = $this->sendSMS("update", $data, $old_event);
+			}
 
-			try {
-				if (config('app.env') === 'production') {
-					Mail::to($email)->send(new AppointmentEmail("update", $data, [
-						'localStart' => $old_event['localStart'],
-						'localEnd' => $old_event['localEnd'],
-					]));
-				} else if (config('project.send_emails')) {
-					Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("update", $data, [
-						'localStart' => $old_event['localStart'],
-						'localEnd' => $old_event['localEnd'],
-					]));
-				}
+			if ($email) {
+				$data['hash_id'] = Hashids::encode($data['id']);
+				$data['user_phone'] = $this->getUserPhone();
 
+				$email_result = $this->sendEmail("update", $data, $old_event);
+			}
+
+			// Successful if either SMS or email passes
+			$result['success'] = $sms_result['success'] || $email_result['success'];
+
+			if ($result['success']) {
 				DB::commit();
-			} catch (\Throwable $th) {
+			} else {
 				DB::rollBack();
 
-				$result['error'] = $th->__toString();
-				$result['success'] = false;
+				if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
+				if (!$email_result['success']) $result['email_error'] = $email_result['error'];
 			}
+
+			Log::channel('agenda')->info("------------------------------------------------------------");
 		} else {
 			DB::commit();
+
+			$result['success'] = true;
 		}
 
 		return response()->json($result);
@@ -352,36 +523,59 @@ class EventController extends Controller {
 	 */
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
-		$result = [
-			'success' => true,
-			'id' => $event->id,
-			'dbevent' => $event->toArray(),
-		];
 
 		DB::beginTransaction();
 
 		$event->delete();
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
+		$phone = $data['extendedProps']['patient']['phone'] ?? null;
+		$send_sms = $phone && in_array("sms", Auth::user()->features);
 
-		if ($event->patient_id && $email) {
+		$sms_result = ['success' => true];
+		$email_result = ['success' => true];
+		$result = ['success' => false];
+		// $result = [
+		// 	'success' => true,
+		// 	'id' => $event->id,
+		// 	'dbevent' => $event->toArray(),
+		// ];
+
+		if ($event->patient_id && ($email || $send_sms)) {
+			Log::channel('agenda')->info(
+				"Event DELETE: {$event->id} - email " .
+				($email ? "YES" : "NO") . " - phone " .
+				($phone ? "YES" : "NO") . " - sms " .
+				($send_sms ? "YES" : "NO")
+			);
+
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			try {
-				if (config('app.env') === 'production') {
-					Mail::to($email)->send(new AppointmentEmail("delete", $data));
-				} else if (config('project.send_emails')) {
-					Mail::mailer('brevo')->to($email)->send(new AppointmentEmail("delete", $data));
-				}
+			if ($send_sms) {
+				$sms_result = $this->sendSMS("delete", $data);
+			}
 
+			if ($email) {
+				$email_result = $this->sendEmail("delete", $data);
+			}
+
+			// Successful if either SMS or email passes
+			$result['success'] = $sms_result['success'] || $email_result['success'];
+
+			if ($result['success']) {
 				DB::commit();
-			} catch (\Throwable $th) {
+			} else {
 				DB::rollBack();
 
-				$result['success'] = false;
+				if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
+				if (!$email_result['success']) $result['email_error'] = $email_result['error'];
 			}
+
+			Log::channel('agenda')->info("------------------------------------------------------------");
 		} else {
 			DB::commit();
+
+			$result['success'] = true;
 		}
 
 		return response()->json($result);

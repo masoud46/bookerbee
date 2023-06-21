@@ -133,12 +133,12 @@
 						<div><i class='far fa-envelope fa-fw me-2'></i><span class="event-patient-email"></span></div>
 						<div><i class='fas fa-mobile-screen-button fa-fw me-2'></i><span class="event-patient-phone"></span></div>
 						<div class="calendar-event-has-email text-dark bg-warning bg-opacity-10 rounded-1 mt-3 px-4 py-3">
-							<div class="calendar-event calendar-event-{{ $ACTIONS['ADD'] }}">{{ __('After saving this appointment, a detailed email will be sent to the patient.') }}</div>
-							<div class="calendar-event calendar-event-{{ $ACTIONS['CANCEL'] }}">{{ __('Following the cancelation, an informative email will be sent to the patient.') }}</div>
-							<div class="calendar-event calendar-event-{{ $ACTIONS['UPDATE'] }}">{{ __('Following the update, an email about the applied modifications will be sent to the patient.') }}</div>
+							<div class="calendar-event calendar-event-{{ $ACTIONS['ADD'] }}">{{ __('After saving the appointment, a detailed notification will be sent to the patient.') }}</div>
+							<div class="calendar-event calendar-event-{{ $ACTIONS['CANCEL'] }}">{{ __('Following the cancelation, an informative notification will be sent to the patient.') }}</div>
+							<div class="calendar-event calendar-event-{{ $ACTIONS['UPDATE'] }}">{{ __('Following the update, a notification about the applied modifications will be sent to the patient.') }}</div>
 						</div>
-						<div class="calendar-event-no-email text-bg-warning rounded-1 mt-3 px-4 py-3">
-							{{ __('This patient does not have an email address. No notification email will be sent.') }}
+						<div class="calendar-event-no-notification text-bg-warning rounded-1 mt-3 px-4 py-3">
+							{{ __('This patient does not have an email address, nor a phone number. No notification will be sent.') }}
 						</div>
 					</div>
 				</div>
