@@ -29,13 +29,17 @@ document.querySelectorAll('[id$=-log]').forEach(btn => {
 		document.querySelector('#log-truncate').setAttribute('data-log', log)
 		document.querySelector('#log-result').innerHTML = ''
 		document.querySelector('.btn-log.btn-success')?.classList.remove('btn-success')
+		document.querySelector('#log-truncate').disabled = true
 
 		setTimeout(async () => {
 			const response = await utils.fetch({ url: `/admin/log/${log}` })
 
+			if (response.success) {
+				document.querySelector('#log-truncate').disabled = false
+			}
+
 			e.target.classList.add('btn-success')
 			document.querySelector('#log-result').innerHTML = response.data
-			document.querySelector('#log-truncate').disabled = false
 		}, 0);
 	})
 })
