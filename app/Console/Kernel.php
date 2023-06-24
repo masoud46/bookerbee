@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel {
 	 */
 	protected function schedule(Schedule $schedule): void {
 		$schedule->command("send:reminders")->everyFiveMinutes();
-		$schedule->command("app:monitoring")->everyTenMinutes();
+		$schedule->command("app:monitoring")->everyFiveMinutes();
 	}
 
 	/**
