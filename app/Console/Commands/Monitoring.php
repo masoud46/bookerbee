@@ -81,9 +81,9 @@ class Monitoring extends Command {
 			'email' => [],
 		];
 
-
-		if (Storage::missing('monitoring_report.json')) {
-			Storage::put('monitoring_report.json', json_encode([
+		$filename = 'monitoring_report.json';
+		if (Storage::missing($filename)) {
+			Storage::put($filename, json_encode([
 				'sms' => [
 					'ovh' => false,
 					'smsto' => false,
@@ -93,6 +93,10 @@ class Monitoring extends Command {
 					'brevo' => false,
 				],
 			]), JSON_UNESCAPED_SLASHES);
+
+			$old_mask = umask(0);
+			@mkdir(storage_path("app/{$filename}"), 0777, true);
+			umask($old_mask);
 		}
 
 		$report = Storage::json('monitoring_report.json');
