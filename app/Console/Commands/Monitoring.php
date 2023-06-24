@@ -82,7 +82,6 @@ class Monitoring extends Command {
 		];
 
 		$filename = 'monitoring_report.json';
-		dd(storage_path("app/{$filename}"));
 		if (Storage::missing($filename)) {
 			Storage::put($filename, json_encode([
 				'sms' => [
