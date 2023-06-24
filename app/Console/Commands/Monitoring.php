@@ -82,6 +82,7 @@ class Monitoring extends Command {
 		];
 
 		$filename = 'monitoring_report.json';
+		dd(storage_path("app/{$filename}"));
 		if (Storage::missing($filename)) {
 			Storage::put($filename, json_encode([
 				'sms' => [
@@ -188,80 +189,80 @@ class Monitoring extends Command {
 		/***************************/
 		/*** SMS - SMSto credits ***/
 		/***************************/
-		// if (!$this->is_admin) echo "SMS - SMSto credits" . PHP_EOL;
+		if (!$this->is_admin) echo "SMS - SMSto credits" . PHP_EOL;
 
-		// $client = new Client();
-		// $headers = [
-		// 	'Authorization' => 'Bearer ' . config('project.sms.smsto.api_key'),
-		// 	'Content-Type' => 'application/json',
-		// ];
+		$client = new Client();
+		$headers = [
+			'Authorization' => 'Bearer ' . config('project.sms.smsto.api_key'),
+			'Content-Type' => 'application/json',
+		];
 
-		// try {
-		// 	$request = new Request('GET', 'https://auth.sms.to/api/balance', $headers);
-		// 	$response = $client->sendAsync($request)->wait();
-		// 	$credits = json_decode($response->getBody(), true)['balance'];
+		try {
+			$request = new Request('GET', 'https://auth.sms.to/api/balance', $headers);
+			$response = $client->sendAsync($request)->wait();
+			$credits = json_decode($response->getBody(), true)['balance'];
 
-		// 	if (!$this->is_admin) echo $credits . PHP_EOL . PHP_EOL;
+			if (!$this->is_admin) echo $credits . PHP_EOL . PHP_EOL;
 
-		// 	$result['sms']['smsto'] = [
-		// 		'success' => false,
-		// 		'data' => $credits,
-		// 	];
+			$result['sms']['smsto'] = [
+				'success' => false,
+				'data' => $credits,
+			];
 
-		// 	if ($credits < $sms_limit) {
-		// 		$result['sms']['smsto']['success'] = false;
+			if ($credits < $sms_limit) {
+				$result['sms']['smsto']['success'] = false;
 
-		// 		if ($report['sms']['smsto'] === false) {
-		// 			$any_error = true;
+				if ($report['sms']['smsto'] === false) {
+					$any_error = true;
 
-		// 			$this->sendCriticalReport("SMS critical credits - SMSto: {$credits}");
-		// 			Log::channel('monitoring')->info("SMS critical credits - SMSto: {$credits}");
-		// 			if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+					$this->sendCriticalReport("SMS critical credits - SMSto: {$credits}");
+					Log::channel('monitoring')->info("SMS critical credits - SMSto: {$credits}");
+					if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
-		// 			Log::channel('monitoring')->info("*** REPORT SENT.");
-		// 			$report['sms']['smsto'] = true;
-		// 		}
-		// 	} else {
-		// 		$report['sms']['smsto'] = false;
-		// 	}
-		// } catch (ClientException $e) {
-		// 	if ($report['sms']['smsto'] === false) {
-		// 		$any_error = true;
+					Log::channel('monitoring')->info("*** REPORT SENT.");
+					$report['sms']['smsto'] = true;
+				}
+			} else {
+				$report['sms']['smsto'] = false;
+			}
+		} catch (ClientException $e) {
+			if ($report['sms']['smsto'] === false) {
+				$any_error = true;
 
-		// 		$response = $e->getResponse();
-		// 		$error = $response->getBody()->getContents();
-		// 		if (!$this->is_admin) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
-		// 		$result['sms']['smsto'] = [
-		// 			'success' => false,
-		// 			'data' => $error,
-		// 		];
+				$response = $e->getResponse();
+				$error = $response->getBody()->getContents();
+				if (!$this->is_admin) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
+				$result['sms']['smsto'] = [
+					'success' => false,
+					'data' => $error,
+				];
 
-		// 		Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
+				Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
 
-		// 		$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
-		// 		if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+				$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
+				if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
-		// 		Log::channel('monitoring')->info("*** REPORT SENT.");
-		// 		$report['sms']['smsto'] = true;
-		// 	}
-		// } catch (\Exception $e) {
-		// 	if ($report['sms']['smsto'] === false) {
-		// 		$any_error = true;
+				Log::channel('monitoring')->info("*** REPORT SENT.");
+				$report['sms']['smsto'] = true;
+			}
+		} catch (\Exception $e) {
+			if ($report['sms']['smsto'] === false) {
+				$any_error = true;
 
-		// 		$error = $e->getMessage();
-		// 		if (!$this->is_admin) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
-		// 		$result['sms']['smsto'] = [
-		// 			'success' => false,
-		// 			'data' => $error,
-		// 		];
+				$error = $e->getMessage();
+				if (!$this->is_admin) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
+				$result['sms']['smsto'] = [
+					'success' => false,
+					'data' => $error,
+				];
 
-		// 		Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
+				Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
 
-		// 		$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
-		// 		Log::channel('monitoring')->info("*** REPORT SENT.");
-		// 		$report['sms']['smsto'] = true;
-		// 	}
-		// }
+				$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
+				Log::channel('monitoring')->info("*** REPORT SENT.");
+				$report['sms']['smsto'] = true;
+			}
+		}
 
 
 		/********************************/
