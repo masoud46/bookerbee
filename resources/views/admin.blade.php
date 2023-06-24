@@ -10,10 +10,6 @@
 		#log-result {
 			height: 500px;
 		}
-
-		.btn-log.btn-success {
-			pointer-events: none;
-		}
 	</style>
 	<div class="container">
 		<div class="form-group row mt-4">
