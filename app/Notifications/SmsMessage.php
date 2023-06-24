@@ -3,7 +3,6 @@
 
 namespace App\Notifications;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 
@@ -44,7 +43,7 @@ class SmsMessage {
 			'data' => null,
 		];
 
-		if (!$this->provider || !$this->to || !count($this->lines)) {
+		if (!$this->provider || !$this->to) {
 			$result['data'] = 'SMS not correct.';
 
 			return $result;
@@ -61,14 +60,13 @@ class SmsMessage {
 					config('project.sms.ovh.consumer_key'),
 				);
 
+				$service = config('project.sms.ovh.service');
 				$sender = config('project.sms.ovh.sender');
 
 				try {
-					$service = $ovh->get('/sms/')[0];
-
 					if ($this->dryrun) {
 						$result['data'] = [
-							'credit' => $ovh->get("/sms/$service")['creditsLeft'],
+							'credits' => $ovh->get("/sms/{$service}")['creditsLeft'],
 						];
 						$result['success'] = true;
 
@@ -79,12 +77,12 @@ class SmsMessage {
 
 					if ($this->hlr) {
 						$content = ['receivers' => [$this->to]];
-						$response = $ovh->post("/sms/$service/hlr", $content);
+						$response = $ovh->post("/sms/{$service}/hlr", $content);
 						$result['hlr'] = [];
 
 						if (count($response['ids']) > 0) {
 							do {
-								$result['hlr'] = $ovh->get("/sms/$service/hlr/" . $response['ids'][0]);
+								$result['hlr'] = $ovh->get("/sms/{$service}/hlr/" . $response['ids'][0]);
 							} while ($result['hlr']['status'] === "todo");
 
 							$ok = $result['hlr']['reachable'];
@@ -105,7 +103,7 @@ class SmsMessage {
 							'message' => $message,
 						];
 
-						$result['data'] = $ovh->post("/sms/$service/jobs", $content);
+						$result['data'] = $ovh->post("/sms/{$service}/jobs", $content);
 						$result['success'] = count($result['data']['validReceivers']) > 0;
 					}
 				} catch (ClientException $e) {

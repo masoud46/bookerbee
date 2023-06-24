@@ -27,11 +27,19 @@ return [
 	'reminder_email_time' => env('APP_REMINDER_EMAIL_TIME', '48'),
 	'reminder_sms_time' => env('APP_REMINDER_SMS_TIME', '26'),
 
+	'monitoring' => [
+		'email' => env('APP_MONITORING_EMAIL', null),
+		'phone' => env('APP_MONITORING_PHONE', null),
+		'sms_limit' => env('APP_MONITORING_SMS_LIMIT', null),
+		'email_limit' => env('APP_MONITORING_EMAIL_LIMIT', null),
+	],
+
 	'mail' => [
 		'default_provider' => env('MAIL_DEFAULT_PROVIDER', 'sendgrid'),
 		'default_dev_provider' => env('MAIL_DEFAULT_DEV_PROVIDER', 'brevo'),
 		'sendgrid' => [
 			'api_key' => env('SENDGRID_API_KEY', null),
+			'admin_key' => env('SENDGRID_ADMIN_KEY', null),
 		],
 		'brevo' => [
 			'api_key' => env('BREVO_API_KEY', null),
@@ -45,14 +53,21 @@ return [
 			'api_key' => env('SMS_SMSTO_API_KEY', null),
 			'sender_id' => env('SMS_SMSTO_SENDER_ID', null),
 		],
-
 		'ovh' => [
 			'application_key' => env('SMS_OVH_APPLICATION_KEY', null),
 			'application_secret' => env('SMS_OVH_APPLICATION_SECRET', null),
 			'consumer_key' => env('SMS_OVH_CONSUMER_KEY', null),
 			'endpoint' => env('SMS_OVH_ENDPOINT', null),
+			'service' => env('SMS_OVH_SERVICE', null),
 			'sender' => env('SMS_OVH_SENDER', null),
 		],
+	],
+
+	'ovh' => [
+		'application_key' => env('OVH_APPLICATION_KEY', null),
+		'application_secret' => env('OVH_APPLICATION_SECRET', null),
+		'consumer_key' => env('OVH_CONSUMER_KEY', null),
+		'endpoint' => env('OVH_ENDPOINT', null),
 	],
 
 ];

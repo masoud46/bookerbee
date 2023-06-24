@@ -192,7 +192,7 @@ class EventController extends Controller {
 		$to = $event['extendedProps']['patient']['email'];
 
 		try {
-			Log::channel('agenda')->info("<SENDING EMAIL> {$to}");
+			Log::channel('agenda')->info("[SENDING EMAIL] {$to}");
 
 			Mail::mailer($provider)
 				->to($to)
@@ -200,9 +200,9 @@ class EventController extends Controller {
 
 			$result['success'] = true;
 
-			Log::channel('agenda')->info("<EMAIL SENT>");
+			Log::channel('agenda')->info("[EMAIL SENT]");
 		} catch (\Throwable $th) {
-			Log::channel('agenda')->info("<!!! ERROR !!!>");
+			Log::channel('agenda')->info("[!!! ERROR !!!]");
 			Log::channel('agenda')->info($th->__toString());
 
 			$result['error'] = $th->getMessage();
@@ -262,7 +262,7 @@ class EventController extends Controller {
 		}
 
 		try {
-			Log::channel('agenda')->info("<SENDING SMS> {$to}");
+			Log::channel('agenda')->info("[SENDING SMS] {$to}");
 
 			$sms = new \App\Notifications\SmsMessage();
 			$sms = $sms->to(preg_replace('/\s+/', '', $to))
@@ -279,17 +279,17 @@ class EventController extends Controller {
 			}
 
 			if ($res['success']) {
-				Log::channel('agenda')->info("<SMS SENT>");
+				Log::channel('agenda')->info("[SMS SENT]");
 
 				$result['success'] = true;
 			} else {
-				Log::channel('agenda')->info("<!!! SMS ERROR !!!>");
+				Log::channel('agenda')->info("[!!! SMS ERROR !!!]");
 				Log::channel('agenda')->info(print_r($res, true));
 
 				$result['error'] = $res['data'];
 			}
 		} catch (\Throwable $th) {
-			Log::channel('agenda')->info("<!!! ERROR !!!>");
+			Log::channel('agenda')->info("[!!! ERROR !!!]");
 			Log::channel('agenda')->info($th->__toString());
 
 			$result['error'] = $th->getMessage();
@@ -409,18 +409,24 @@ class EventController extends Controller {
 				$email_result = $this->sendEmail("add", $data);
 			}
 
-			// Successful if either SMS or email passes
-			$result['success'] = $sms_result['success'] || $email_result['success'];
+			if ($sms_result['success'] || $email) {
+				// Successful if either SMS or email passes
+				$result['success'] = $sms_result['success'] || $email_result['success'];
 
-			if ($result['success']) {
-				$result['id'] = $event->id;
+				if ($result['success']) {
+					$result['id'] = $event->id;
 
-				DB::commit();
-			} else {
+					DB::commit();
+				} else {
+					DB::rollBack();
+
+					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
+					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
+				}
+			} else { // If SMS only, and send fails
 				DB::rollBack();
 
-				if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
-				if (!$email_result['success']) $result['email_error'] = $email_result['error'];
+				$result['sms_error'] = $sms_result['error'];
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");
@@ -493,16 +499,22 @@ class EventController extends Controller {
 				$email_result = $this->sendEmail("update", $data, $old_event);
 			}
 
-			// Successful if either SMS or email passes
-			$result['success'] = $sms_result['success'] || $email_result['success'];
+			if ($sms_result['success'] || $email) {
+				// Successful if either SMS or email passes
+				$result['success'] = $sms_result['success'] || $email_result['success'];
 
-			if ($result['success']) {
-				DB::commit();
-			} else {
+				if ($result['success']) {
+					DB::commit();
+				} else {
+					DB::rollBack();
+
+					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
+					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
+				}
+			} else { // If SMS only, and send fails
 				DB::rollBack();
 
-				if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
-				if (!$email_result['success']) $result['email_error'] = $email_result['error'];
+				$result['sms_error'] = $sms_result['error'];
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");
@@ -559,16 +571,22 @@ class EventController extends Controller {
 				$email_result = $this->sendEmail("delete", $data);
 			}
 
-			// Successful if either SMS or email passes
-			$result['success'] = $sms_result['success'] || $email_result['success'];
+			if ($sms_result['success'] || $email) {
+				// Successful if either SMS or email passes
+				$result['success'] = $sms_result['success'] || $email_result['success'];
 
-			if ($result['success']) {
-				DB::commit();
-			} else {
+				if ($result['success']) {
+					DB::commit();
+				} else {
+					DB::rollBack();
+
+					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
+					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
+				}
+			} else { // If SMS only, and send fails
 				DB::rollBack();
 
-				if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
-				if (!$email_result['success']) $result['email_error'] = $email_result['error'];
+				$result['sms_error'] = $sms_result['error'];
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");

@@ -2,7 +2,7 @@
 
 <x-mail::hello :name="ucfirst(trim(explode(', ', $event['extendedProps']['patient']['name'])[1]))" />
 
-{{ __("We confirm your appointment with the following details:") }}
+{{ __("Your appointment with the following details has been confirmed:") }}
 
 <x-mail::appointment
 	:firstname="ucfirst(Auth::user()->firstname)"

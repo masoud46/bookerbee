@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PatientController;
@@ -37,6 +38,8 @@ Route::get('/unsubscribe/{id}/{email}', function (Request $request, $id, $email)
 	dd($id, $email);
 })->name('unsubscribe');
 
+Route::get('/ping', [AdminController::class, 'ping'])->name('ping');
+
 
 // Route::prefix(LaravelLocalization::setLocale())->middleware(['localeSessionRedirect', 'localizationRedirect'])->group(
 Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedirect', 'localizationRedirect'])->group(
@@ -45,6 +48,14 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Auth::routes([
 			'register' => false,
 		]);
+
+		Route::group(['middleware' => ['admin']], function () {
+			Route::get('/admin', [AdminController::class, 'index'])->name('admin');
+			Route::get('/admin/log/{log}', [AdminController::class, 'log'])->name('admin.log');
+			Route::get('/admin/truncate/log/{log}', [AdminController::class, 'truncateLog'])->name('admin.truncate.log');
+			Route::get('/admin/monitoring', [AdminController::class, 'monitoring'])->name('admin.monitoring');
+			Route::post('/admin/sms/buy/{credits}', [AdminController::class, 'buySMSCredits'])->name('admin.sms.buy');
+		});
 
 		Route::get('/', [InvoiceController::class, 'index'])->name('home');
 		Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');

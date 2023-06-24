@@ -119,6 +119,12 @@ return [
 			'path' => storage_path('logs/laravel.log'),
 		],
 
+		'monitoring' => [
+			'driver' => 'single',
+			'path' => storage_path('logs/monitoring.log'),
+			'level' => env('LOG_LEVEL', 'debug'),
+		],
+
 		'agenda' => [
 			'driver' => 'single',
 			'path' => storage_path('logs/agenda.log'),

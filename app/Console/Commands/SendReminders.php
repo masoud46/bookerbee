@@ -23,7 +23,7 @@ class SendReminders extends Command {
 	 *
 	 * @var string
 	 */
-	protected $description = 'Send the user an email of their upcoming appointments';
+	protected $description = 'Send reminder email/sms to patients about their upcoming appointments';
 
 	/**
 	 * Execute the console command.
@@ -83,8 +83,12 @@ class SendReminders extends Command {
 			echo var_export($events->toArray(), true) . PHP_EOL;
 		}
 
+		$mail_provider = config('app.env') === 'production'
+			? config('project.mail.default_provider')
+			: config('project.mail.default_dev_provider');
+
 		// send reminders
-		$events->map(function ($event) use ($sms_time) {
+		$events->map(function ($event) use ($sms_time, $mail_provider) {
 			Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
 			Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
 			Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
@@ -106,10 +110,6 @@ class SendReminders extends Command {
 			if ($start->lessThanOrEqualTo($sms_time)) {
 
 				if ($event->patient_email && $event->reminder_email < 2) {
-					$mail_provider = config('app.env') === 'production'
-						? config('project.mail.default_provider')
-						: config('project.mail.default_dev_provider');
-
 					if (config('app.env') === 'production' || config('project.send_emails')) {
 						try {
 							Log::channel('reminder')->info("<SENDING SECOND EMAIL>");
@@ -190,10 +190,6 @@ class SendReminders extends Command {
 					}
 				}
 			} else if ($event->reminder_email === 0 && $event->patient_email) {
-				$mail_provider = config('app.env') === 'production'
-					? config('project.mail.default_provider')
-					: config('project.mail.default_dev_provider');
-
 				if (config('app.env') === 'production' || config('project.send_emails')) {
 					try {
 						Log::channel('reminder')->info("<SENDING FIRST EMAIL>");

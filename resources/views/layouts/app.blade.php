@@ -21,6 +21,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
 
 	<!-- CSRF Token for AJAX calls -->
 	<meta name="csrf-token" content="{{ csrf_token() }}">
@@ -115,6 +116,12 @@
 									<i class="fas fa-sliders fa-fw me-1"></i> {{ __('Settings') }}
 								</a>
 								<hr class="my-2">
+								@if (Auth::user()->is_admin)
+									<a class="dropdown-item" href="{{ route('admin') }}">
+										<i class="fas fa-user-secret fa-fw me-1"></i> Admin
+									</a>
+									<hr class="my-2">
+								@endif
 								<a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
 									<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
 								</a>
