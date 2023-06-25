@@ -35,8 +35,6 @@ class SendReminders extends Command {
 		$sms_hours = config('project.reminder_sms_time');
 		$sms_time = Carbon::now()->addHours($sms_hours);
 
-		Log::channel('reminder')->info("[JOB STARTED] +{$email_hours} hours -> {$email_time->format("Y-m-d H:i:s")}");
-
 		$events = Event::select([
 			"events.id",
 			"events.start",
@@ -54,6 +52,7 @@ class SendReminders extends Command {
 			"countries.prefix AS user_phone_prefix",
 			"patients.firstname AS patient_firstname",
 			"patients.lastname AS patient_lastname",
+			"patients.locale AS patient_locale",
 			"patients.email AS patient_email",
 			"patients.phone_number AS patient_phone_number",
 			"c.prefix AS patient_phone_prefix",
@@ -91,14 +90,6 @@ class SendReminders extends Command {
 
 		// send reminders
 		$events->map(function ($event) use ($sms_time, $mail_provider) {
-			Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
-			Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
-			Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
-
-			foreach ($features = explode(",", $event->user_features) as $index => $feature) {
-				$features[$index] = trim($feature);
-			};
-
 			$event_array = $event->toArray();
 
 			$number = ltrim($event->user_phone_number, '0');
@@ -107,11 +98,19 @@ class SendReminders extends Command {
 			$start = Carbon::parse($event->start);
 			$event_array['remaining_time'] = $start->diffInHours(Carbon::now()->roundHour());
 
-			LaravelLocalization::setLocale($event['patient_locale']);
-
 			if ($start->lessThanOrEqualTo($sms_time)) {
+				Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
+				Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
+				Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
 
-				if ($event->patient_email && $event->reminder_email < 2) {
+				LaravelLocalization::setLocale($event['patient_locale']);
+
+				$features = explode(",", $event->user_features);
+				foreach ($features as $index => $feature) {
+					$features[$index] = trim($feature);
+				};
+
+				if ($event->reminder_email < 2 && $event->patient_email) {
 					if (config('app.env') === 'production' || config('project.send_emails')) {
 						try {
 							Log::channel('reminder')->info("[SENDING SECOND EMAIL]");
@@ -136,9 +135,9 @@ class SendReminders extends Command {
 				}
 
 				if (
+					$event->reminder_sms === 0 &&
 					$event->patient_phone_number &&
-					in_array("sms", $features) &&
-					$event->reminder_sms === 0
+					in_array("sms", $features)
 				) {
 
 					$result = ['success' => true];
@@ -191,7 +190,15 @@ class SendReminders extends Command {
 						Log::channel('reminder')->info(print_r($event->toArray(), true));
 					}
 				}
+
+				Log::channel('reminder')->info("----------------------------------------------");
 			} else if ($event->reminder_email === 0 && $event->patient_email) {
+				Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
+				Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
+				Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
+
+				LaravelLocalization::setLocale($event['patient_locale']);
+
 				if (config('app.env') === 'production' || config('project.send_emails')) {
 					try {
 						Log::channel('reminder')->info("[SENDING FIRST EMAIL]");
@@ -213,11 +220,9 @@ class SendReminders extends Command {
 						Log::channel('reminder')->info(print_r($event_array, true));
 					}
 				}
+
+				Log::channel('reminder')->info("----------------------------------------------");
 			}
-
-			Log::channel('reminder')->info("----------------------------------------------");
 		});
-
-		Log::channel('reminder')->info("==============================================");
 	}
 }

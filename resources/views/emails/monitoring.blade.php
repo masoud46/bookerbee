@@ -1,6 +1,6 @@
 <x-mail::message>
 
-# {{ $message }}
+{{ $message }}
 
 @if ($link)
 <a href="{{ $link }}">{{ $link }}</a>	
