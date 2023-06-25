@@ -117,31 +117,38 @@ class AdminController extends Controller {
 
 		try {
 			if ($result['production']) {
-				$response = $ovh->post("/order/sms/{$service}/credits", [
-					'quantity' => $credits, // Min 100
-				]);
-				$order_id = $response['orderId'];
-				sleep(5);
-
 				$response = $ovh->get("/me/payment/method", array(
 					'default' => true, // Filter on 'default' property (type: boolean)
 				));
-				$payment_method = $response[0];
 
-				$response = $ovh->post("/me/order/{$order_id}/pay", array(
-					'paymentMethod' => ['id' => $payment_method],
-				));
+				if (count($response)) {
+					$payment_method = $response[0];
+
+					$response = $ovh->post("/order/sms/{$service}/credits", [
+						'quantity' => $credits, // Min 100
+					]);
+					$order_id = $response['orderId'];
+					sleep(5);
+
+					$response = $ovh->post("/me/order/{$order_id}/pay", array(
+						'paymentMethod' => ['id' => $payment_method],
+					));
+				}
 			} else {
 				$response = $ovh->get("/me/payment/method", array(
 					'default' => true, // Filter on 'default' property (type: boolean)
 				));
-				$payment_method = $response[0];
 
-				$response = $ovh->get("/me/payment/method/{$payment_method}");
-				unset($response['icon']);
+				if (count($response)) {
+					$payment_method = $response[0];
+
+					$response = $ovh->get("/me/payment/method/{$payment_method}");
+					unset($response['icon']);
+				}
 			}
 
 			$result['data'] = $response;
+			$result['payment_method'] = $payment_method ?? null;
 			$result['service'] = $service;
 			$result['credits'] = $credits;
 			$result['success'] = true;
