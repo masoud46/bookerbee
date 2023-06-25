@@ -203,7 +203,7 @@ const storeEvent = async (action, event, oldEvent = null) => {
 
 			customProps.action.hide()
 		} else {
-			console.log('%c failed! ', 'color:white;background-color:red;');
+			// console.log('%c failed! ', 'color:white;background-color:red;');
 			document.body.classList.remove('sending-email')
 
 			if (customProps.revert) {
@@ -559,7 +559,6 @@ modal.addEventListener('show.bs.modal', () => {
 	modal.props.dismissed = false
 })
 modal.addEventListener('hidden.bs.modal', () => {
-	console.log('dismissed:', modal.props.dismissed);
 	if (modal.props.dismissed) {
 		if (customProps.revert) {
 			customProps.revert()
@@ -620,7 +619,7 @@ const calendar = new Calendar(calendarElement, {
 		// timeZoneName: 'short',
 	},
 	events: async (info, successCallback, failureCallback) => {
-		console.log('%c*** events', 'color:#c00;');
+		// console.log('%c*** events', 'color:#c00;');
 		const result = await utils.fetch({
 			method: 'GET',
 			url: `/events?start=${info.start.toISOString()}&end=${info.end.toISOString()}`,
@@ -638,7 +637,7 @@ const calendar = new Calendar(calendarElement, {
 		}
 	},
 	loading: isLoading => {
-		console.log('%c*** loading', 'color:#c00;');
+		// console.log('%c*** loading', 'color:#c00;');
 		if (isLoading) {
 			document.body.classList.add('busy-agenda')
 		} else {
@@ -649,30 +648,30 @@ const calendar = new Calendar(calendarElement, {
 		}
 	},
 	viewDidMount: arg => {
-		console.log('%c*** viewDidMount', 'color:#c00;');
+		// console.log('%c*** viewDidMount', 'color:#c00;');
 		hideLockedEvents(arg.view)
 
 		customProps.lastSelectOverlap = null
 	},
 	viewClassNames: arg => {
-		console.log('%c*** viewClassNames', 'color:#c00;');
+		// console.log('%c*** viewClassNames', 'color:#c00;');
 		hideLockedEvents(arg.view)
 
 		customProps.lastSelectOverlap = null
 	},
 	selectOverlap: event => {
-		console.log('%c*** selectOverlap', 'color:#0c0;');
+		// console.log('%c*** selectOverlap', 'color:#0c0;');
 		// To allow all day locking if there is only background LOCK events
 		// +++ ATT: Recurring background LOCK events must be at the end of the events' list
 		customProps.lastSelectOverlap = event
 		return false
 	},
 	select: arg => {
-		console.log('%c*** select', 'color:#c00;');
+		// console.log('%c*** select', 'color:#c00;');
 		customProps.event = arg
 
 		if (arg.allDay) {
-			console.log('%c lock ALLDAY ', 'color:#fff;background-color:#999;');
+			// console.log('%c lock ALLDAY ', 'color:#fff;background-color:#999;');
 			showModal(EVENT_ACTION_LOCK)
 		} else if (window.laravel.agenda.lock) {
 			customProps.popover = new Popover(arg.jsEvent.target, {
@@ -688,14 +687,14 @@ const calendar = new Calendar(calendarElement, {
 			})
 			customProps.popover.show()
 		} else {
-			console.log('%c add and email ', 'color:#fff;background-color:#999;')
+			// console.log('%c add and email ', 'color:#fff;background-color:#999;')
 			showModal(EVENT_ACTION_ADD)
 		}
 
 		customProps.lastSelectOverlap = null
 	},
 	unselect: arg => {
-		console.log('%c*** unselect', 'color:#c00;');
+		// console.log('%c*** unselect', 'color:#c00;');
 		if (customProps.popover && customProps.popover.tip !== null) {
 			setTimeout(() => {
 				customProps.popover.hide()
@@ -705,27 +704,27 @@ const calendar = new Calendar(calendarElement, {
 		customProps.lastSelectOverlap = null
 	},
 	eventClick: arg => {
-		console.log('%c*** eventClick', 'color:#c00;');
+		// console.log('%c*** eventClick', 'color:#c00;');
 		customProps.event = arg.event
 
 		if (!arg.event.extendedProps.patient) {
 			const recurring = arg.event._def.recurringDef !== null
 
 			if (arg.event.allDay) {
-				console.log(`%c unlock${recurring ? ' RECURRING' : ''} ALLDAY `, 'color:#fff;background-color:#999;');
+				// console.log(`%c unlock${recurring ? ' RECURRING' : ''} ALLDAY `, 'color:#fff;background-color:#999;');
 				if (!arg.event.end) { // same day
 					const end = toMoment(arg.date, calendar).add(1, 'd')
 					arg.event.setEnd(end.toDate())
 				}
 			} else {
-				console.log(`%c unlock${recurring ? ' RECURRING' : ''} `, 'color:#fff;background-color:#999;');
+				// console.log(`%c unlock${recurring ? ' RECURRING' : ''} `, 'color:#fff;background-color:#999;');
 			}
 			showModal(EVENT_ACTION_UNLOCK)
 		} else {
 			if (arg.event.extendedProps.private) {
-				console.log('%c cancel private ', 'color:#fff;background-color:#999;');
+				// console.log('%c cancel private ', 'color:#fff;background-color:#999;');
 			} else {
-				console.log('%c cancel ', 'color:#fff;background-color:#999;');
+				// console.log('%c cancel ', 'color:#fff;background-color:#999;');
 			}
 			showModal(EVENT_ACTION_CANCEL)
 		}
@@ -733,7 +732,7 @@ const calendar = new Calendar(calendarElement, {
 		customProps.lastSelectOverlap = null
 	},
 	dateClick: arg => {
-		console.log('%c*** dateClick', 'color:#c00;');
+		// console.log('%c*** dateClick', 'color:#c00;');
 		// console.log('lastSelectOverlap', customProps.lastSelectOverlap?._def);
 		// To allow all day locking if there is only background LOCK events
 		// +++ ATT: Recurring background LOCK events must be at the end of the events' list
@@ -741,7 +740,7 @@ const calendar = new Calendar(calendarElement, {
 			&& customProps.lastSelectOverlap?._def.ui.display === 'background'
 			&& !customProps.lastSelectOverlap?._def.extendedProps.patient
 		if (allowed) {
-			console.log('%c lock ALLDAY ', 'color:#fff;background-color:#999;');
+			// console.log('%c lock ALLDAY ', 'color:#fff;background-color:#999;');
 			const end = toMoment(arg.date, calendar).add(1, 'd')
 			customProps.event = {
 				allDay: arg.allDay,
@@ -758,10 +757,10 @@ const calendar = new Calendar(calendarElement, {
 		customProps.lastSelectOverlap = null
 	},
 	eventAdd: arg => {
-		console.log('%c*** eventAdd', 'color:#c00;');
+		// console.log('%c*** eventAdd', 'color:#c00;');
 	},
 	eventChange: arg => {
-		console.log('%c*** eventChange', 'color:#c00;');
+		// console.log('%c*** eventChange', 'color:#c00;');
 		// Bypass background event which the end has been set manually in "eventClick" callback
 		if (arg.event._def.ui.display === 'background') return
 
@@ -770,13 +769,13 @@ const calendar = new Calendar(calendarElement, {
 		customProps.revert = arg.revert
 
 		if (!arg.event.extendedProps.patient) {
-			console.log('%c save locked ', 'color:#fff;background-color:#999;');
+			// console.log('%c save locked ', 'color:#fff;background-color:#999;');
 			showModal(EVENT_ACTION_UPDATE_LOCK)
 		} else {
 			if (arg.event.extendedProps.private) {
-				console.log('%c save private ', 'color:#fff;background-color:#999;');
+				// console.log('%c save private ', 'color:#fff;background-color:#999;');
 			} else {
-				console.log('%c save and email ', 'color:#fff;background-color:#999;');
+				// console.log('%c save and email ', 'color:#fff;background-color:#999;');
 			}
 			showModal(EVENT_ACTION_UPDATE)
 		}
@@ -833,11 +832,11 @@ document.body.addEventListener('click', e => {
 	if (popoverKeyIds.indexOf(id) > -1) {
 		switch (id) {
 			case popoverKeyIds[0]: // Add event
-				console.log('%c add and email ', 'color:#fff;background-color:#999;')
+				// console.log('%c add and email ', 'color:#fff;background-color:#999;')
 				showModal(EVENT_ACTION_ADD)
 				break;
 			case popoverKeyIds[1]: // Lock slot
-				console.log('%c lock ', 'color:#fff;background-color:#999;')
+				// console.log('%c lock ', 'color:#fff;background-color:#999;')
 				showModal(EVENT_ACTION_LOCK)
 				break;
 		}
