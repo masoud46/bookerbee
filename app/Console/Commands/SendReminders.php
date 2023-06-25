@@ -96,7 +96,7 @@ class SendReminders extends Command {
 			$event_array['user_phone'] = "{$event->user_phone_prefix} {$number}";
 
 			$start = Carbon::parse($event->start);
-			$event_array['remaining_time'] = $start->diffInHours(Carbon::now()->roundHour());
+			$event_array['remaining_time'] = $start->diffInHours(Carbon::now()->floorUnit('hour'));
 
 			if ($start->lessThanOrEqualTo($sms_time)) {
 				Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
