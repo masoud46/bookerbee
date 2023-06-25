@@ -277,6 +277,7 @@ class InvoiceController extends Controller {
 			"invoices.id",
 			"invoices.patient_id",
 			"invoices.serial",
+			"invoices.session",
 			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
 			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
@@ -296,7 +297,7 @@ class InvoiceController extends Controller {
 			// between storing the invoice and storing it's sessions,
 			// which the result is an invoice with no sessions.
 			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("created_at", "active", "id", "patient_id", "serial", "date", "name", "patient", "patient_category")
+			->groupBy("created_at", "active", "id","patient_id", "serial", "session", "date", "name", "patient", "patient_category")
 			->latest()
 			->get();
 

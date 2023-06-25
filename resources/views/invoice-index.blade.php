@@ -103,6 +103,7 @@
 						<tr>
 							<th scope="col">{{ __('Ref.') }}</th>
 							<th scope="col">{{ __('Date') }}</th>
+							<th scope="col">{{ __('Session') }}</th>
 							<th scope="col">{{ __('Patient') }}</th>
 							<th scope="col">{{ __('Covered patient') }}</th>
 							<th scope="col">{{ __('Amount') }}</th>
@@ -115,6 +116,7 @@
 								{{-- <td scope="col" class="invoice-item-reference"><i class="fas fa-check text-success me-2 {{ $invoice->active ? '' : 'invisible' }}"></i>{{ $invoice->reference }}<span>{{ $invoice->patient_category === 1 ? 'CNS' : '' }}</span></td> --}}
 								<td scope="col" class="invoice-item-reference">{{ $invoice->reference }}<span>{{ $invoice->patient_category === 1 ? 'CNS' : '' }}</span></td>
 								<td scope="col">{{ $invoice->date }}</td>
+								<td scope="col">{{ $invoice->session }}</td>
 								<td scope="col">{{ $invoice->name }}</td>
 								<td scope="col">{{ $invoice->patient }}</td>
 								<td scope="col">{{ $invoice->total }} €</td>
