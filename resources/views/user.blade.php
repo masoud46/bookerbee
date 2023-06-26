@@ -139,7 +139,11 @@
 					</div>
 					<div class="row my-4">
 						<div class="col-12">
-							<button type="submit" class="btn btn-primary btn-fa-spinner me-3" data-saved="0"><i class="icon-visible fas fa-file-arrow-down fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Save') }}</button>
+							<button type="submit" class="btn btn-primary btn-spinner me-3" data-saved="0">
+								<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
+								<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+								{{ __('Save') }}
+							</button>
 						</div>
 						<div id="profile-not-saved-message" class="col-12 pt-1 {{ session()->has('error') ? '' : 'invisible' }}">
 							<small class="text-danger">{{ __('Your profile is not saved.') }}</small>
@@ -264,7 +268,11 @@
 					</div>
 					<div class="row my-4">
 						<div class="col-12">
-							<button type="submit" class="btn btn-primary btn-fa-spinner me-3" data-saved="0"><i class="icon-visible fas fa-file-arrow-down fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Save') }}</button>
+							<button type="submit" class="btn btn-primary btn-spinner me-3" data-saved="0">
+								<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
+								<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+								{{ __('Save') }}
+							</button>
 						</div>
 						<div id="address-not-saved-message" class="col-12 pt-1 {{ session()->has('error') ? '' : 'invisible' }}">
 							<small class="text-danger">{{ __('Your address is not saved.') }}</small>
@@ -295,7 +303,11 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times fa-fw"> </i>{{ __('Cancel') }}</button>
-					<button type="button" class="btn btn-sm btn-primary btn-fa-spinner btn-save"><i class="icon-visible far fa-paper-plane fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Send') }}</button>
+					<button type="button" class="btn btn-sm btn-primary btn-spinner btn-save">
+						<i class="icon-visible far fa-paper-plane fa-fw"></i>
+						<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+						{{ __('Send') }}
+					</button>
 				</div>
 			</div>
 		</div>

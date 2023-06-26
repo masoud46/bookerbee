@@ -13,9 +13,8 @@ sort($limits);
 return [
 	'external_domains' => [
 		'office.psychosexo.lu',
-		'invoice.psychosexo.clinic',
-		'serge.com',
 		'manager.eva.com',
+		'serge.com',
 	],
 
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),

@@ -34,8 +34,8 @@
 										<small class="h-100 d-flex align-items-center text-nowrap float-end"><span class="items-table-count me-1">0</span>/<span class="items-table-total ms-1">0</span></small>
 									</div>
 									<div class="col-md-6 col-lg-5 col-xl-4 mt-3 mt-sm-2 d-flex search-filter">
-										<input class="items-table-filter-input form-control" placeholder="{{ __('Search') }}" value="">
-										<div class="btn-search-filter position-absolute"><i class="fas fa-magnifying-glass search-filter-inactive"></i><i class="fas fa-times search-filter-active"></i></div>
+										<input class="items-table-filter-input form-control" placeholder="{{ __('Filter') }}" value="">
+										<div class="btn-search-filter position-absolute"><i class="fas fa-filter search-filter-inactive"></i><i class="fas fa-times search-filter-active"></i></div>
 									</div>
 								</div>
 								<div class="table-responsive mt-2">

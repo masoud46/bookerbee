@@ -152,7 +152,11 @@
 			</div>
 			<div class="row my-4">
 				<div class="col-12">
-					<button type="submit" id="save-patient" class="btn btn-primary btn-fa-spinner me-3" data-saved="0"><i class="icon-visible fas fa-file-arrow-down fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Save') }}</button>
+					<button type="submit" id="save-patient" class="btn btn-primary btn-spinner me-3" data-saved="0">
+						<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
+						<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+						{{ __('Save') }}
+					</button>
 					@if ($update)
 						<a id="new-invoice" href="{{ route('invoice.new', ['patient' => $patient->id]) }}" class="btn btn-outline-secondary {{ session()->has('error') ? 'disabled' : '' }}"><i class="fas fa-receipt fa-fw"></i> {{ __('New invoice') }}</a>
 					@endif

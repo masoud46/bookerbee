@@ -384,7 +384,11 @@
 			</div>
 			<div class="row my-4">
 				<div class="col-12">
-					<button type="submit" id="save-invoice" class="btn btn-primary btn-fa-spinner me-3" data-saved="0"><i class="icon-visible fas fa-file-arrow-down fa-fw"></i><i class="icon-hidden fas fa-spinner fa-spin fa-fw"></i> {{ __('Save') }}</button>
+					<button type="submit" id="save-invoice" class="btn btn-primary btn-spinner me-3" data-saved="0">
+						<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
+						<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+						{{ __('Save') }}
+					</button>
 					@if ($update)
 						<a id="print-invoice" href="{{ route('invoice.print', ['invoice' => $invoice->id]) }}" target="_blank" class="btn btn-outline-secondary{{ $update ? '' : ' disabled' }}"><i class="fas fa-print fa-fw"></i> {{ __('Print') }}</a>
 						@if ($editable)

@@ -118,7 +118,7 @@
 								<hr class="my-2">
 								@if (Auth::user()->is_admin)
 									<a class="dropdown-item" href="{{ route('admin') }}">
-										<i class="fas fa-user-secret fa-fw me-1"></i> Admin
+										<i class="fas fa-user-tie fa-fw me-1"></i> Admin
 									</a>
 									<hr class="my-2">
 								@endif

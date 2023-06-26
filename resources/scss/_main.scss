@@ -13,8 +13,35 @@ select {
 	}
 }
 
-button i {
+.btn i,
+.btn .spinner {
 	margin-right: 4px;
+}
+
+.btn-spinner {
+	.spinner {
+		display: inline-block;
+
+		.spinner-border {
+			width: 1.25em;
+			height: 1.25em;
+			vertical-align: -0.3em;
+		}
+	}
+
+	.icon-hidden {
+		display: none;
+	}
+
+	&.spinning {
+		.icon-visible {
+			display: none;
+		}
+
+		.icon-hidden {
+			display: inline-block;
+		}
+	}
 }
 
 ::placeholder {
@@ -241,25 +268,6 @@ button i {
 	}
 }
 
-.btn-fa-spinner {
-	--fa-animation-duration: 0.5s;
-	// transition: opacity 0.5s;
-
-	.icon-hidden {
-		display: none;
-	}
-
-	&.spinning {
-		.icon-visible {
-			display: none;
-		}
-
-		.icon-hidden {
-			display: var(--fa-display, inline-block);
-		}
-	}
-}
-
 // .form-select:not([multiple]):not([size]) {
 .form-select {
 	cursor: pointer;
@@ -336,7 +344,7 @@ body.busy {
 		}
 	}
 
-	.btn-fa-spinner {
+	.btn-spinner {
 		// opacity: 0.5;
 		transition: none;
 
@@ -345,7 +353,7 @@ body.busy {
 		}
 
 		.icon-hidden {
-			display: var(--fa-display, inline-block);
+			display: inline-block;
 		}
 	}
 }
