@@ -37,13 +37,25 @@ const pages = Object.fromEntries(
 		fileURLToPath(new URL(file, import.meta.url))
 	])
 )
+// const images = Object.fromEntries(
+// 	glob.sync('resources/images/*').map(file => {
+// 		console.log(file);
+// 		console.log(file.slice(0, file.length - path.extname(file).length));
+// 		console.log(path.relative('resources', file.slice(0, file.length - path.extname(file).length)));
+// 		console.log(fileURLToPath(new URL(file, import.meta.url)));
+// 		console.log('');
+// 		return [
+// 		path.relative('resources', file.slice(0, file.length - path.extname(file).length)),
+// 		fileURLToPath(new URL(file, import.meta.url))
+// 	]})
+// )
 const templates = Object.fromEntries(
 	glob.sync(['resources/templates/**/*.{scss,js}', 'resources/templates/**/images/*']).map(file => [
 		path.relative('resources', file.slice(0, file.length - path.extname(file).length)),
 		fileURLToPath(new URL(file, import.meta.url))
 	])
 )
-const input = Object.assign(main, pages, templates)
+const input = Object.assign(main, pages/*, images*/, templates)
 
 input['print-invoice'] = fileURLToPath(new URL('resources/scss/pages/print-invoice.scss', import.meta.url))
 // console.log(input);
@@ -86,9 +98,10 @@ export default defineConfig({
 						extension = 'images'
 					}
 
-					// if (/svg/i.test(extension)) {
-					//     extension = 'icons'
-					// }
+					// Same for fonts
+					if (/woff|woff2/i.test(extension)) {
+					    extension = 'fonts'
+					}
 
 					// Basically this is CSS output (in your case)
 					return `${extension}/[name]-[hash][extname]`
@@ -104,9 +117,9 @@ export default defineConfig({
 			targets: [
 				{ src: 'resources/flags/*', dest: 'flags' },
 				{ src: 'resources/images/*', dest: 'images' },
-				{ src: 'resources/fonts/*', dest: 'fonts' },
-				{ src: normalizePath(path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/css/all.min.css')), dest: 'fonts/fontawesome/css' },
-				{ src: normalizePath(path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts/*')), dest: 'fonts/fontawesome/webfonts' },
+				// { src: 'resources/fonts/*', dest: 'fonts' },
+				// { src: normalizePath(path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/css/all.min.css')), dest: 'fonts/fontawesome/css' },
+				// { src: normalizePath(path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts/*')), dest: 'fonts/fontawesome/webfonts' },
 				// { src: 'resources/favicon/*', dest: 'favicon' },
 			],
 		}),

@@ -2,6 +2,7 @@
 	$domain = request()->getHttpHost();
 	$external_domain = in_array($domain, config('project.external_domains', []));
 	$resources = ['resources/scss/auth.scss', 'resources/js/auth.js'];
+	$favicon = 'resources/images/favicon.png';
 	
 	if ($external_domain) {
 	    $path = "templates/{$domain}";
@@ -12,6 +13,10 @@
 	
 	    if (file_exists(resource_path() . "/{$path}/js/auth.js")) {
 	        $resources[] = "resources/{$path}/js/auth.js";
+	    }
+	
+	    if (file_exists(resource_path() . "/{$path}/images/favicon.png")) {
+	        $favicon = "resources/{$path}/images/favicon.png";
 	    }
 	}
 @endphp
@@ -26,11 +31,10 @@
 	<title>{{ config('app.name', 'BookerBee') }}</title>
 
 	<link rel="icon" sizes="192x192" href="{{ asset('build/images/favicon.png') }}">
+	{{-- <link rel="icon" sizes="192x192" href="{{ Vite::asset($favicon) }}"> --}}
 
 	<!-- Scripts -->
 	@vite($resources)
-
-	@include('layouts.fonts')
 
 </head>
 
@@ -39,8 +43,11 @@
 		<div class="menu-bar d-flex p-3">
 			<div class="flex-grow-1">
 				@if (!$external_domain)
-					<div class="internal-domain d-flex">
-						<img class="domain-logo" src="{{ asset('build/images/logo.svg') }}" alt="logo">
+					<div class="internal-domain {{ $external_domain ? 'd-none' : 'd-flex' }}">
+						<img class="domain-logo" src="{{ asset('build/images/bookerbee-logo.svg') }}" alt="logo">
+						{{-- <img class="domain-logo" src="{{ Vite::asset('resources/images/auth-logo.svg') }}" alt="logo"> --}}
+						{{-- <img class="domain-logo" src="{{ asset('../../images/auth-logo.svg') }}" alt="logo"> --}}
+						{{-- <img class="domain-logo" src="../../images/auth-logo.svg" alt="logo"> --}}
 					</div>
 				@endif
 			</div>

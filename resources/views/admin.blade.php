@@ -16,19 +16,6 @@
 			<div class="col-12 d-flex">
 				<div class="flex-grow-1">
 					<button id="monitoring" class="btn btn-sm btn-primary me-3">Monitoring result</button>
-					<button class="btn btn-sm btn-primary me-3">
-						<div class="spinner"><div class="spinner-border"></div></div>
-						<i class="fas fa-print fa-fw"></i>
-					</button>
-					<button class="btn btn-primary me-3">test</button>
-					<button class="btn btn-primary me-3">
-						<i class="fas fa-print fa-fw"></i>
-						test
-					</button>
-					<button class="btn btn-primary me-3">
-						<div class="spinner"><div class="spinner-border"></div></div>
-						test
-					</button>
 				</div>
 				<div class="input-group input-group-sm w-auto">
 					<span class="input-group-text">OVH</span>

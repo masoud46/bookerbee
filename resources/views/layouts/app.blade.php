@@ -1,8 +1,10 @@
 @php
 	$domain = request()->getHttpHost();
+	$external_domain = in_array($domain, config('project.external_domains', []));
 	$resources = ['resources/scss/app.scss', 'resources/js/app.js'];
+	$favicon = 'resources/images/favicon.png';
 	
-	if (in_array($domain, config('project.external_domains', []))) {
+	if ($external_domain) {
 	    $path = "templates/{$domain}";
 	
 	    if (file_exists(resource_path() . "/{$path}/scss/app.scss")) {
@@ -11,6 +13,10 @@
 	
 	    if (file_exists(resource_path() . "/{$path}/js/app.js")) {
 	        $resources[] = "resources/{$path}/js/app.js";
+	    }
+	
+	    if (file_exists(resource_path() . "/{$path}/images/favicon.png")) {
+	        $favicon = "resources/{$path}/images/favicon.png";
 	    }
 	}
 @endphp
@@ -29,9 +35,7 @@
 	<title>{{ config('app.name', 'BookerBee') }}</title>
 
 	<link rel="icon" sizes="192x192" href="{{ asset('build/images/favicon.png') }}">
-
-	@include('layouts.fonts')
-	<link rel="stylesheet" href="{{ asset('/build/fonts/fontawesome/css/all.min.css') }}">
+	{{-- <link rel="icon" sizes="192x192" href="{{ Vite::asset($favicon) }}"> --}}
 
 	<script>
 		/* Pass php variables to javascript */
