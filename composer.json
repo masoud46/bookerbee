@@ -1,8 +1,9 @@
 {
-    "name": "masoud/invoice",
+    "name": "masoud/bookerbee",
     "type": "project",
-    "description": "Invoice Manager",
+    "description": "BookerBee",
     "keywords": [
+        "booking",
         "invoice",
         "manager"
     ],

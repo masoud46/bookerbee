@@ -1,4 +1,7 @@
 {
+	"name": "bookerbee",
+	"version": "1.0.0",
+	"description": "BookerBee",
 	"private": true,
 	"scripts": {
 		"dev": "vite",
