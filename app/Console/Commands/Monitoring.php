@@ -293,8 +293,8 @@ class Monitoring extends Command {
 				'data' => 'Could not get a response',
 			];
 		} else {
-			if (!$this->is_admin) echo json_decode($response, true)['remain'] . PHP_EOL . PHP_EOL;
 			$res = json_decode($response, true);
+			if (!$this->is_admin) echo ($res['remain'] ?? $res['message']) . PHP_EOL . PHP_EOL;
 			if (isset($res['remain'])) {
 				$res = [
 					'success' => true,
@@ -365,8 +365,8 @@ class Monitoring extends Command {
 				'data' => 'Could not get a response',
 			];
 		} else {
-			if (!$this->is_admin) echo json_decode($response, true)['plan'][0]['credits'] . PHP_EOL . PHP_EOL;
 			$res = json_decode($response, true);
+			if (!$this->is_admin) echo ($res['plan'][0]['credits'] ?? $res['message']) . PHP_EOL . PHP_EOL;
 			if (isset($res['plan'][0]['credits'])) {
 				$res = [
 					'success' => true,

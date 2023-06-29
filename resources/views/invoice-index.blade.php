@@ -30,7 +30,7 @@
 @section('content')
 	<input type="hidden" id="invoice-show-url" value="{{ route('invoice.show', ['invoice' => '?id']) }}">
 	<input type="hidden" id="invoice-print-url" value="{{ route('invoice.print', ['invoice' => '?id']) }}">
-	@if (config('app.env') === 'local')
+	@if (config('app.env') === 'local' && Auth::user()->is_admin)
 		<div class="d-flex justify-content-end mt-2">
 			{{-- <a class="nav-link me-3" href="{{ route('email.change-email') }}">ChangeEmail</a>
 			<a class="nav-link me-3" href="{{ route('email.change-password') }}">ChangePassword</a> --}}
