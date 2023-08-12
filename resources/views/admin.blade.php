@@ -40,10 +40,6 @@
 	</div>
 @endsection
 
-@section('modals')
-	@include('shared.yes-no-modal')
-@endsection
-
 @push('assets')
 	@vite($entries)
 @endpush

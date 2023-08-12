@@ -187,6 +187,7 @@ return [
 		/*
          * Package Service Providers...
          */
+		// Maatwebsite\Excel\ExcelServiceProvider::class,
 		Vinkla\Hashids\HashidsServiceProvider::class,
 
 		/*
@@ -213,6 +214,7 @@ return [
 
 	'aliases' => Facade::defaultAliases()->merge([
 		// 'ExampleClass' => App\Example\ExampleClass::class,
+		// 'Excel' => Maatwebsite\Excel\Facades\Excel::class,
 		'Hashids' => Vinkla\Hashids\Facades\Hashids::class,
 		'Vite' => \Illuminate\Support\Facades\Vite::class,
 	])->toArray(),

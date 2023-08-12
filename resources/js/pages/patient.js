@@ -51,6 +51,8 @@ patientForm.querySelectorAll(utils.editableElements).forEach(element => {
 })
 
 patientSaved.addEventListener('change', () => {
+	window.laravel.modified = patientSaved.value.toLowerCase() !== "true";
+
 	if (patientSaved.value.toLowerCase() === 'true') {
 		patientNotSavedMessage.classList.add('invisible')
 		if (newInvoiceBtn) newInvoiceBtn.classList.remove('disabled')

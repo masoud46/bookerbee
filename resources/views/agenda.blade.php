@@ -149,7 +149,6 @@
 			</div>
 		</div>
 	</div>
-	
 @endsection
 
 
@@ -163,7 +162,7 @@
 		window.laravel.messages.lockSlot = "{{ __('Lock this slot') }}"
 		window.laravel.settings = {!! json_encode($settings) !!}
 		window.laravel.agenda = {
-			lock: {{ in_array("agenda_lock", Auth::user()->features) ? "true" : "false" }},
+			lock: {{ in_array('agenda_lock', Auth::user()->features) ? 'true' : 'false' }},
 			timezone: '{{ Auth::user()->timezone }}',
 			prefixes: {!! json_encode($prefixes) !!},
 			freq: {!! json_encode($FREQ) !!},

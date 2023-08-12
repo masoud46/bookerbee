@@ -3,27 +3,26 @@ import { utils } from '../utils/utils'
 
 import '../../scss/pages/index.scss'
 
-
 const patientCount = document.querySelector('.patient-count')
 
 Pickers.forEach(picker => {
-	picker.patients.setItem = item => {
-		return `${item.code} - ${item.lastname}, ${item.firstname}`
-	}
+  picker.patients.setItem = item => {
+    return `${item.code} - ${item.lastname}, ${item.firstname}`
+  }
 
-	picker.patients.onChange = count => {
-		if (patientCount) {
-			patientCount.textContent = count
-		}
-	}
+  picker.patients.onChange = count => {
+    if (patientCount) {
+      patientCount.textContent = count
+    }
+  }
 
-	picker.patients.onError = code => {
-		if (code !== 302) { // handled in utils.fetch
-			utils.showMessage(window.laravel.messages.unexpectedError)
-		}
-	}
+  picker.patients.onError = code => {
+    if (code !== 302) {
+      // handled in utils.fetch
+      utils.showMessage(window.laravel.messages.unexpectedError)
+    }
+  }
 })
-
 
 const listFilter = document.getElementById('items-table-filter')
 const input = listFilter.querySelector('.items-table-filter-input')
@@ -35,138 +34,181 @@ const invoices = document.querySelector('#invoices-container tbody')
 const patients = document.querySelector('#patients-container tbody')
 
 if (listFilter && input && count) {
-	const parent = invoices ?? (patients ?? null)
+  const parent = invoices ?? patients ?? null
 
-	if (parent) {
-		input.addEventListener('input', () => {
-			const text = utils.removeDiacritics(input.value).toLowerCase()
-			const items = [...parent.querySelectorAll('.items-table-item')]
+  if (parent) {
+    input.addEventListener('input', () => {
+      const text = utils.removeDiacritics(input.value).toLowerCase()
+      const items = [...parent.querySelectorAll('.items-table-item')]
 
-			items.forEach(item => {
-				const content = utils.removeDiacritics(item.textContent).toLowerCase()
+      items.forEach(item => {
+        const content = utils.removeDiacritics(item.textContent).toLowerCase()
 
-				if (content.includes(text)) {
-					item.classList.remove('d-none')
-				} else {
-					item.classList.add('d-none')
-				}
-			})
+        if (content.includes(text)) {
+          item.classList.remove('d-none')
+        } else {
+          item.classList.add('d-none')
+        }
+      })
 
-			setTimeout(() => {
-				count.textContent = parent.querySelectorAll('.items-table-item:not(.d-none)').length
-			}, 0);
+      setTimeout(() => {
+        count.textContent = parent.querySelectorAll('.items-table-item:not(.d-none)').length
+      }, 0)
 
-			if (input.value.length) {
-				button.classList.add('filter-active')
-			} else {
-				button.classList.remove('filter-active')
-			}
-		})
+      if (input.value.length) {
+        button.classList.add('filter-active')
+      } else {
+        button.classList.remove('filter-active')
+      }
+    })
 
-		input.addEventListener('keydown', e => {
-			if (e.key === 'Escape') {
-				button.click()
-			}
-		})
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        button.click()
+      }
+    })
 
-		button.addEventListener('click', () => {
-			input.value = ''
-			input.focus()
-			input.dispatchEvent(new Event('input'))
-		})
-	}
+    button.addEventListener('click', () => {
+      input.value = ''
+      input.focus()
+      input.dispatchEvent(new Event('input'))
+    })
+  }
 }
-
 
 if (invoices) {
-	invoices.addEventListener('click', e => {
-		const id = e.target.parentElement.getAttribute('data-id')
+  invoices.addEventListener('click', e => {
+    const id = e.target.parentElement.getAttribute('data-id')
 
-		if (id) {
-			window.location.assign(document.getElementById('invoice-show-url').value.replace('?id', id))
-		}
-	})
+    if (id) {
+      window.location.assign(document.getElementById('invoice-show-url').value.replace('?id', id))
+    }
+  })
 
-	input.value = ''
+  input.value = ''
 
+  document.querySelector('#export-report').addEventListener('click', async e => {
+    e.preventDefault()
+    const start = document.querySelector('#report-start').value
+    const end = document.querySelector('#report-end').value
+    const a = e.target
+    const href = a.getAttribute('href').replace('?start', start).replace('?end', end)
+    console.log(href)
+
+    // a.setAttribute('href', href)
+	window.location.assign(href)
+  })
+
+  document.querySelector('#print-report').addEventListener('click', async e => {
+    e.preventDefault()
+    const start = document.querySelector('#report-start').value
+    const end = document.querySelector('#report-end').value
+    const a = e.target
+    const url = a.getAttribute('href')
+    console.log(url)
+    console.log(start, end)
+    console.log(JSON.stringify({ start, end }))
+
+    try {
+      const response = await fetch(url, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({ start, end }),
+      })
+      const result = await response.text()
+
+      const printOnly = document.querySelector('#print-only')
+
+      printOnly.setAttribute('class', null)
+      printOnly.classList.add('report-print')
+      printOnly.innerHTML = result
+      setTimeout(() => {
+        window.print()
+      }, 0)
+    } catch (error) {
+      console.error(error)
+      utils.showAlert({ message: 'xxx', type: 'error' })
+    }
+  })
 }
-
 
 if (patients) {
-	const container = document.getElementById('patients-container')
-	const accordion = document.querySelector('.accordion-button')
+  const container = document.getElementById('patients-container')
+  const accordion = document.querySelector('.accordion-button')
 
-	async function fetchPatients() {
-		container.classList.add('loading')
+  async function fetchPatients() {
+    container.classList.add('loading')
 
-		while (patients.firstChild) patients.removeChild(patients.firstChild)
+    while (patients.firstChild) patients.removeChild(patients.firstChild)
 
-		const result = await utils.fetch({ url: '/patient/list' })
+    const result = await utils.fetch({ url: '/patient/list' })
 
-		if (result.error) {
-			container.classList.remove('loading')
+    if (result.error) {
+      container.classList.remove('loading')
 
-			if (result.code !== 302) { // handled by utils.fetch
-				utils.showAlert({ message: window.laravel.messages.unexpectedError, type: 'error' })
-			}
+      if (result.code !== 302) {
+        // handled by utils.fetch
+        utils.showAlert({ message: window.laravel.messages.unexpectedError, type: 'error' })
+      }
 
-			return
-		}
+      return
+    }
 
-		total.textContent = result.length
-		count.textContent = result.length
-		input.value = ''
+    total.textContent = result.length
+    count.textContent = result.length
+    input.value = ''
 
-		result.forEach(patient => {
-			const row = document.createElement('tr')
-			let cells = [...Array(5)] // equals to Array(5).fill()
+    result.forEach(patient => {
+      const row = document.createElement('tr')
+      let cells = [...Array(5)] // equals to Array(5).fill()
 
-			cells = cells.map(cell => {
-				cell = document.createElement('td')
-				cell.setAttribute('scope', 'col')
-				row.appendChild(cell)
+      cells = cells.map(cell => {
+        cell = document.createElement('td')
+        cell.setAttribute('scope', 'col')
+        row.appendChild(cell)
 
-				return cell
-			})
+        return cell
+      })
 
-			row.classList.add('items-table-item', 'user-select-none')
-			row.setAttribute('role', 'button')
-			row.setAttribute('data-id', patient.id)
-			patients.appendChild(row)
+      row.classList.add('items-table-item', 'user-select-none')
+      row.setAttribute('role', 'button')
+      row.setAttribute('data-id', patient.id)
+      patients.appendChild(row)
 
-			cells[0].textContent = patient.code
-			cells[1].textContent = patient.lastname
-			cells[2].textContent = patient.firstname
-			cells[3].textContent = patient.email
-			cells[4].textContent = patient.phone_number ? `${patient.phone_prefix} ${patient.phone_number}` : ''
-		})
+      cells[0].textContent = patient.code
+      cells[1].textContent = patient.lastname
+      cells[2].textContent = patient.firstname
+      cells[3].textContent = patient.email
+      cells[4].textContent = patient.phone_number ? `${patient.phone_prefix} ${patient.phone_number}` : ''
+    })
 
-		container.classList.remove('loading')
-	}
+    container.classList.remove('loading')
+  }
 
-	listFilter.querySelector('button').addEventListener('click', fetchPatients)
+  listFilter.querySelector('button').addEventListener('click', fetchPatients)
 
-	patients.addEventListener('click', e => {
-		const id = e.target.parentElement.getAttribute('data-id')
+  patients.addEventListener('click', e => {
+    const id = e.target.parentElement.getAttribute('data-id')
 
-		if (id) {
-			window.location.assign(document.getElementById('patient-show-url').value.replace('?id', id))
-		}
-	})
+    if (id) {
+      window.location.assign(document.getElementById('patient-show-url').value.replace('?id', id))
+    }
+  })
 
-	accordion.addEventListener('click', async () => {
-		const expanded = !accordion.classList.contains('collapsed')
+  accordion.addEventListener('click', async () => {
+    const expanded = !accordion.classList.contains('collapsed')
 
-		if (expanded && patients.children.length === 0) {
-			fetchPatients()
-		}
-	})
+    if (expanded && patients.children.length === 0) {
+      fetchPatients()
+    }
+  })
 
-	input.value = ''
+  input.value = ''
 }
-
 
 if (document.querySelector('.patient-picker-input')) {
-	document.querySelector('.patient-picker-input').focus()
+  document.querySelector('.patient-picker-input').focus()
 }
-

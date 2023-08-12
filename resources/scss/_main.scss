@@ -1,379 +1,397 @@
 html,
 body {
-	height: 100%;
-	font-family: 'Nunito', sans-serif;
+  height: 100%;
+  font-family: 'Nunito', sans-serif;
 }
 
-input:not([type="checkbox"]):not([type="radio"]),
+input:not([type='checkbox']):not([type='radio']),
 textarea,
 select {
-	&:disabled {
-		background-color: rgba(#000, 0.025) !important;
-		background-color: transparent !important;
-	}
+  &:disabled {
+    background-color: rgba(#000, 0.025) !important;
+    background-color: transparent !important;
+  }
 }
 
 .btn i,
 .btn .spinner {
-	margin-right: 4px;
+  margin-right: 4px;
 }
 
 .btn-spinner {
-	.spinner {
-		display: inline-block;
+  .spinner {
+    display: inline-block;
 
-		.spinner-border {
-			width: 1.25em;
-			height: 1.25em;
-			vertical-align: -0.3em;
-		}
-	}
+    .spinner-border {
+      width: 1.25em;
+      height: 1.25em;
+      vertical-align: -0.3em;
+    }
+  }
 
-	.icon-hidden {
-		display: none;
-	}
+  .icon-hidden {
+    display: none;
+  }
 
-	&.spinning {
-		.icon-visible {
-			display: none;
-		}
+  &.spinning {
+    .icon-visible {
+      display: none;
+    }
 
-		.icon-hidden {
-			display: inline-block;
-		}
-	}
+    .icon-hidden {
+      display: inline-block;
+    }
+  }
 }
 
 ::placeholder {
-	font-size: 0.9em;
-	font-style: italic;
-	opacity: 0.6 !important;
+  font-size: 0.9em;
+  font-style: italic;
+  opacity: 0.6 !important;
 }
 
 .btn-edit {
-	cursor: pointer;
-	opacity: 0.4;
-	transition: opacity 0.25s;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.25s;
 
-	&:hover {
-		opacity: 0.8;
-	}
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .required-field {
-	position: relative;
+  position: relative;
 
-	&::after {
-		content: '*';
-		position: absolute;
-		right: -0.6rem;
-		font-weight: bold;
-		color: $danger;
-		opacity: 0.5;
-	}
+  &::after {
+    content: '*';
+    position: absolute;
+    right: -0.6rem;
+    font-weight: bold;
+    color: $danger;
+    opacity: 0.5;
+  }
 }
 
 .sending-email-overlay {
-	z-index: 10000;
-	position: fixed;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: rgba(#fff, 0.75);
-	visibility: hidden;
-	opacity: 0;
-	transition: opacity 0.25s;
+  z-index: 10000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(#fff, 0.75);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s;
 }
 
 .dropdown-menu {
-	*:focus {
-		outline: none !important;
-	}
+  *:focus {
+    outline: none !important;
+  }
 
-	&.dropdown-sm {
-		.dropdown-menu {
-			font-size: 0.9em;
-		}
-	}
+  &.dropdown-sm {
+    .dropdown-menu {
+      font-size: 0.9em;
+    }
+  }
 }
 
 .modal.saving-content {
-	* {
-		pointer-events: none;
-	}
+  * {
+    pointer-events: none;
+  }
 
-	button {
-		opacity: 0.5;
-	}
+  button {
+    opacity: 0.5;
+  }
 }
 
 .modal-body {
+  .modal-body-container,
+  .modal-waiting {
+    transition: opacity 0.5s;
+  }
 
-	.modal-body-container,
-	.modal-waiting {
-		transition: opacity 0.5s;
-	}
+  .modal-body-container {
+    opacity: 1;
+  }
 
-	.modal-body-container {
-		opacity: 1;
-	}
+  .modal-waiting {
+    pointer-events: none;
+    opacity: 0;
+  }
 
-	.modal-waiting {
-		pointer-events: none;
-		opacity: 0;
-	}
+  &.modal-is-waiting {
+    .modal-body-container {
+      pointer-events: none;
+      opacity: 0;
+    }
 
-	&.modal-is-waiting {
-		.modal-body-container {
-			pointer-events: none;
-			opacity: 0;
-		}
-
-		.modal-waiting {
-			opacity: 1;
-		}
-	}
+    .modal-waiting {
+      opacity: 1;
+    }
+  }
 }
 
 .form-control,
 .form-select,
 .form-control:focus,
 .form-select:focus {
-	background-color: #fff;
+  background-color: #fff;
 }
 
 .custom-switch {
-
-	.custom-control-label,
-	.custom-control-label::before,
-	.custom-control-label::after {
-		cursor: pointer;
-	}
+  .custom-control-label,
+  .custom-control-label::before,
+  .custom-control-label::after {
+    cursor: pointer;
+  }
 }
 
 .border-inactive-invoice {
-	border-color: $inactive-invoice-color !important;
+  border-color: $inactive-invoice-color !important;
 }
 
 .text-inactive-invoice {
-	color: $inactive-invoice-color;
+  color: $inactive-invoice-color;
 }
 
 .bg-inactive-invoice {
-	background-color: $inactive-invoice-color;
+  background-color: $inactive-invoice-color;
 }
 
 .text-bg-inactive-invoice {
-	color: #fff;
-	background-color: $inactive-invoice-color;
+  color: #fff;
+  background-color: $inactive-invoice-color;
 }
 
 .border-national-healthcare {
-	border-color: $national-healthcare-color !important;
+  border-color: $national-healthcare-color !important;
 }
 
 .text-national-healthcare {
-	color: $national-healthcare-color;
+  color: $national-healthcare-color;
 }
 
 .bg-national-healthcare {
-	background-color: $national-healthcare-color;
+  background-color: $national-healthcare-color;
 }
 
 .text-bg-national-healthcare {
-	color: #fff;
-	background-color: $national-healthcare-color;
+  color: #fff;
+  background-color: $national-healthcare-color;
 }
 
 .flash-message {
-	z-index: 10000;
-	position: fixed;
-	top: -100%;
-	left: 50%;
-	transform: translate(-50%);
-	width: calc(100% - 30px);
-	min-height: 40px;
-	transition: top 0.4s;
+  z-index: 10000;
+  position: fixed;
+  top: -100%;
+  left: 50%;
+  transform: translate(-50%);
+  width: calc(100% - 30px);
+  min-height: 40px;
+  transition: top 0.4s;
 
-	> div {
-		position: relative;
-	}
+  > div {
+    position: relative;
+  }
 
-	.flash-message-text {
-		margin: 10px 30px 10px 15px;
-	}
+  .flash-message-text {
+    margin: 10px 30px 10px 15px;
+  }
 
-	.flash-message-close {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		width: 25px;
-		height: 25px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		cursor: pointer;
-		font-size: 1.3em;
-		opacity: 0.6;
-		transition: opacity 0.25s;
+  .flash-message-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.3em;
+    opacity: 0.6;
+    transition: opacity 0.25s;
 
-		&:hover {
-			opacity: 0.8;
-		}
+    &:hover {
+      opacity: 0.8;
+    }
 
-		svg {
-			pointer-events: none;
-		}
-	}
+    svg {
+      pointer-events: none;
+    }
+  }
 
-	&.flash-message-success {
-		color: #fff;
-		background-color: $green;
-	}
+  &.flash-message-success {
+    color: #fff;
+    background-color: $green;
+  }
 
-	&.flash-message-warning {
-		color: #000;
-		background-color: $yellow;
-	}
+  &.flash-message-warning {
+    color: #000;
+    background-color: $yellow;
+  }
 
-	&.flash-message-error {
-		color: #fff;
-		background-color: $red;
-	}
+  &.flash-message-error {
+    color: #fff;
+    background-color: $red;
+  }
 
-	&.flash-message-visible {
-		top: 15px !important;
-	}
+  &.flash-message-visible {
+    top: 15px !important;
+  }
 }
 
 .app-tooltip {
-	--bs-tooltip-bg: var(--bs-secondary);
-	--bs-tooltip-max-width: 500px !important;
-	--bs-tooltip-opacity: 1;
+  --bs-tooltip-bg: var(--bs-secondary);
+  --bs-tooltip-max-width: 500px !important;
+  --bs-tooltip-opacity: 1;
 
-	.tooltip-inner {
-		white-space: nowrap;
-		text-align: left !important;
-		font-size: 0.95em;
-	}
+  .tooltip-inner {
+    white-space: nowrap;
+    text-align: left !important;
+    font-size: 0.95em;
+  }
 }
 
 .navbar-brand {
-	svg {
-		transform: scale(1.1);
-	}
+  svg {
+    transform: scale(1.1);
+  }
 }
 
 // .form-select:not([multiple]):not([size]) {
 .form-select {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 .form-check {
-
-	input,
-	label {
-		cursor: pointer;
-	}
+  input,
+  label {
+    cursor: pointer;
+  }
 }
 
 .navbar {
-	z-index: 5;
+  z-index: 5;
 
-	.nav-link.dropdown-toggle {
-		padding-right: 0;
+  .nav-link.dropdown-toggle {
+    padding-right: 0;
 
-		&::after {
-			border: none;
-		}
-	}
+    &::after {
+      border: none;
+    }
+  }
 }
 
 #navbarDropdown {
-	position: relative;
-	bottom: -1px;
+  position: relative;
+  bottom: -1px;
 }
 
 #navbarLangDropdown {
-	position: relative;
-	top: -1px;
+  position: relative;
+  top: -1px;
 
-	.fa-language {
-		position: relative;
-		top: 2px;
-	}
+  .fa-language {
+    position: relative;
+    top: 2px;
+  }
 }
 
 #patient-notes {
-	font-size: 1.1em;
-	cursor: pointer;
-	opacity: 0.75;
-	transition: opacity 0.25s;
+  font-size: 1.1em;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.25s;
 
-	&:hover {
-		opacity: 1;
-	}
+  &:hover {
+    opacity: 1;
+  }
 }
 
-
 body.sending-email {
-
-	.sending-email-overlay {
-		visibility: visible;
-		opacity: 1;
-	}
+  .sending-email-overlay {
+    visibility: visible;
+    opacity: 1;
+  }
 }
 
 body.busy {
+  a,
+  button:not([data-bs-toggle='tab']),
+  select,
+  textarea,
+  input,
+  label,
+  .custom-control-label {
+    pointer-events: none;
 
-	a,
-	button:not([data-bs-toggle="tab"]),
-	select,
-	textarea,
-	input,
-	label,
-	.custom-control-label {
-		pointer-events: none;
+    &:not(label):not(.custom-control-label) {
+      opacity: 0.5;
+    }
+  }
 
-		&:not(label):not(.custom-control-label) {
-			opacity: 0.5;
-		}
-	}
+  .btn-spinner {
+    // opacity: 0.5;
+    transition: none;
 
-	.btn-spinner {
-		// opacity: 0.5;
-		transition: none;
+    .icon-visible {
+      display: none;
+    }
 
-		.icon-visible {
-			display: none;
-		}
-
-		.icon-hidden {
-			display: inline-block;
-		}
-	}
+    .icon-hidden {
+      display: inline-block;
+    }
+  }
 }
 
-@media only screen and (min-width:576px) {
-	.flash-message {
-		width: 75%;
-	}
+@media only screen and (min-width: 576px) {
+  .flash-message {
+    width: 75%;
+  }
 }
 
-@media only screen and (min-width:768px) {
-	.flash-message {
-		width: 60%;
-	}
+@media only screen and (min-width: 768px) {
+  .flash-message {
+    width: 60%;
+  }
 }
 
-@media only screen and (min-width:992px) {
-	.flash-message {
-		width: 50%;
-	}
+@media only screen and (min-width: 992px) {
+  .flash-message {
+    width: 50%;
+  }
 }
 
-@media only screen and (min-width:1200px) {}
+@media only screen and (min-width: 1200px) {
+}
+
+#print-only {
+  display: none;
+
+  .history-print {
+    // width: 180mm;
+    width: 100%;
+  }
+}
+
+@media print {
+  body {
+    background-color: #fff;
+  }
+
+  #app {
+    display: none;
+  }
+
+  #print-only {
+    display: block;
+  }
+}

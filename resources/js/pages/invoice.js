@@ -155,6 +155,8 @@ currentSession.addEventListener('change', () => {
 })
 
 invoiceSaved.addEventListener('change', () => {
+	window.laravel.modified = invoiceSaved.value.toLowerCase() !== "true"
+
 	if (invoiceSaved.value.toLowerCase() === 'true') {
 		invoiceNotSavedMessage.classList.add('invisible')
 		if (printInvoiceBtn) printInvoiceBtn.classList.remove('disabled')

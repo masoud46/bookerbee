@@ -141,7 +141,9 @@
 						<div class="col-12">
 							<button type="submit" class="btn btn-primary btn-spinner me-3" data-saved="0">
 								<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
-								<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+								<div class="icon-hidden spinner">
+									<div class="spinner-border"></div>
+								</div>
 								{{ __('Save') }}
 							</button>
 						</div>
@@ -270,7 +272,9 @@
 						<div class="col-12">
 							<button type="submit" class="btn btn-primary btn-spinner me-3" data-saved="0">
 								<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
-								<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+								<div class="icon-hidden spinner">
+									<div class="spinner-border"></div>
+								</div>
 								{{ __('Save') }}
 							</button>
 						</div>

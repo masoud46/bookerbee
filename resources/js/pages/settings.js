@@ -24,6 +24,8 @@ settingsForm.querySelectorAll(utils.editableElements).forEach(element => {
 settingsSaved.addEventListener('change', () => {
 	const message = document.getElementById('settings-not-saved-message')
 
+	window.laravel.modified = settingsSaved.value.toLowerCase() !== "true";
+
 	if (settingsSaved.value.toLowerCase() === 'true') {
 		message.classList.add('invisible')
 	} else {

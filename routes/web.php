@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientNoteController;
 use App\Http\Controllers\ReportController;
@@ -49,6 +51,8 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 			'register' => false,
 		]);
 
+		Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
+
 		Route::group(['middleware' => ['admin']], function () {
 			Route::get('/admin', [AdminController::class, 'index'])->name('admin');
 			Route::get('/admin/log/{log}', [AdminController::class, 'log'])->name('admin.log');
@@ -61,10 +65,13 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 		Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');
 		Route::get('/invoice/search/{limit}', [InvoiceController::class, 'index'])->name('invoice.index');
 		Route::get('/invoice/new/{patient}', [InvoiceController::class, 'create'])->name('invoice.new');
-		Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
-		Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
 		Route::get('/invoice/print/{invoice}', [InvoiceController::class, 'print'])->name('invoice.print');
 		Route::get('/invoice/disable/{invoice}', [InvoiceController::class, 'disable'])->name('invoice.disable');
+		Route::post('/invoice/report', [InvoiceController::class, 'report'])->name('invoice.report.print');
+		Route::get('/invoice/report/{start}/{end}', [InvoiceController::class, 'report'])
+			->withoutMiddleware('localeCookieRedirect')
+			->name('invoice.report.export');
+		Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
 
 		Route::get('/patient', [PatientController::class, 'index'])->name('patient.index');
 		Route::post('/patient', [PatientController::class, 'store'])->name('patient.store');
@@ -88,8 +95,6 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 
 		Route::get('/settings', [SettingsController::class, 'edit'])->name('settings');
 		Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-
-		Route::get('/report', [ReportController::class, 'index'])->name('report');
 
 
 		Route::post('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');

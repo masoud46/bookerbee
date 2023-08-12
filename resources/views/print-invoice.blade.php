@@ -2,8 +2,8 @@
 	$cancelled = !$invoice->active;
 	$titles = json_decode($user->titles);
 	$invoice_date = Carbon\Carbon::parse($invoice->created_at)
-		->timezone(Auth::user()->timezone)
-		->format('d/m/Y');
+	    ->timezone(Auth::user()->timezone)
+	    ->format('d/m/Y');
 @endphp
 
 <!DOCTYPE html>
@@ -224,9 +224,9 @@
 	</table>
 
 	@if ($cancelled)
-	<div id="cancelled">
-		<div class="cancelled">ANNULÉ</div>
-	</div>
+		<div id="cancelled">
+			<div class="cancelled">ANNULÉ</div>
+		</div>
 	@endif
 
 	<script>

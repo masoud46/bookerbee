@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
+use App\Exports\InvoiceExport;
+use App\Exports\InvoiceExportView;
+use Maatwebsite\Excel\Facades\Excel;
+
 class InvoiceController extends Controller {
 	/**
 	 * Create a new controller instance.
@@ -278,7 +282,6 @@ class InvoiceController extends Controller {
 			"invoices.patient_id",
 			"invoices.serial",
 			"invoices.session",
-			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
 			"invoices.name",
 			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
 			"patients.category AS patient_category",
@@ -297,11 +300,14 @@ class InvoiceController extends Controller {
 			// between storing the invoice and storing it's sessions,
 			// which the result is an invoice with no sessions.
 			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("created_at", "active", "id","patient_id", "serial", "session", "date", "name", "patient", "patient_category")
+			->groupBy("created_at", "active", "id", "patient_id", "serial", "session", "name", "patient", "patient_category")
 			->latest()
 			->get();
 
 		foreach ($invoices as $invoice) {
+			$invoice->date = Carbon::parse($invoice->created_at)
+				->timezone(Auth::user()->timezone)
+				->format('d/m/Y');
 			$invoice->total = currency_format($invoice->total, true);
 			$invoice->reference = $this->generateReference($invoice);
 			$invoice->editable = $invoice->id === Invoice::getLastActiveId($invoice->patient_id);
@@ -700,45 +706,6 @@ class InvoiceController extends Controller {
 	}
 
 	/**
-	 * Get invoice list with matched pattern based on patient's code, last name and first name.
-	 * *** NOT USED ANYMORE ***
-	 *
-	 * @param  \Illuminate\Http\Request $request
-	 * @return \Illuminate\Http\Response
-	 */
-	public function autocomplete(Request $request) {
-		$str = $request->str;
-		$invoices = DB::table('invoices')->select([
-			"invoices.created_at",
-			"invoices.id",
-			DB::raw('DATE_FORMAT(invoices.created_at, "%d/%m/%Y") AS date'),
-			"invoices.name",
-			"patients.code",
-			DB::raw('CONCAT(patients.lastname, ", ", patients.firstname) AS patient'),
-			DB::raw('SUM(sessions.amount) AS total'),
-		])
-			->join("patients", "patients.id", "=", "invoices.patient_id")
-			->where("invoices.user_id", "=", Auth::user()->id)
-			->where(function ($query) use ($str) {
-				$query
-					->where("patients.lastname", "LIKE", "%{$str}%")
-					->orWhere("patients.firstname", "LIKE", "%{$str}%")
-					->orWhere("patients.code", "LIKE", "{$str}%");
-			})
-			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("id", "created_at", "date", "name", "patients.code", "patient")
-			->latest()
-			->get()->toArray();
-
-		foreach ($invoices as $invoice) {
-			$invoice->total = currency_format($invoice->total, true);
-			unset($invoice->created_at);
-		}
-
-		return response()->json($invoices);
-	}
-
-	/**
 	 * Display the specified invoice to print.
 	 *
 	 * @param  \App\Models\Invoice  $invoice
@@ -788,4 +755,129 @@ class InvoiceController extends Controller {
 
 		return view('print-invoice', $invoice_object);
 	}
+
+	/**
+	 * Get invoice list with matched pattern based on patient's code, last name and first name.
+	 * *** NOT USED ANYMORE ***
+	 *
+	 * @param  \Illuminate\Http\Request $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function autocomplete(Request $request) {
+		$str = $request->str;
+		$invoices = DB::table('invoices')->select([
+			"invoices.created_at",
+			"invoices.id",
+			"invoices.name",
+			"patients.code",
+			DB::raw('CONCAT(patients.lastname, ", ", patients.firstname) AS patient'),
+			DB::raw('SUM(sessions.amount) AS total'),
+		])
+			->join("patients", "patients.id", "=", "invoices.patient_id")
+			->where("invoices.user_id", "=", Auth::user()->id)
+			->where(function ($query) use ($str) {
+				$query
+					->where("patients.lastname", "LIKE", "%{$str}%")
+					->orWhere("patients.firstname", "LIKE", "%{$str}%")
+					->orWhere("patients.code", "LIKE", "{$str}%");
+			})
+			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
+			->groupBy("id", "created_at", "name", "patients.code", "patient")
+			->latest()
+			->get()->toArray();
+
+		foreach ($invoices as $invoice) {
+			$invoice->date = Carbon::parse($invoice->created_at)
+				->timezone(Auth::user()->timezone)
+				->format('d/m/Y');
+			$invoice->total = currency_format($invoice->total, true);
+			unset($invoice->created_at);
+		}
+
+		return response()->json($invoices);
+	}
+
+	/**
+	 * Get the invoices between two dates.
+	 *
+	 * @param  \Illuminate\Http\Request $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function report(Request $request, $start = null, $end = null) {
+
+		function hide_info(string $string, int $visible, string $replace = '.') {
+			return substr($string, 0, $visible) . str_repeat($replace, strlen($string) - $visible);
+		}
+
+		if ($request->method() === 'POST') {
+			$start_date = Carbon::parse($request->start);
+			$end_date = Carbon::parse($request->end)->addDay();
+		} else {
+			$start_date = Carbon::parse($start);
+			$end_date = Carbon::parse($end)->addDay();
+		}
+
+		$invoices = DB::table('invoices')->select([
+			"invoices.created_at",
+			// "invoices.active",
+			// "invoices.id",
+			// "invoices.patient_id",
+			"invoices.serial",
+			"invoices.name",
+			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
+			// "patients.category AS patient_category",
+			DB::raw('SUM(sessions.amount) AS total'),
+		])
+			->where("invoices.user_id", "=", Auth::user()->id)
+			// ->where("invoices.user_id", "=", "1")
+			->whereBetween('invoices.created_at', [$start_date, $end_date])
+			->where("invoices.active", "=", true)
+			->join("patients", "patients.id", "=", "invoices.patient_id")
+			// We use left join in case that there has been an interruption
+			// between storing the invoice and storing it's sessions,
+			// which the result is an invoice with no sessions.
+			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
+			->groupBy("created_at", /*"active", "id", "patient_id",*/ "serial", /*"session",*/ "name", "patient"/*, "patient_category"*/)
+			// ->latest()
+			->get();
+
+		$total = 0;
+		foreach ($invoices as $invoice) {
+			$total += $invoice->total;
+			$invoice->name = hide_info($invoice->name, 3);
+			$invoice->patient = hide_info($invoice->patient, 4);
+			$invoice->date = Carbon::parse($invoice->created_at)
+				->timezone(Auth::user()->timezone)
+				->format('d/m/Y');
+			$invoice->total_float = $invoice->total / 100;
+			$invoice->total = currency_format($invoice->total, true);
+			$invoice->reference = $this->generateReference($invoice);
+		}
+
+		$total_float = $total / 100;
+		$total = currency_format($total, true);
+
+		if ($request->method() === 'POST') {
+			$start = Carbon::parse($request->start)->format('d/m/Y');
+			$end = Carbon::parse($request->end)->format('d/m/Y');
+
+			return view('invoice-report', compact('start', 'end', 'invoices', 'total'));
+		}
+
+		$start = Carbon::parse($start)->format('d/m/Y');
+		$end = Carbon::parse($end)->format('d/m/Y');
+		$filename = "report_" . (str_replace("/", "-", $start)) . "_" . (str_replace("/", "-", $end)) . ".xlsx";
+
+		// $export = new InvoiceExport(
+		$export = new InvoiceExportView(
+			$start,
+			$end,
+			$invoices,
+			$total_float
+		);
+
+		// return $export->download($filename);
+		return Excel::download($export, $filename);
+	}
+
 }

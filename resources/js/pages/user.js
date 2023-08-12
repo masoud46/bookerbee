@@ -58,6 +58,8 @@ profileForm.querySelectorAll(utils.editableElements).forEach(element => {
 profileSaved.addEventListener('change', () => {
 	const message = document.getElementById('profile-not-saved-message')
 
+	window.laravel.modified = profileSaved.value.toLowerCase() !== "true";
+
 	if (profileSaved.value.toLowerCase() === 'true') {
 		message.classList.add('invisible')
 	} else {
@@ -99,6 +101,8 @@ addressForm.querySelectorAll(utils.editableElements).forEach(element => {
 
 addressSaved.addEventListener('change', () => {
 	const message = document.getElementById('address-not-saved-message')
+
+	window.laravel.modified = addressSaved.value.toLowerCase() !== "true";
 
 	if (addressSaved.value.toLowerCase() === 'true') {
 		message.classList.add('invisible')

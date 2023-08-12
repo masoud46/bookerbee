@@ -154,7 +154,9 @@
 				<div class="col-12">
 					<button type="submit" id="save-patient" class="btn btn-primary btn-spinner me-3" data-saved="0">
 						<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
-						<div class="icon-hidden spinner"><div class="spinner-border"></div></div>
+						<div class="icon-hidden spinner">
+							<div class="spinner-border"></div>
+						</div>
 						{{ __('Save') }}
 					</button>
 					@if ($update)
@@ -171,7 +173,6 @@
 
 @section('modals')
 	@include('shared.patient-notes-modal')
-	@include('shared.yes-no-modal')
 @endsection
 
 @push('assets')

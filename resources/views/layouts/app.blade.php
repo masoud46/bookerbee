@@ -40,6 +40,7 @@
 	<script>
 		/* Pass php variables to javascript */
 		window.laravel = {
+			userName: "{{ strtoupper(Auth::user()->lastname) }}, {{ Auth::user()->firstname }}",
 			regionalLocale: '{{ LaravelLocalization::getCurrentLocaleRegional() }}',
 			locale: '{{ LaravelLocalization::getCurrentLocale() }}',
 			// TODO: To show a message if the content might need to be saved
@@ -47,10 +48,10 @@
 			messages: {
 				unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
 				sessionError: `{{ __('Your session has been timed out, please sign back in to continue.') }}`,
-				databaseError: `{{ __('Changes could not be applied.') }}<br>{{ __('Try again.') }}`,
+				databaseError: `{{ __('The modifications could not be applied.') }}<br>{{ __('Try again.') }}`,
 				irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
-				saveModification: `{{ __('Changes are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
-				modificationSaved: `{{ __('Changes have been saved.') }}`,
+				saveModification: `{{ __('The modifications are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
+				modificationSaved: `{{ __('The modifications have been saved.') }}`,
 			}
 		}
 	</script>
@@ -80,7 +81,7 @@
 		<nav class="navbar navbar-expand navbar-light bg-white shadow-sm">
 			<div class="container">
 				{{-- <a class="navbar-brand" href="{{ url('/') }}">
-					{{ config('app.name', 'BookerBee') }}
+				{{ config('app.name', 'BookerBee') }}
 				</a> --}}
 				<h5 class="navbar-brand mb-0 d-flex flex-wrap align-items-center">{!! $page_title ?? config('app.name', 'BookerBee') !!}</h5>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
@@ -126,12 +127,16 @@
 									</a>
 									<hr class="my-2">
 								@endif
-								<a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-									<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
+								{{-- <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+								<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
 								</a>
 								<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
 									@csrf
-								</form>
+								</form> --}}
+								<a class="dropdown-item" href="{{ route('logout.get') }}">
+									<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i>
+									{{ __('Logout') }}
+								</a>
 							</div>
 						</li>
 						@php($locales = LaravelLocalization::getSupportedLocales())
@@ -158,6 +163,8 @@
 
 	</div>
 
+	<div id="print-only"></div>
+
 	@yield('modals')
 
 	<div id="message-modal" class="modal fade" tabindex="-1">
@@ -170,6 +177,22 @@
 				<div class="modal-body px-4" tabindex="-1"></div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="yes-no-modal" class="modal fade" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content shadow">
+				<div class="modal-header shadow-sm text-bg-warning">
+					<h6 class="modal-title" id="yes-no-modal-title">{{ __('Confirmation') }}</h6>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body px-4" tabindex="-1"></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-sm btn-outline-dark btn-yes">{{ __('Yes') }}</button>
+					<button type="button" class="btn btn-sm btn-outline-dark btn-no">{{ __('No') }}</button>
 				</div>
 			</div>
 		</div>
