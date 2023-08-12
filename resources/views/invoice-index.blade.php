@@ -114,7 +114,7 @@
 				</form>
 			</div>
 		</div>
-		<div id="items-table-filter" class="row justify-content-between">
+		<div id="items-table-filter" class="row justify-content-between my-4">
 			<div class="col-12">
 				<h4 class="border-bottom pb-2">{{ __('My statements') }}</h4>
 			</div>
