@@ -1,8 +1,8 @@
 @php($excel = isset($total_float))
 <h5 class="fw-bold text-center">{{ strtoupper(Auth::user()->lastname) }}, {{ Auth::user()->firstname }}</h5>
-<h5 class="fw-bold text-center">{{ __('Report: :date1 - :date2', ['date1' => $start, 'date2' => $end]) }}</h5>
+<h5 class="fw-bold text-center">{{ $start }} - {{ $end }}</h5>
 <h5 class="pb-3"></h5>
-<table id="prescription" class="table table-sm xtable-striped">
+<table class="table table-sm">
 	<thead>
 		<tr>
 			<th scope="col">{{ __('Ref.') }}</th>

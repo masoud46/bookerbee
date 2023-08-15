@@ -1,7 +1,7 @@
 <?php
 
 $limits = env('APP_LOAD_INVOICE_LIMITS', [3, 6]);
-if (!is_array($limits)) {
+if (!is_array($limits)) { // specified as a json string in .env
 	try {
 		$limits = json_decode($limits, true);
 	} catch (\Throwable $th) {

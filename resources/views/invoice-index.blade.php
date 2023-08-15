@@ -86,32 +86,13 @@
 					placeholder="{{ __('Last name / First name / Reg. number') }}"
 					helper-text="{{ __('Start by typing three characters.') }}" />
 			</div>
-			<div id="invoices-report" class="col-lg-5 offset-lg-1 my-4">
-				<h4 class="border-bottom pb-2">{{ __('Report') }}</h4>
-				<form>
-					<div class="row">
-						<div class="col-sm-6 mb-3">
-							<label class="col-12 col-form-label position-relative">
-								{{ __('Start') }}
-							</label>
-							<input id="report-start" type="date" class="form-control" value="{{ $history_start }}">
-						</div>
-						<div class="col-sm-6 mb-3">
-							<label class="col-12 col-form-label position-relative">
-								{{ __('End') }} <small class="text-muted fst-italic">{{ __('(included)') }}</small>
-							</label>
-							<input id="report-end" type="date" class="form-control" value="{{ $history_end }}">
-						</div>
-					</div>
-					<a id="print-report" href="{{ route('invoice.report.print') }}" target="_blank" class="btn btn-outline-secondary float-end">
-						<i class="fas fa-print"></i>
-						{{ __('Print') }}
-					</a>
-					<a id="export-report" href="{{ route('invoice.report.export', ['start' => '?start', 'end' => '?end']) }}" target="_blank" class="btn btn-primary float-end me-3">
-						<i class="fas fa-file-excel"></i>
-						{{ __('Export to Excel') }}
-					</a>
-				</form>
+			<div class="col-lg-5 offset-lg-1 my-4">
+				<x-invoices-report
+					history-start="{{ $history_start }}"
+					history-end="{{ $history_end }}"
+					print-url="{{ route('invoice.report.print') }}"
+					export-url="{{ route('invoice.report.export', ['start' => '?start', 'end' => '?end']) }}"
+				/>
 			</div>
 		</div>
 		<div id="items-table-filter" class="row justify-content-between my-4">

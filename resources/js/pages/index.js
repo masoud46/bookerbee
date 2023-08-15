@@ -1,6 +1,8 @@
 import { Pickers } from '../components/patientPicker'
 import { utils } from '../utils/utils'
 
+import '../components/invoicesReport'
+
 import '../../scss/pages/index.scss'
 
 const patientCount = document.querySelector('.patient-count')
@@ -86,53 +88,6 @@ if (invoices) {
   })
 
   input.value = ''
-
-  document.querySelector('#export-report').addEventListener('click', async e => {
-    e.preventDefault()
-    const start = document.querySelector('#report-start').value
-    const end = document.querySelector('#report-end').value
-    const a = e.target
-    const href = a.getAttribute('href').replace('?start', start).replace('?end', end)
-    console.log(href)
-
-    // a.setAttribute('href', href)
-	window.location.assign(href)
-  })
-
-  document.querySelector('#print-report').addEventListener('click', async e => {
-    e.preventDefault()
-    const start = document.querySelector('#report-start').value
-    const end = document.querySelector('#report-end').value
-    const a = e.target
-    const url = a.getAttribute('href')
-    console.log(url)
-    console.log(start, end)
-    console.log(JSON.stringify({ start, end }))
-
-    try {
-      const response = await fetch(url, {
-        method: 'post',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
-        body: JSON.stringify({ start, end }),
-      })
-      const result = await response.text()
-
-      const printOnly = document.querySelector('#print-only')
-
-      printOnly.setAttribute('class', null)
-      printOnly.classList.add('report-print')
-      printOnly.innerHTML = result
-      setTimeout(() => {
-        window.print()
-      }, 0)
-    } catch (error) {
-      console.error(error)
-      utils.showAlert({ message: 'xxx', type: 'error' })
-    }
-  })
 }
 
 if (patients) {

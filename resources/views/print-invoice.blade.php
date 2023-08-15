@@ -1,9 +1,6 @@
 @php
 	$cancelled = !$invoice->active;
 	$titles = json_decode($user->titles);
-	$invoice_date = Carbon\Carbon::parse($invoice->created_at)
-	    ->timezone(Auth::user()->timezone)
-	    ->format('d/m/Y');
 @endphp
 
 <!DOCTYPE html>
@@ -119,8 +116,8 @@
 				<td></td>
 				<td colSpan="9">
 					<div>
-						<div class="title-num">MÉMOIRE D’HONORAIRES &nbsp;&nbsp; N° : <span>{{ $invoice->reference }}</span></div>
-						<div class="title-date">du : <span>{{ $invoice_date }}</span></div>
+						<div class="title-num">MÉMOIRE D'HONORAIRES &nbsp;&nbsp; N° : <span>{{ $invoice->reference }}</span></div>
+						<div class="title-date">du : <span>{{ $invoice->date }}</span></div>
 					</div>
 				</td>
 			</tr>

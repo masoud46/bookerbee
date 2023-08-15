@@ -232,13 +232,14 @@ class InvoiceController extends Controller {
 		$invoice->total_insurance = $invoice->total_insurance > 0 ? currency_format($invoice->total_insurance, $fraction) : null;
 		$invoice->total_to_pay = $invoice->total_to_pay > 0 ? currency_format($invoice->total_to_pay, $fraction) : null;
 
-		$invoice->reference = $this->generateReference($invoice);
-
 		$invoice->patient_address_country = __($invoice->patient_address_country);
-
 		$invoice->editable = $id === Invoice::getLastActiveId($invoice->patient_id);
-
 		$lastInvoice = $this->getLastInvoice($invoice->patient_id, $invoice->id);
+		$invoice->reference = $this->generateReference($invoice);
+		$invoice->date = Carbon::parse($invoice->created_at)
+			->timezone(Auth::user()->timezone)
+			->format('d/m/Y');
+
 
 		$key = Crypt::encrypt([
 			'invoice_id' => $invoice->id,
@@ -267,13 +268,33 @@ class InvoiceController extends Controller {
 		// Note: intval('all') = 0
 		$limit = $limit ? intval($limit) : config('project.load_invoice_limits')[0];
 
+		$from = null;
+		$to = null;
+		// convert limit according to user's timezone
+		if ($limit > 0 && $limit < 1000) { // months
+			$from = Carbon::now()
+				->setTimezone(Auth::user()->timezone)
+				->setTime(0, 0, 0)
+				->setDay(1)
+				->submonths($limit - 1)
+				->setTimezone('UTC');
+			$invoice = (DB::table('invoices')->select(["created_at"])->limit(1)->get()->toArray())[0]->created_at;
+			// dd($invoice, Carbon::now()->toAtomString(), $from->toAtomString());
+		} else if ($limit >= 1000) { // year
+			$from = (new Carbon("{$limit}-01-01 00:00:00", Auth::user()->timezone))
+				->setTimezone('UTC');
+			$to = (new Carbon("{$limit}-12-31 23:59:59", Auth::user()->timezone))
+				->setTimezone('UTC');
+			// dd($from->toAtomString(), $to->toAtomString());
+		}
+
 		$patients_count = Patient::whereUserId(Auth::user()->id)->count();
 		$years = Invoice::select(DB::raw('YEAR(created_at) AS year'))
 			->whereUserId(Auth::user()->id)
-			// ->latest()
 			->groupBy("year")
 			->orderBy("year", "desc")
 			->get();
+		// dd($years->toArray());
 
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
@@ -288,12 +309,19 @@ class InvoiceController extends Controller {
 			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
-			->when($limit > 0 && $limit < 1000, function ($query) use ($limit) {
-				// $query->where("invoices.created_at", ">=", (new \Carbon\Carbon)->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
-				$query->where("invoices.created_at", ">=", Carbon::now()->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
+			// ->when($limit > 0 && $limit < 1000, function ($query) use ($limit) {
+			// 	$query->where("invoices.created_at", ">=", Carbon::now()->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
+			// })
+			// ->when($limit >= 1000, function ($query) use ($limit) {
+			// 	$query->whereYear('invoices.created_at', $limit);
+			// })
+			->when($limit > 0 && $limit < 1000, function ($query) use ($from) {
+				$query->where("invoices.created_at", ">=", $from);
 			})
-			->when($limit >= 1000, function ($query) use ($limit) {
-				$query->whereYear('invoices.created_at', $limit);
+			->when($limit >= 1000, function ($query) use ($from, $to) {
+				$query
+					->where("invoices.created_at", ">=", $from)
+					->where("invoices.created_at", "<=", $to);
 			})
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			// We use left join in case that there has been an interruption
@@ -810,35 +838,32 @@ class InvoiceController extends Controller {
 		}
 
 		if ($request->method() === 'POST') {
-			$start_date = Carbon::parse($request->start);
-			$end_date = Carbon::parse($request->end)->addDay();
+			$start_date = new Carbon($request->start, Auth::user()->timezone);
+			$end_date = (new Carbon($request->end, Auth::user()->timezone))->subSecond()->addDay();
 		} else {
-			$start_date = Carbon::parse($start);
-			$end_date = Carbon::parse($end)->addDay();
+			$start_date = new Carbon($start, Auth::user()->timezone);
+			$end_date = (new Carbon($end, Auth::user()->timezone))->subSecond()->addDay();
 		}
+
+		$start_date->setTimezone('UTC');
+		$end_date->setTimezone('UTC');
 
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
-			// "invoices.active",
-			// "invoices.id",
-			// "invoices.patient_id",
 			"invoices.serial",
 			"invoices.name",
 			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
-			// "patients.category AS patient_category",
 			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
-			// ->where("invoices.user_id", "=", "1")
-			->whereBetween('invoices.created_at', [$start_date, $end_date])
+			->whereBetween("invoices.created_at", [$start_date, $end_date])
 			->where("invoices.active", "=", true)
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			// We use left join in case that there has been an interruption
 			// between storing the invoice and storing it's sessions,
 			// which the result is an invoice with no sessions.
 			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("created_at", /*"active", "id", "patient_id",*/ "serial", /*"session",*/ "name", "patient"/*, "patient_category"*/)
-			// ->latest()
+			->groupBy("created_at", "serial", "name", "patient")
 			->get();
 
 		$total = 0;
