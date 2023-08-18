@@ -132,7 +132,7 @@ class InvoiceController extends Controller {
 	 * @param  Boolean $fraction
 	 * @return Array
 	 */
-	protected function getInvoice($id, $fraction = false) {
+	protected function getInvoice($id, $fraction = false, $params = null) {
 		$invoice = Invoice::whereId($id)->whereUserId(Auth::user()->id);
 		if (!$invoice) {
 			abort(404);
@@ -213,24 +213,24 @@ class InvoiceController extends Controller {
 
 			if ($value->amount) {
 				$invoice->total_amount += $value->amount;
-				$sessions[$key]->amount = currency_format($value->amount, $fraction);
+				$sessions[$key]->amount = currency_format($value->amount, $fraction, $params);
 			}
 
 			if ($value->insurance) {
 				$invoice->total_insurance += $value->insurance;
-				$sessions[$key]->insurance = currency_format($value->insurance, $fraction);
+				$sessions[$key]->insurance = currency_format($value->insurance, $fraction, $params);
 			}
 		}
 
 		$invoice->total_to_pay = $invoice->total_amount;
 		if ($invoice->prepayment) {
 			$invoice->total_to_pay = $invoice->total_amount - $invoice->prepayment;
-			$invoice->prepayment = currency_format($invoice->prepayment, $fraction);
+			$invoice->prepayment = currency_format($invoice->prepayment, $fraction, $params);
 		}
 
-		$invoice->total_amount = $invoice->total_amount > 0 ? currency_format($invoice->total_amount, $fraction) : null;
-		$invoice->total_insurance = $invoice->total_insurance > 0 ? currency_format($invoice->total_insurance, $fraction) : null;
-		$invoice->total_to_pay = $invoice->total_to_pay > 0 ? currency_format($invoice->total_to_pay, $fraction) : null;
+		$invoice->total_amount = $invoice->total_amount > 0 ? currency_format($invoice->total_amount, $fraction, $params) : null;
+		$invoice->total_insurance = $invoice->total_insurance > 0 ? currency_format($invoice->total_insurance, $fraction, $params) : null;
+		$invoice->total_to_pay = $invoice->total_to_pay > 0 ? currency_format($invoice->total_to_pay, $fraction, $params) : null;
 
 		$invoice->patient_address_country = __($invoice->patient_address_country);
 		$invoice->editable = $id === Invoice::getLastActiveId($invoice->patient_id);
@@ -755,7 +755,10 @@ class InvoiceController extends Controller {
 			abort(404);
 		}
 
-		$invoice_object = $this->getInvoice($invoice->id, true);
+		$currency_params = app('DEFAULT_CURRENCY_PARAMS');
+		$currency_params['grouping_used'] = true;
+
+		$invoice_object = $this->getInvoice($invoice->id, true, $currency_params);
 
 		$user = Auth::user();
 		$countries = Country::select("id", "prefix", "name")

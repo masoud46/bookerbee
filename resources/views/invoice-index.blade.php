@@ -140,10 +140,10 @@
 									{{ $invoice->reference }}<span>{{ $invoice->patient_category === 1 ? 'CNS' : '' }}</span>
 								</td>
 								<td scope="col">{{ $invoice->date }}</td>
-								<td scope="col">{{ $invoice->session }}</td>
+								<td scope="col" class="text-end">{{ $invoice->session }}</td>
 								<td scope="col">{{ $invoice->name }}</td>
 								<td scope="col">{{ $invoice->patient }}</td>
-								<td scope="col">{{ $invoice->active ? $invoice->total . ' €' : '' }}</td>
+								<td scope="col" class="text-end">{{ $invoice->active ? $invoice->total . ' €' : '' }}</td>
 								<td scope="col" class="invoice-item-print">
 									<a class="float-end" href="{{ route('invoice.print', ['invoice' => $invoice->id]) }}" target="_blank" title=" {{ __('Print') }} "><i class="fas fa-print pe-none"></i></a>
 								</td>
