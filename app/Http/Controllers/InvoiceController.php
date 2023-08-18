@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-use App\Exports\InvoiceExport;
 use App\Exports\InvoiceExportView;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -279,13 +278,11 @@ class InvoiceController extends Controller {
 				->submonths($limit - 1)
 				->setTimezone('UTC');
 			$invoice = (DB::table('invoices')->select(["created_at"])->limit(1)->get()->toArray())[0]->created_at;
-			// dd($invoice, Carbon::now()->toAtomString(), $from->toAtomString());
 		} else if ($limit >= 1000) { // year
 			$from = (new Carbon("{$limit}-01-01 00:00:00", Auth::user()->timezone))
 				->setTimezone('UTC');
 			$to = (new Carbon("{$limit}-12-31 23:59:59", Auth::user()->timezone))
 				->setTimezone('UTC');
-			// dd($from->toAtomString(), $to->toAtomString());
 		}
 
 		$patients_count = Patient::whereUserId(Auth::user()->id)->count();
@@ -294,7 +291,6 @@ class InvoiceController extends Controller {
 			->groupBy("year")
 			->orderBy("year", "desc")
 			->get();
-		// dd($years->toArray());
 
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
@@ -309,12 +305,6 @@ class InvoiceController extends Controller {
 			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
-			// ->when($limit > 0 && $limit < 1000, function ($query) use ($limit) {
-			// 	$query->where("invoices.created_at", ">=", Carbon::now()->setDay(1)->setTime(0, 0, 0)->submonths($limit - 1));
-			// })
-			// ->when($limit >= 1000, function ($query) use ($limit) {
-			// 	$query->whereYear('invoices.created_at', $limit);
-			// })
 			->when($limit > 0 && $limit < 1000, function ($query) use ($from) {
 				$query->where("invoices.created_at", ">=", $from);
 			})
@@ -799,47 +789,6 @@ class InvoiceController extends Controller {
 	}
 
 	/**
-	 * Get invoice list with matched pattern based on patient's code, last name and first name.
-	 * *** NOT USED ANYMORE ***
-	 *
-	 * @param  \Illuminate\Http\Request $request
-	 * @return \Illuminate\Http\Response
-	 */
-	public function autocomplete(Request $request) {
-		$str = $request->str;
-		$invoices = DB::table('invoices')->select([
-			"invoices.created_at",
-			"invoices.id",
-			"invoices.name",
-			"patients.code",
-			DB::raw('CONCAT(patients.lastname, ", ", patients.firstname) AS patient'),
-			DB::raw('SUM(sessions.amount) AS total'),
-		])
-			->join("patients", "patients.id", "=", "invoices.patient_id")
-			->where("invoices.user_id", "=", Auth::user()->id)
-			->where(function ($query) use ($str) {
-				$query
-					->where("patients.lastname", "LIKE", "%{$str}%")
-					->orWhere("patients.firstname", "LIKE", "%{$str}%")
-					->orWhere("patients.code", "LIKE", "{$str}%");
-			})
-			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("id", "created_at", "name", "patients.code", "patient")
-			->latest()
-			->get()->toArray();
-
-		foreach ($invoices as $invoice) {
-			$invoice->date = Carbon::parse($invoice->created_at)
-				->timezone(Auth::user()->timezone)
-				->format('d/m/Y');
-			$invoice->total = currency_format($invoice->total, true);
-			unset($invoice->created_at);
-		}
-
-		return response()->json($invoices);
-	}
-
-	/**
 	 * Get the invoices between two dates.
 	 *
 	 * @param  \Illuminate\Http\Request $request
@@ -872,7 +821,6 @@ class InvoiceController extends Controller {
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
 			->whereBetween("invoices.created_at", [$start_date, $end_date])
-			// ->where("invoices.active", "=", true)
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			// We use left join in case that there has been an interruption
 			// between storing the invoice and storing it's sessions,
@@ -916,7 +864,6 @@ class InvoiceController extends Controller {
 		$end = Carbon::parse($end)->format('d/m/Y');
 		$filename = "report_" . (str_replace("/", "-", $start)) . "_" . (str_replace("/", "-", $end)) . ".xlsx";
 
-		// $export = new InvoiceExport(
 		$export = new InvoiceExportView(
 			$start,
 			$end,
@@ -924,7 +871,6 @@ class InvoiceController extends Controller {
 			$total_float
 		);
 
-		// return $export->download($filename);
 		return Excel::download($export, $filename);
 	}
 }

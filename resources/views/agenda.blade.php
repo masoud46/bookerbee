@@ -79,7 +79,11 @@
 					</div>
 					<div class="calendar-event calendar-event-rdv mb-3">
 						<label>{{ __('Patient') }}</label>
-						<x-patient-picker id="patient-picker-component" autocomplete-url="{{ route('patient.autocomplete') }}" placeholder="{{ __('Last name / First name / Reg. number') }}" helper-text="{{ __('Start by typing three characters.') }}" />
+						<x-patient-picker
+							id="patient-picker-component"
+							autocomplete-url="{{ route('patient.autocomplete') }}"
+							placeholder="{{ __('Last name / First name / Reg. number') }}"
+							helper-text="{{ __('Start by typing three characters.') }}" />
 					</div>
 					<div class="calendar-event calendar-event-slot mb-3">
 						<label>{{ __('Title') }} <small class="text-muted">({{ __('optional') }})</small></label>

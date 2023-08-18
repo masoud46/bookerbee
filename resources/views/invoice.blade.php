@@ -270,8 +270,7 @@
 										@if (old("session-type_id-{$i}"))
 											{{ $selected = intval(old("session-type_id-{$i}")) === $type->id ? 'selected' : '' }}
 										@endif
-										<option value="{{ $type->id }}" {{ $selected }} data-description="{{ $type->description }}">
-											{{ $type->code }}</option>
+										<option value="{{ $type->id }}" {{ $selected }} data-description="{{ $type->description }}">{{ $type->code }}</option>
 									@endforeach
 								</select>
 								@error("session-type_id-{$i}")
@@ -310,8 +309,8 @@
 										<div class="invalid-feedback"></div>
 									@enderror
 								</div> --}}
-							</div>
 						</div>
+					</div>
 				@endfor
 			</div>
 			<div class="mb-3 row">

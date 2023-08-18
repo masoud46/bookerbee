@@ -79,7 +79,15 @@
 									@error('user-phone_number')
 										@php($phon_error_class = 'is-invalid')
 									@enderror
-									<x-phone-number id="phone-number-component" class=" {{ $phon_error_class ?? '' }}" :countries="$countries" default-country-code="{{ $default_country_code }}" country-field="user-phone_country_id" number-field="user-phone_number" country="{{ old('user-phone_country_id', $user->phone_country_id) }}" number="{{ old('user-phone_number', $user->phone_number) }}" />
+									<x-phone-number
+										id="phone-number-component"
+										class=" {{ $phon_error_class ?? '' }}"
+										:countries="$countries"
+										default-country-code="{{ $default_country_code }}"
+										country-field="user-phone_country_id"
+										number-field="user-phone_number"
+										country="{{ old('user-phone_country_id', $user->phone_country_id) }}"
+										number="{{ old('user-phone_number', $user->phone_number) }}" />
 									@error('user-phone_number')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
@@ -91,7 +99,15 @@
 									@error('user-fax_number')
 										@php($fax_error_class = 'is-invalid')
 									@enderror
-									<x-phone-number id="fax-number-component" class=" {{ $fax_error_class ?? '' }}" :countries="$countries" default-country-code="{{ $default_country_code }}" country-field="user-fax_country_id" number-field="user-fax_number" country="{{ old('user-fax_country_id', $user->fax_country_id) }}" number="{{ old('user-fax_number', $user->fax_number) }}" />
+									<x-phone-number
+										id="fax-number-component"
+										class=" {{ $fax_error_class ?? '' }}"
+										:countries="$countries"
+										default-country-code="{{ $default_country_code }}"
+										country-field="user-fax_country_id"
+										number-field="user-fax_number"
+										country="{{ old('user-fax_country_id', $user->fax_country_id) }}"
+										number="{{ old('user-fax_number', $user->fax_number) }}" />
 									@error('user-fax_number')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror

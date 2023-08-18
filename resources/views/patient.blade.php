@@ -71,7 +71,15 @@
 							@error('patient-phone_number')
 								@php($phone_error_class = 'is-invalid')
 							@enderror
-							<x-phone-number id="phone-number-component" class="{{ $phone_error_class ?? '' }}" :countries="$countries" default-country-code="{{ $default_country_code }}" country-field="patient-phone_country_id" number-field="patient-phone_number" country="{{ old('patient-phone_country_id', $update ? $patient->phone_country_id : '') }}" number="{{ old('patient-phone_number', $update ? $patient->phone_number : '') }}" />
+							<x-phone-number
+								id="phone-number-component"
+								class="{{ $phone_error_class ?? '' }}"
+								:countries="$countries"
+								default-country-code="{{ $default_country_code }}"
+								country-field="patient-phone_country_id"
+								number-field="patient-phone_number"
+								country="{{ old('patient-phone_country_id', $update ? $patient->phone_country_id : '') }}"
+								number="{{ old('patient-phone_number', $update ? $patient->phone_number : '') }}" />
 							@error('patient-phone_number')
 								<div class="invalid-feedback">{{ $message }}</div>
 							@enderror

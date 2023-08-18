@@ -52,7 +52,6 @@ class InvoiceExportView implements
 
 	public function columnFormats(): array {
 		return [
-			// 'B' => NumberFormat::FORMAT_DATE_DDMMYYYY,
 			'E' => NumberFormat::FORMAT_CURRENCY_EUR,
 		];
 	}
@@ -73,7 +72,6 @@ class InvoiceExportView implements
 			->getStartColor()->setARGB('E9E9E9');
 
 		return [
-			// Style the first.
 			1 => [
 				'font' => ['size' => 12],
 				'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],

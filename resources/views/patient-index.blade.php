@@ -9,7 +9,12 @@
 		<div id="patient-picker" class="row my-4">
 			<div class="col-md-8 col-lg-6">
 				<div class="text-end pe-2"><small><span class="patient-count me-1">0</span> / {{ $patients_count }}</small></div>
-				<x-patient-picker id="patient-picker-component" autocomplete-url="{{ route('patient.autocomplete') }}" picked-url="{{ route('patient.show', ['patient' => '?id']) }}" placeholder="{{ __('Last name / First name / Reg. number') }}" helper-text="{{ __('Start by typing three characters.') }}" />
+				<x-patient-picker
+					id="patient-picker-component"
+					autocomplete-url="{{ route('patient.autocomplete') }}"
+					picked-url="{{ route('patient.show', ['patient' => '?id']) }}"
+					placeholder="{{ __('Last name / First name / Reg. number') }}"
+					helper-text="{{ __('Start by typing three characters.') }}" />
 			</div>
 			<div class="col-md-4 col-lg-6">
 				<div class="invisible">[placeholder]</div>
