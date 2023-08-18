@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider {
 				'locale' => $locale,
 				'currency' => "EUR",
 				'symbol' => false,
+				'grouping_used' => false, // thousand separator
 			];
 		});
 

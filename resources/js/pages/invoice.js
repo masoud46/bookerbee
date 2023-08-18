@@ -122,7 +122,7 @@ function resetSessionNumber(session = null) {
 
 	// when session type changes, show a warning message
 	if (typeChangeAlert && changed) {
-		const message = window.laravel.messages.sessionWarning
+		const message = '<div style="padding: 30px">' + window.laravel.messages.sessionWarning + '</div>'
 		if (session) { // a new session added
 			const sessions = [...invoiceSessions.querySelectorAll('.session-item:not(.d-none)')]
 			const addedSession = sessions.pop()
@@ -234,7 +234,8 @@ disableInvoiceBtn?.addEventListener('click', e => {
 if (typeChangeAlert && addSession) { // if Add session button is visible
 	for (const type of sessionTypes) {
 		if (currentSession.value - 1 == type.max_sessions) {
-			utils.showAlert({ message: window.laravel.messages.sessionWarning, timeout: 0, type: 'warning' })
+			const message = '<div style="padding: 30px">' + window.laravel.messages.sessionWarning + '</div>'
+			utils.showAlert({ message, timeout: 0, type: 'warning' })
 			break
 		}
 	}

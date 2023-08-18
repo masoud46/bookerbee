@@ -651,13 +651,24 @@ class InvoiceController extends Controller {
 			return back()->withErrors($validator->errors())->withInput();
 		}
 
+		// if ($is_update) {
+		// 	session()->flash("success", __("The invoice has been updated."));
+		// } else {
+		// 	session()->flash("success", __("The new invoice has been saved."));
+		// }
+
+		// return redirect()->route("home");
+
 		if ($is_update) {
 			session()->flash("success", __("The invoice has been updated."));
-		} else {
-			session()->flash("success", __("The new invoice has been saved."));
+			return back()->withInput();
 		}
 
-		return redirect()->route("home");
+		session()->flash("success", __("The new invoice has been saved."));
+
+		return redirect()->route("invoice.show", [
+			'invoice' => $invoice->id,
+		]);
 	}
 
 	/**
@@ -851,36 +862,45 @@ class InvoiceController extends Controller {
 		$invoices = DB::table('invoices')->select([
 			"invoices.created_at",
 			"invoices.serial",
+			"invoices.active",
 			"invoices.name",
 			DB::raw('CONCAT(patients.code, " - ", patients.lastname, ", ", patients.firstname) AS patient'),
 			DB::raw('SUM(sessions.amount) AS total'),
 		])
 			->where("invoices.user_id", "=", Auth::user()->id)
 			->whereBetween("invoices.created_at", [$start_date, $end_date])
-			->where("invoices.active", "=", true)
+			// ->where("invoices.active", "=", true)
 			->join("patients", "patients.id", "=", "invoices.patient_id")
 			// We use left join in case that there has been an interruption
 			// between storing the invoice and storing it's sessions,
 			// which the result is an invoice with no sessions.
 			->leftJoin("sessions", "sessions.invoice_id", "=", "invoices.id")
-			->groupBy("created_at", "serial", "name", "patient")
+			->groupBy("created_at", "serial", "active", "name", "patient")
 			->get();
+
+		$currency_params = app('DEFAULT_CURRENCY_PARAMS');
+		$currency_params['grouping_used'] = true;
 
 		$total = 0;
 		foreach ($invoices as $invoice) {
-			$total += $invoice->total;
+			if ($invoice->active) {
+				$total += $invoice->total;
+			} else {
+				$invoice->total = 0;
+			}
+
 			$invoice->name = hide_info($invoice->name, 3);
 			$invoice->patient = hide_info($invoice->patient, 4);
 			$invoice->date = Carbon::parse($invoice->created_at)
 				->timezone(Auth::user()->timezone)
 				->format('d/m/Y');
 			$invoice->total_float = $invoice->total / 100;
-			$invoice->total = currency_format($invoice->total, true);
+			$invoice->total = currency_format($invoice->total, true, $currency_params);
 			$invoice->reference = $this->generateReference($invoice);
 		}
 
 		$total_float = $total / 100;
-		$total = currency_format($total, true);
+		$total = currency_format($total, true, $currency_params);
 
 		if ($request->method() === 'POST') {
 			$start = Carbon::parse($request->start)->format('d/m/Y');
@@ -904,5 +924,4 @@ class InvoiceController extends Controller {
 		// return $export->download($filename);
 		return Excel::download($export, $filename);
 	}
-
 }

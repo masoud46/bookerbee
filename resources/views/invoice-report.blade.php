@@ -14,24 +14,30 @@
 	</thead>
 	<tbody class="bg-white">
 		@foreach ($invoices as $invoice)
+			@php($style = $invoice->active ? '' : 'color:#cc0000;background-color:#fff4f4;')
 			<tr class="items-table-item user-select-none">
-				<td scope="col" class="invoice-item-reference">
+				<td scope="col" style="{{ $style }}" class="invoice-item-reference">
 					{{ $invoice->reference }}
 				</td>
-				<td scope="col">{{ $invoice->date }}</td>
-				<td scope="col">{{ $invoice->name }}</td>
-				<td scope="col">{{ $invoice->patient }}</td>
-				<td scope="col" class="text-end">{{ $excel ? $invoice->total_float : $invoice->total . ' €' }}</td>
+				<td scope="col" style="{{ $style }}">{{ $invoice->date }}</td>
+				<td scope="col" style="{{ $style }}">{{ $invoice->name }}</td>
+				<td scope="col" style="{{ $style }}">{{ $invoice->patient }}</td>
+				@php($style .= 'text-align:right;')
+				@if ($invoice->active)
+					<td scope="col" style="{{ $style }}" class="text-end">{{ $excel ? $invoice->total_float : $invoice->total . ' €' }}</td>
+				@else
+					<td scope="col" style="{{ $style }}">-</td>
+				@endif
 			</tr>
 		@endforeach
 		<tr class="items-table-item user-select-none">
 			<td scope="col" style="padding-top: 3mm; border-color: transparent;"></td>
 			<td scope="col" style="padding-top: 3mm; border-color: transparent;"></td>
 			<td scope="col" style="padding-top: 3mm; border-color: transparent;"></td>
-			<td scope="col" class="text-end" style="padding-top: 3mm; border-color: transparent;">
+			<td scope="col" style="text-align: right; padding-top: 3mm; border-color: transparent;">
 				<h5><strong>{{ __('Total') }}</strong></h5>
 			</td>
-			<td scope="col" class="text-end" style="padding-top: 3mm; border-color: transparent;">
+			<td scope="col" style="text-align: right; padding-top: 3mm; border-color: transparent;">
 				<h5><strong>{{ $excel ? $total_float : $total . ' €' }}</strong></h5>
 			</td>
 		</tr>

@@ -11,12 +11,15 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
 use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class InvoiceExportView implements
 	WithTitle,
 	WithColumnFormatting,
 	WithStyles,
+	// WithEvents,
 	FromView {
 
 	protected $start;
@@ -59,19 +62,15 @@ class InvoiceExportView implements
 		// $sheet->getRowDimension('2')->setRowHeight(20);
 		// $sheet->getRowDimension('3')->setRowHeight(20);
 
-		$last_row = $sheet->getHighestRow();
-		$last_col = $sheet->getHighestColumn();
+		$highest_row = $sheet->getHighestRow();
+		$highest_column = $sheet->getHighestColumn();
 
-		$row = $sheet->getStyle('A' . $last_row . ':' . $last_col . $last_row);
+		$row = $sheet->getStyle('A' . $highest_row . ':' . $highest_column . $highest_row);
 		$row->getFont()
 			->setBold(true);
 		$row->getFill()
 			->setFillType(Fill::FILL_SOLID)
 			->getStartColor()->setARGB('E9E9E9');
-
-		$sheet->getStyle('D' . $last_row . ':D' . $last_row)
-			->getAlignment()
-			->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
 		return [
 			// Style the first.
@@ -94,4 +93,16 @@ class InvoiceExportView implements
 			],
 		];
 	}
+
+	// public function registerEvents(): array {
+	// 	return [
+	// 		AfterSheet::class => function (AfterSheet $event) {
+	// 			// $event->sheet returns \Maatwebsite\Excel\Sheet which has all the methods of \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet
+	// 			$highest_row = $event->sheet->getHighestRow();
+	// 			$last_data_row = $highest_row - 1;
+
+	// 			$event->sheet->setCellValue('E' . $highest_row, "=SUM(E5:E{$last_data_row})");
+	// 		},
+	// 	];
+	// }
 }

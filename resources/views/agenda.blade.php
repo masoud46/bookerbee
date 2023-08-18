@@ -102,7 +102,11 @@
 									</div>
 									<div class="col-6 event-recurr-limit-container">
 										<label><small>{{ __('Limit') }}</small></label>
-										<x-resetable-date class="resetable-date-container event-recurr-limit form-control-sm" inputId="event-recurr-limit" inputName="event-recurr-limit" inputValue="" />
+										<x-resetable-date
+											class="resetable-date-container event-recurr-limit form-control-sm"
+											inputId="event-recurr-limit"
+											inputName="event-recurr-limit"
+											inputValue="" />
 									</div>
 								</div>
 								<div class="row event-recurr-days">
@@ -168,40 +172,40 @@
 			freq: {!! json_encode($FREQ) !!},
 			actions: {
 				[EVENT_ACTION_ADD]: {
-					header: "{{ __('Add') }}",
-					btn: "{{ __('Save the appointment') }}",
-					url: "{{ route('event.add') }}",
-					message: "{{ __('Appointment has been saved successfully.') }}",
+					header: `{{ __('Add') }}`,
+					btn: `{{ __('Save the appointment') }}`,
+					url: `{{ route('event.add') }}`,
+					message: `{{ __('Appointment has been saved successfully.') }}`,
 				},
 				[EVENT_ACTION_CANCEL]: {
-					header: "{{ __('Cancel') }}",
-					btn: "{{ __('Cancel the appointment') }}",
-					url: "{{ route('event.cancel', ['event' => '?id']) }}",
-					message: "{{ __('Appointment has been canceled.') }}",
+					header: `{{ __('Cancel') }}`,
+					btn: `{{ __('Cancel the appointment') }}`,
+					url: `{{ route('event.cancel', ['event' => '?id']) }}`,
+					message: `{{ __('Appointment has been canceled.') }}`,
 				},
 				[EVENT_ACTION_UPDATE]: {
-					header: "{{ __('Update') }}",
-					btn: "{{ __('Update the appointment') }}",
-					url: "{{ route('event.update', ['event' => '?id']) }}",
-					message: "{{ __('Appointment has been updated.') }}",
+					header: `{{ __('Update') }}`,
+					btn: `{{ __('Update the appointment') }}`,
+					url: `{{ route('event.update', ['event' => '?id']) }}`,
+					message: `{{ __('Appointment has been updated.') }}`,
 				},
 				[EVENT_ACTION_LOCK]: {
-					header: "{{ __('Lock') }}",
-					btn: "{{ __('Lock the slot') }}",
-					url: "{{ route('event.add') }}",
-					message: "{{ __('Slot has been locked successfully.') }}",
+					header: `{{ __('Lock') }}`,
+					btn: `{{ __('Lock the slot') }}`,
+					url: `{{ route('event.add') }}`,
+					message: `{{ __('Slot has been locked successfully.') }}`,
 				},
 				[EVENT_ACTION_UNLOCK]: {
-					header: "{{ __('Unlock') }}",
-					btn: "{{ __('Unlock the slot') }}",
-					url: "{{ route('event.cancel', ['event' => '?id']) }}",
-					message: "{{ __('Slot has been unlocked.') }}",
+					header: `{{ __('Unlock') }}`,
+					btn: `{{ __('Unlock the slot') }}`,
+					url: `{{ route('event.cancel', ['event' => '?id']) }}`,
+					message: `{{ __('Slot has been unlocked.') }}`,
 				},
 				[EVENT_ACTION_UPDATE_LOCK]: {
-					header: "{{ __('Update') }}",
-					btn: "{{ __('Update the slot') }}",
-					url: "{{ route('event.update', ['event' => '?id']) }}",
-					message: "{{ __('Slot has been updated.') }}",
+					header: `{{ __('Update') }}`,
+					btn: `{{ __('Update the slot') }}`,
+					url: `{{ route('event.update', ['event' => '?id']) }}`,
+					message: `{{ __('Slot has been updated.') }}`,
 				},
 			},
 		}

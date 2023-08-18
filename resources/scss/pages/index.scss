@@ -1,6 +1,5 @@
 @import '../variables';
 
-
 .search-filter {
 	position: relative;
 
@@ -47,7 +46,6 @@
 }
 
 #invoices-container {
-
 	.items-table-item {
 		&.national-healthcare-item {
 			td {
@@ -56,27 +54,27 @@
 
 			.invoice-item-reference span {
 				margin-left: 0.25rem;
-				font-size: 0.7em;
+				font-size: 0.6em;
 			}
 
 			.invoice-item-reference div {
 				position: relative;
 
-				&::after {
-					position: absolute;
-					bottom: 1px;
-					content: attr(data-after);
-					margin-left: 0.2rem;
-					font-size: 0.7em;
-				}
+				// &::after {
+				// 	position: absolute;
+				// 	bottom: 1px;
+				// 	content: attr(data-after);
+				// 	margin-left: 0.2rem;
+				// 	font-size: 0.7em;
+				// }
 			}
 		}
 
 		&.inactive-invoice {
-			td {
-				color: $inactive-invoice-color;
+			td:not(.invoice-item-print) {
 				text-decoration: line-through;
-				opacity: 0.75;
+				color: $inactive-invoice-color;
+				// background-color: $inactive-invoice-bgcolor;
 			}
 		}
 
@@ -100,7 +98,6 @@
 }
 
 #patients-container {
-
 	.accordion-body {
 		height: calc(100vh - 300px);
 	}
@@ -110,7 +107,6 @@
 	}
 
 	&.loading {
-
 		#items-table-filter,
 		.table-responsive {
 			opacity: 0;

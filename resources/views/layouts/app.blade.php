@@ -1,24 +1,24 @@
 @php
-	$domain = request()->getHttpHost();
-	$external_domain = in_array($domain, config('project.external_domains', []));
-	$resources = ['resources/scss/app.scss', 'resources/js/app.js'];
-	$favicon = 'resources/images/favicon.png';
-	
-	if ($external_domain) {
-	    $path = "templates/{$domain}";
-	
-	    if (file_exists(resource_path() . "/{$path}/scss/app.scss")) {
-	        $resources = ["resources/{$path}/scss/app.scss", 'resources/js/app.js'];
-	    }
-	
-	    if (file_exists(resource_path() . "/{$path}/js/app.js")) {
-	        $resources[] = "resources/{$path}/js/app.js";
-	    }
-	
-	    if (file_exists(resource_path() . "/{$path}/images/favicon.png")) {
-	        $favicon = "resources/{$path}/images/favicon.png";
-	    }
-	}
+$domain = request()->getHttpHost();
+$external_domain = in_array($domain, config('project.external_domains', []));
+$resources = ['resources/scss/app.scss', 'resources/js/app.js'];
+$favicon = 'resources/images/favicon.png';
+
+if ($external_domain) {
+$path = "templates/{$domain}";
+
+if (file_exists(resource_path() . "/{$path}/scss/app.scss")) {
+$resources = ["resources/{$path}/scss/app.scss", 'resources/js/app.js'];
+}
+
+if (file_exists(resource_path() . "/{$path}/js/app.js")) {
+$resources[] = "resources/{$path}/js/app.js";
+}
+
+if (file_exists(resource_path() . "/{$path}/images/favicon.png")) {
+$favicon = "resources/{$path}/images/favicon.png";
+}
+}
 @endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -52,6 +52,7 @@
 				irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
 				saveModification: `{{ __('The modifications are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
 				modificationSaved: `{{ __('The modifications have been saved.') }}`,
+				sessionWarning: `{{ __('Session warning bla bla bla...') }}`,
 			}
 		}
 	</script>
@@ -62,16 +63,16 @@
 	@stack('assets')
 
 	@if (session()->has('success') || session()->has('error'))
-		@php
-			$message = substr(json_encode(session('success') ?? session('error')), 1, -1);
-			$type = session()->has('error') ? 'error' : 'success';
-		@endphp
-		<script>
-			window.laravel.flash = {
-				message: '{{ $message }}',
-				type: '{{ $type }}',
-			}
-		</script>
+	@php
+	$message = substr(json_encode(session('success') ?? session('error')), 1, -1);
+	$type = session()->has('error') ? 'error' : 'success';
+	@endphp
+	<script>
+		window.laravel.flash = {
+			message: '{{ $message }}',
+			type: '{{ $type }}',
+		}
+	</script>
 	@endif
 
 </head>
@@ -101,9 +102,9 @@
 							<a class="nav-link" href="{{ route('patient.index') }}">{{ __('Patients') }}</a>
 						</li>
 						@if (in_array('agenda', Auth::user()->features))
-							<li class="nav-item">
-								<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
-							</li>
+						<li class="nav-item">
+							<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
+						</li>
 						@endif
 						<li class="nav-item dropdown">
 							<a id="navbarDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -122,10 +123,10 @@
 								</a>
 								<hr class="my-2">
 								@if (Auth::user()->is_admin)
-									<a class="dropdown-item" href="{{ route('admin') }}">
-										<i class="fas fa-user-tie fa-fw me-1"></i> Admin
-									</a>
-									<hr class="my-2">
+								<a class="dropdown-item" href="{{ route('admin') }}">
+									<i class="fas fa-user-tie fa-fw me-1"></i> Admin
+								</a>
+								<hr class="my-2">
 								@endif
 								{{-- <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
 								<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
@@ -141,16 +142,16 @@
 						</li>
 						@php($locales = LaravelLocalization::getSupportedLocales())
 						@if (count($locales) > 1)
-							<li class="nav-item dropdown">
-								<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
-								<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarLangDropdown">
-									@foreach ($locales as $localeCode => $properties)
-										<a class="dropdown-item" rel="alternate" hreflang="{{ $localeCode }}" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
-											{{ $properties['native'] }}
-										</a>
-									@endforeach
-								</div>
-							</li>
+						<li class="nav-item dropdown">
+							<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
+							<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarLangDropdown">
+								@foreach ($locales as $localeCode => $properties)
+								<a class="dropdown-item" rel="alternate" hreflang="{{ $localeCode }}" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
+									{{ $properties['native'] }}
+								</a>
+								@endforeach
+							</div>
+						</li>
 						@endif
 					</ul>
 				</div>

@@ -180,13 +180,24 @@ class PatientController extends Controller {
 
 		$patient->save();
 
+		// if ($is_update) {
+		// 	session()->flash("success", __("Patient data has been updated."));
+		// } else {
+		// 	session()->flash("success", __("The new patient has been created."));
+		// }
+
+		// return redirect()->route("patient.index");
+
 		if ($is_update) {
 			session()->flash("success", __("Patient data has been updated."));
-		} else {
-			session()->flash("success", __("The new patient has been created."));
+			return back()->withInput();
 		}
-		
-		return redirect()->route("patient.index");
+
+		session()->flash("success", __("The new patient has been created."));
+
+		return redirect()->route("patient.show", [
+			'patient' => $patient->id,
+		]);
 	}
 
 	/**
