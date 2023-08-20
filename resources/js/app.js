@@ -15,7 +15,6 @@ document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(element =>
 
 document.querySelectorAll('a.nav-link:not(.dropdown-toggle), a.dropdown-item').forEach(element => {
 	element.addEventListener('click', e => {
-		console.log(e.target.getAttribute('href'));
 		if (window.laravel.modified) {
 			e.preventDefault();
 			utils.showConfirmation(window.laravel.messages.saveModification, () => {
