@@ -857,7 +857,11 @@ class InvoiceController extends Controller {
 			$start = Carbon::parse($request->start)->format('d/m/Y');
 			$end = Carbon::parse($request->end)->format('d/m/Y');
 
-			return view('invoice-report', compact('start', 'end', 'invoices', 'total'));
+			// return view('invoice-report', compact('start', 'end', 'invoices', 'total'));
+			return response()->json([
+				'success' => true,
+				'data' => view('invoice-report', compact('start', 'end', 'invoices', 'total'))->render(),
+			]);
 		}
 
 		$start = Carbon::parse($start)->format('d/m/Y');
