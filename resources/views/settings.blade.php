@@ -130,10 +130,10 @@
 								<textarea id="settings-msg_email-{{ $key }}" name="settings-msg_email-{{ $key }}" class="form-control form-control-sm mb-2 @error('settings-msg_email-' . $key) is-invalid @enderror" {{ $msg_email_checked ? '' : 'xxxdisabled' }}>{{ old('settings-msg_email-' . $key, $settings->msg_email[$key]) }}</textarea>
 							@endforeach
 						</div>
+						@error('settings-msg_email')
+							<div class="invalid-feedback">{{ $message }}</div>
+						@enderror
 					</div>
-					@error('settings-msg_email')
-						<div class="invalid-feedback">{{ $message }}</div>
-					@enderror
 				</div>
 				<div class="col-md-6 mt-2 mb-3">
 					@php($msg_sms_checked = old('settings-msg_sms_checked', $settings->msg_sms_checked))
@@ -150,12 +150,12 @@
 								<input id="settings-msg_sms-{{ $key }}" name="settings-msg_sms-{{ $key }}" class="form-control form-control-sm mb-2 @error('settings-msg_sms-' . $key) is-invalid @enderror" {{ $msg_sms_checked ? '' : 'xxxdisabled' }} value="{{ old('settings-msg_sms-' . $key, $settings->msg_sms[$key]) }}">
 							@endforeach
 							<p class="mt-4 mb-2 py-1 border-bottom border-secondary opacity-50">{{ __('Standard characters') }}</p>
-							<div>@ £ $ ¥ è é ù ì ò Ç Ø ø Å å Δ _ Φ Γ Λ Ω Π Ψ Σ Θ Ξ Æ æ ß É ! " # ¤ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? ¡ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z Ä Ö Ñ Ü § ¿ a b c d e f g h i j k l m n o p q r s t u v w x y z ä ö ñ ü à</div>
+							<div>@ £ $ ¥ è é ù ì ò Ç Ø ø Å å Δ _ Φ Γ Λ Ω Π Ψ Σ Θ Ξ Æ æ ß É ! " # ¤ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; <=> ? ¡ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z Ä Ö Ñ Ü § ¿ a b c d e f g h i j k l m n o p q r s t u v w x y z ä ö ñ ü à</div>
 						</div>
+						@error('settings-msg_sms')
+							<div class="invalid-feedback">{{ $message }}</div>
+						@enderror
 					</div>
-					@error('settings-msg_sms')
-						<div class="invalid-feedback">{{ $message }}</div>
-					@enderror
 				</div>
 			</div>
 			<div class="row mb-4">
