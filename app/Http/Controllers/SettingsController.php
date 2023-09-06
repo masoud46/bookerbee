@@ -64,10 +64,7 @@ class SettingsController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function edit() {
-		$entries = [
-			'resources/js/pages/settings.js',
-			'resources/scss/pages/settings.scss',
-		];
+		$entries = 'resources/js/pages/settings.js';
 
 		$cal_slots = [10, 15, 30, 45, 60];
 		$cal_breaks = [5, 10, 15, 30];
