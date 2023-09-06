@@ -14,6 +14,8 @@ $end = Carbon\Carbon::parse($event['end'])->setTimezone($event['timezone']);
 	:date="$start->translatedFormat('l j F Y')"
 	:start="$start->translatedFormat('H:i')"
 	:end="$end->translatedFormat('H:i')"
+	:address="$event['address']"
+	:message="isset($event['msg_email']) ? $event['msg_email'] : null"
 />
 
 <x-mail::cancel-appointment :email="$event['user_email']" :phone="$event['user_phone']" />

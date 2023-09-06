@@ -105,7 +105,6 @@ if (!function_exists('currency_format')) {
     }
 }
 
-
 /**
  * currency regex
  *
@@ -119,3 +118,23 @@ if (!function_exists('currency_regex')) {
             : "/^(\d+(,\d{0,2})?)?$/";
     }
 }
+
+/**
+ * Make one line address from array.
+ *
+ * @param  Array $params
+ * @return String
+ */
+if (!function_exists('makeOneLineAddress')) {
+	function makeOneLineAddress($params) {
+		$address = $params['line1'];
+		if ($params['line2']) $address .= ", " . $params['line2'];
+		if ($params['line3']) $address .= ", " . $params['line3'];
+		$address .= ", " . $params['code'] . ' ' . $params['city'];
+		$address .= ", " . $params['country'];
+
+		return $address;
+	}
+}
+
+

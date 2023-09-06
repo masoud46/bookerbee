@@ -49,7 +49,8 @@ class SmsMessage {
 			return $result;
 		}
 
-		$message = join("\n", $this->lines) . "\n[" . config('app.name') . "]";
+		// $message = join("\n", $this->lines) . "\n[" . config('app.name') . "]";
+		$message = join("\n", $this->lines);
 
 		switch ($this->provider) {
 			case 'ovh':

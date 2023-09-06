@@ -68,6 +68,7 @@ modal.props = {
 	actionClass: 'modal-event-action-',
 	header: modal.querySelector('.modal-title'),
 	title: modal.querySelector('.calendar-event-title'),
+	location: document.getElementById('calendar-event-location'),
 	patient: modal.querySelector('.patient-picker-input'),
 	rdvInfo: modal.querySelector('.calendar-event-rdv-info'),
 	patientName: modal.querySelector('.event-patient-name'),
@@ -126,7 +127,11 @@ const removeClassStartsWith = (node, className) => {
 }
 
 // Show/hide appointment specific elements
-const setRdvInfo = patientInfo => {
+const setRdvInfo = (patientInfo, location = null) => {
+	if (location) {
+		modal.props.location.value = location
+	}
+
 	modal.props.patientName.textContent = patientInfo.name
 	modal.props.patientName.setAttribute('data-patient-id', patientInfo.id)
 	modal.props.patientName.setAttribute('data-patient-locale', patientInfo.locale)
@@ -175,6 +180,8 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		event.start = event.startStr
 		event.end = event.endStr
 	}
+	
+	event.extendedProps.location = modal.props.location.value
 
 	delete event.startStr
 	delete event.endStr
@@ -240,7 +247,7 @@ const applyAction = () => {
 	const modalClass = [...modal.classList].find(cls => cls.startsWith(modal.props.actionClass))
 	const action = modalClass.substring(modal.props.actionClass.length)
 	const event = JSON.parse(JSON.stringify(customProps.event))
-
+	
 	switch (action) {
 		case EVENT_ACTION_ADD:
 			event.title = modal.props.patientName.textContent
@@ -262,6 +269,13 @@ const applyAction = () => {
 
 			event.localStart = event.startStr
 			event.localEnd = event.endStr
+
+
+
+			// let e = toMoment(event.endStr, calendar).subtract('minutes', window.laravel.settings.cal_break)
+			// console.log(e, event);return;
+
+
 
 			storeEvent(action, event)
 			break;
@@ -318,6 +332,7 @@ const applyAction = () => {
 			}
 
 			if (action === EVENT_ACTION_UPDATE) {
+// console.log(event, oldEvent); return;
 				oldEvent = JSON.parse(JSON.stringify(customProps.oldEvent))
 				if (!oldEvent.allDay) {
 					oldEvent.localStart = oldEvent.start
@@ -375,9 +390,11 @@ const showModal = action => {
 	switch (action) {
 		case EVENT_ACTION_ADD:
 		case EVENT_ACTION_UPDATE:
+			modal.props.location.disabled = false
 			modal.props.actionButton.classList.add('btn-primary')
 			break
 		case EVENT_ACTION_CANCEL:
+			modal.props.location.disabled = true
 			modal.props.actionButton.classList.add('btn-danger')
 			break
 		case EVENT_ACTION_LOCK:
@@ -388,6 +405,7 @@ const showModal = action => {
 	}
 
 	if (action === EVENT_ACTION_ADD) {
+		modal.props.location.value = window.laravel.settings.location
 		modal.props.patient.value = ''
 		modal.props.rdvInfo.classList.add('d-none')
 		modal.props.actionButton.classList.add('d-none')
@@ -408,7 +426,7 @@ const showModal = action => {
 			phone: event.extendedProps.patient.phone ?? null,
 		}
 
-		setRdvInfo(patientInfo)
+		setRdvInfo(patientInfo, event.extendedProps.location_id)
 	}
 
 	if (event.allDay) {
@@ -552,8 +570,21 @@ modal.addEventListener('hide.bs.modal', () => {
 	modal.props.recurrCheck.removeAttribute('opened')
 })
 modal.addEventListener('shown.bs.modal', () => {
-	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_ADD}`)) modal.props.patient.focus()
-	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_LOCK}`)) modal.props.title.focus()
+	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_ADD}`)) {
+		if (modal.props.location.disabled || modal.props.location.options.length < 2) {
+			modal.props.patient.focus()
+		} else {
+			modal.props.location.focus()
+		}
+	}
+	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_UPDATE}`)) {
+		if (!modal.props.location.disabled && modal.props.location.options.length > 1) {
+			modal.props.location.focus()
+		}
+	}
+	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_LOCK}`)) {
+		modal.props.title.focus()
+	}
 })
 modal.addEventListener('show.bs.modal', () => {
 	modal.props.dismissed = false
@@ -622,7 +653,7 @@ const calendar = new Calendar(calendarElement, {
 		// console.log('%c*** events', 'color:#c00;');
 		const result = await utils.fetch({
 			method: 'GET',
-			url: `/events?start=${info.start.toISOString()}&end=${info.end.toISOString()}`,
+			url: `${window.laravel.agenda.url}?start=${info.start.toISOString()}&end=${info.end.toISOString()}`,
 		})
 
 		if (result.error) {

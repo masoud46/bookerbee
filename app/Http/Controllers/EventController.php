@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\AppointmentEmail;
 use App\Models\Country;
 use App\Models\Event;
+use App\Models\Location;
 use App\Models\Patient;
 use App\Models\Settings;
 use App\Models\User;
@@ -39,6 +40,7 @@ class EventController extends Controller {
 			'id' => $e->id,
 			// 'all_day' => $e->all_day === true,
 			'extendedProps' => [
+				'location_id' => $e->location_id,
 				'category' => $e->category,
 			],
 		];
@@ -99,6 +101,70 @@ class EventController extends Controller {
 	}
 
 	/**
+	 * Get the extra information. address according to events's location id and personal
+	 * 1. Address, from events's location id.
+	 * 2. Personal messages to add into email and sms, from settings.
+	 *
+	 * @param  Array $params
+	 * @return Array
+	 */
+	private function getExtraInfo($params) {
+		$data = User::select([
+			"users.address_line1",
+			"users.address_line2",
+			"users.address_line3",
+			"users.address_code",
+			"users.address_city",
+			"users.address2_line1",
+			"users.address2_line2",
+			"users.address2_line3",
+			"users.address2_code",
+			"users.address2_city",
+			"countries.name AS address_country",
+			"countries2.name AS address2_country",
+			"settings.msg_email",
+			"settings.msg_sms",
+		])
+			->join("settings", "settings.id", "=", "users.id")
+			->join("countries", "countries.id", "=", "users.address_country_id")
+			->leftJoin("countries AS countries2", "countries2.id", "=", "users.address2_country_id")
+			->where("users.id", "=", $params['user_id'])
+			->first();
+
+		$location = Location::whereId($params['location_id'])->first();
+		$msg_email = $data->msg_email ? json_decode($data->msg_email, true) : [];
+		$msg_sms = $data->msg_sms ? json_decode($data->msg_sms, true) : [];
+		
+		if (isset($params['locale'])) {
+			$data->address_country = __($data->address_country, [], $params['locale']);
+
+			if ($data->address2_country) {
+				$data->address2_country = __($data->address2_country, [], $params['locale']);
+			}
+		}
+
+		return [
+			'msg_email' => $msg_email,
+			'msg_sms' => $msg_sms,
+			'address' => $location->code === "009b" ? [
+				"line1" => $data->address2_line1,
+				"line2" => $data->address2_line2,
+				"line3" => $data->address2_line3,
+				"code" => $data->address2_code,
+				"city" => $data->address2_city,
+				"country" => $data->address2_country,
+			] : [
+				"line1" => $data->address_line1,
+				"line2" => $data->address_line2,
+				"line3" => $data->address_line3,
+				"code" => $data->address_code,
+				"city" => $data->address_city,
+				"country" => $data->address_country,
+			],
+		];
+	}
+
+	/**
 	 * Get a listing of the resource between two dates.
 	 *
 	 * @param  String $from
@@ -117,6 +183,7 @@ class EventController extends Controller {
 		$db_events = Event::select([
 			"events.id",
 			"events.patient_id",
+			"events.location_id",
 			"events.category",
 			"events.title",
 			"events.all_day",
@@ -173,17 +240,15 @@ class EventController extends Controller {
 	 * Send notification email.
 	 *
 	 * @param  String $to
-	 * @param  String $type
+	 * @param  String $action
 	 * @param  Array $event
 	 * @param  Array $old_event
 	 * @return Array $result
 	 */
-	private function sendEmail($type, $event, $old_event = null) {
+	private function sendEmail($action, $event, $old_event = null) {
 		if (config('app.env') !== 'production' && !config('project.send_emails')) {
 			return ['success' => true];
 		}
-
-		$result = ['success' => false];
 
 		$provider = config('app.env') === 'production' ?
 			config('project.mail.default_provider') :
@@ -191,12 +256,27 @@ class EventController extends Controller {
 
 		$to = $event['extendedProps']['patient']['email'];
 
+		$locale = $event['extendedProps']['patient']['locale'];
+		$info = $this->getExtraInfo([
+			'user_id' => Auth::user()->id,
+			'location_id' => $event['extendedProps']['location'],
+			'locale' => $event['extendedProps']['patient']['locale'],
+		]);
+		$event['address'] = $info['address'];
+		$personal_message = $info['msg_email'][$locale] ?? array_shift($info['msg_email']) ?? null;
+
+		if ($personal_message && $action !== "delete") {
+			$event['msg_email'] = $personal_message;
+		}
+
+		$result = ['success' => false];
+
 		try {
 			Log::channel('agenda')->info("[SENDING EMAIL] {$to}");
 
 			Mail::mailer($provider)
 				->to($to)
-				->send(new AppointmentEmail($type, $event, $old_event));
+				->send(new AppointmentEmail($action, $event, $old_event));
 
 			$result['success'] = true;
 
@@ -217,12 +297,12 @@ class EventController extends Controller {
 	 * @param  String $name
 	 * @param  Boolean $email
 	 * @param  String $to
-	 * @param  String $type
+	 * @param  String $action
 	 * @param  Array $event
 	 * @param  Array $old_event
 	 * @return Array $result
 	 */
-	private function sendSMS($type, $event, $old_event = null) {
+	private function sendSMS($action, $event, $old_event = null) {
 		if (config('app.env') !== 'production' && !config('project.send_sms')) {
 			return ['success' => true];
 		}
@@ -232,13 +312,23 @@ class EventController extends Controller {
 		$user_name = ucfirst(Auth::user()->firstname) . " " . strtoupper(Auth::user()->lastname);
 		$name = ucfirst(trim(explode(",", $event['extendedProps']['patient']['name'])[1]));
 		$to = $event['extendedProps']['patient']['phone'];
-		$message = __("Your appointment of :date at :start with :name has been confirmed.", [
-			'name' => $user_name,
-			'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
-			'start' => Carbon::parse($event['localStart'])->format('H:i'),
-		]);
 
-		switch ($type) {
+		$locale = $event['extendedProps']['patient']['locale'];
+		$info = $this->getExtraInfo([
+			'user_id' => Auth::user()->id,
+			'location_id' => $event['extendedProps']['location'],
+			'locale' => $event['extendedProps']['patient']['locale'],
+		]);
+		$personal_message = $info['msg_sms'][$locale] ?? array_shift($info['msg_sms']) ?? null;
+
+		switch ($action) {
+			case 'add':
+				$message = __("Your appointment of :date at :start with :name has been confirmed.", [
+					'name' => $user_name,
+					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
+					'start' => Carbon::parse($event['localStart'])->format('H:i'),
+				]);
+				break;
 			case 'update':
 				$message = __("Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.", [
 					'name' => $user_name,
@@ -249,6 +339,7 @@ class EventController extends Controller {
 				]);
 				break;
 			case 'delete':
+				$personal_message = null;
 				$message = __("Your appointment of :date at :start with :name has been canceled.", [
 					'name' => $user_name,
 					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
@@ -257,9 +348,9 @@ class EventController extends Controller {
 				break;
 		}
 
-		if (isset($event['extendedProps']['patient']['email'])) {
-			$message .= " " . __("A detailed email has been sent to you.");
-		}
+		// if (isset($event['extendedProps']['patient']['email']) && $action !== "delete") {
+		// 	$message .= " " . __("A detailed email has been sent to you.");
+		// }
 
 		try {
 			Log::channel('agenda')->info("[SENDING SMS] {$to}");
@@ -268,6 +359,14 @@ class EventController extends Controller {
 			$sms = $sms->to(preg_replace('/\s+/', '', $to))
 				->line(__("Hello :name", ['name' => $name]) . ",")
 				->line($message);
+
+			if ($action !== "delete") {
+				$sms = $sms->line(__("Address:") . " " . makeOneLineAddress($info["address"]));
+			}
+
+			if ($personal_message) {
+				$sms = $sms->line()->line($personal_message);
+			}
 
 			$res = ['success' => false, 'data' => null];
 
@@ -311,8 +410,9 @@ class EventController extends Controller {
 		$entries = 'resources/js/pages/agenda.js';
 		$settings = Settings::whereUserId(Auth::user()->id)->first()->toArray();
 		$prefixes = Country::select(["id", "prefix"])->get()->toArray();
+		$locations = Location::fetchAll();
 
-		return view('agenda', compact('entries', 'settings', 'prefixes'));
+		return view('agenda', compact('entries', 'settings', 'prefixes', 'locations'));
 	}
 
 	/**
@@ -340,8 +440,10 @@ class EventController extends Controller {
 
 		if (isset($data['extendedProps']['patient']['id'])) {
 			$event->patient_id = $data['extendedProps']['patient']['id'];
+			$event->location_id = $data['extendedProps']['location'];
 			$event->category = 1;
 		} else {
+			$event->location_id = 0;
 			$event->category = 0;
 		}
 
@@ -481,9 +583,9 @@ class EventController extends Controller {
 		if ($event->patient_id && ($email || $send_sms)) {
 			Log::channel('agenda')->info(
 				"Event UPDATE: {$event->id} - email " .
-				($email ? "YES" : "NO") . " - phone " .
-				($phone ? "YES" : "NO") . " - sms " .
-				($send_sms ? "YES" : "NO")
+					($email ? "YES" : "NO") . " - phone " .
+					($phone ? "YES" : "NO") . " - sms " .
+					($send_sms ? "YES" : "NO")
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
@@ -556,9 +658,9 @@ class EventController extends Controller {
 		if ($event->patient_id && ($email || $send_sms)) {
 			Log::channel('agenda')->info(
 				"Event DELETE: {$event->id} - email " .
-				($email ? "YES" : "NO") . " - phone " .
-				($phone ? "YES" : "NO") . " - sms " .
-				($send_sms ? "YES" : "NO")
+					($email ? "YES" : "NO") . " - phone " .
+					($phone ? "YES" : "NO") . " - sms " .
+					($send_sms ? "YES" : "NO")
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
@@ -640,6 +742,7 @@ class EventController extends Controller {
 			"DESCRIPTION:%s" . PHP_EOL .
 			"SEQUENCE:0" . PHP_EOL .
 			"STATUS:CONFIRMED" . PHP_EOL .
+			"LOCATION:%s" . PHP_EOL .
 			"SUMMARY:%s" . PHP_EOL .
 			"CREATED:%s" . PHP_EOL .
 			"DTSTAMP:%s" . PHP_EOL .
@@ -658,6 +761,7 @@ class EventController extends Controller {
 			$event['user_name'],
 			$event['user_email'],
 			$event['user_name'] . "\\n" . $event['user_phone'],
+			$event['location'],
 			$event['summary'],
 			$event['created'],
 			date("Ymd\THis"),
@@ -676,6 +780,7 @@ class EventController extends Controller {
 	public function export($id) {
 		$id = Hashids::decode($id)[0];
 		$event = Event::findOrFail($id);
+		$locale = Patient::findOrFail($event->patient_id)->locale;
 		$user = User::select([
 			"users.firstname",
 			"users.lastname",
@@ -696,6 +801,13 @@ class EventController extends Controller {
 		$event->user_phone = $user->phone_prefix . " " . $user->phone_number;
 		$event->summary = __("Appointment");
 		$event->alarm = Carbon::parse($event->start)->subDay()->setTimezone($user->timezone)->format("Ymd\THis");
+
+		$info = $this->getExtraInfo([
+			'user_id' => $event->user_id,
+			'location_id' => $event->location_id,
+			'locale' => $locale,
+		]);
+		$event['location'] = makeOneLineAddress($info['address']);
 
 		$filename = "rdv_" . Carbon::parse($event->start)->setTimezone($user->timezone)->format("Y-m-d_Hi");
 		$ical = $this->iCalendar($event);

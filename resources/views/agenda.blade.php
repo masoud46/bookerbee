@@ -78,6 +78,12 @@
 						<div class="calendar-event calendar-event-all-day text-muted text-center">{{ __('All day') }}</div>
 					</div>
 					<div class="calendar-event calendar-event-rdv mb-3">
+						<label>{{ __('Location') }}</label>
+						<select id="calendar-event-location" class="form-select mb-3 {{ $locations->count() === 1 ? 'pe-none' : '' }}" {{ $locations->count() === 1 ? 'disabled' : '' }}>
+							@foreach ($locations as $location)
+								<option value="{{ $location->id }}" {{ $location->disabled ? 'disabled' : '' }}>{{ $location->code }} - {{ $location->description }}</option>
+							@endforeach
+						</select>
 						<label>{{ __('Patient') }}</label>
 						<x-patient-picker
 							id="patient-picker-component"
@@ -170,6 +176,7 @@
 		window.laravel.messages.lockSlot = "{{ __('Lock this slot') }}"
 		window.laravel.settings = {!! json_encode($settings) !!}
 		window.laravel.agenda = {
+			url: `{{ route('event.fetch') }}`,
 			lock: {{ in_array('agenda_lock', Auth::user()->features) ? 'true' : 'false' }},
 			timezone: '{{ Auth::user()->timezone }}',
 			prefixes: {!! json_encode($prefixes) !!},

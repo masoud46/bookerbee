@@ -105,16 +105,11 @@ class InvoiceController extends Controller {
 	 */
 	private function getCommonData() {
 		$settings = Settings::whereUserId(Auth::user()->id)->first();
-		$locations = Location::all()->sortBy('code');
 		$types = Type::all()->sortBy('code');
+		$locations = Location::fetchAll();
 		$countries = Country::sortedList();
 
 		$settings->amount = currency_format($settings->amount);
-
-		if (!User::hasSecondaryAddress()) {
-			$bisId = array_search("009b", array_column($locations->toArray(), "code"));
-			$locations[$bisId]['disabled'] = true;
-		}
 
 		return compact(
 			'settings',

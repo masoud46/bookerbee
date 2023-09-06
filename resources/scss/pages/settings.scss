@@ -1,0 +1,9 @@
+.setting-messages  {
+	overflow: hidden;
+	max-height: 0;
+    transition: all 0.3s ease-in-out;
+    
+    &.messages-visible {
+        max-height: 1000px;
+    }
+}

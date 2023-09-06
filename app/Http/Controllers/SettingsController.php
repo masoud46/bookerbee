@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class SettingsController extends Controller {
 	/**
@@ -63,18 +64,41 @@ class SettingsController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function edit() {
-		$entries = 'resources/js/pages/settings.js';
+		$entries = [
+			'resources/js/pages/settings.js',
+			'resources/scss/pages/settings.scss',
+		];
+
+		$cal_slots = [10, 15, 30, 45, 60];
+		$cal_breaks = [5, 10, 15, 30];
 
 		$locations = Location::all()->sortBy('code');
 		$types = Type::all()->sortBy('code');
 		$settings = Settings::whereUserId(Auth::user()->id)->first();
 
 		$settings->amount = currency_format($settings->amount);
+		
+		$msg_email = $settings->msg_email ? json_decode($settings->msg_email, true) : [];
+		$msg_sms = $settings->msg_sms ? json_decode($settings->msg_sms, true) : [];
+		$settings->msg_email_checked = count($msg_email) > 0;
+		$settings->msg_sms_checked = count($msg_sms) > 0;
+		
+		// Set message to null for absent (or recently added) locales
+		$locales = array_keys(LaravelLocalization::getSupportedLocales());
+		foreach ($locales as $locale) {
+			if (!isset($msg_email[$locale])) $msg_email[$locale] = null;
+			if (!isset($msg_sms[$locale])) $msg_sms[$locale] = null;
+		}
+
+		$settings->msg_email = $msg_email;
+		$settings->msg_sms = $msg_sms;
 
 		return view('settings', compact(
 			'entries',
 			'locations',
 			'types',
+			'cal_slots',
+			'cal_breaks',
 			'settings',
 		));
 	}
@@ -88,7 +112,22 @@ class SettingsController extends Controller {
 	 */
 	public function update(Request $request) {
 		$params = $request->all();
+		$locales = array_keys(LaravelLocalization::getSupportedLocales());
+		$msg_email_checked = null;
+		$msg_sms_checked = null;
 		$settings_object = [];
+
+		if (!isset($params['settings-msg_email_checked'])) {
+			foreach ($locales as $locale) $params["settings-msg_email-{$locale}"] = null;
+		} else {
+			$msg_email_checked = true;
+		}
+
+		if (!isset($params['settings-msg_sms_checked'])) {
+			foreach ($locales as $locale) $params["settings-msg_sms-{$locale}"] = null;
+		} else {
+			$msg_sms_checked = true;
+		}
 
 		foreach ($params as $key => $value) {
 			$field = explode("-", $key, 2);
@@ -118,6 +157,8 @@ class SettingsController extends Controller {
 			'settings-cal_min_time.required' => app('ERRORS')['required'],
 			'settings-cal_max_time.required' => app('ERRORS')['required'],
 			'settings-cal_slot.required' => app('ERRORS')['required'],
+			'settings-msg_email' => app('ERRORS')['one_required'],
+			'settings-msg_sms' => app('ERRORS')['one_required'],
 		];
 
 		// check location against secondary address
@@ -130,6 +171,29 @@ class SettingsController extends Controller {
 			}
 		}
 
+		// set email personal message params
+		if ($msg_email_checked) {
+			$params['settings-msg_email'] = null;
+			foreach ($locales as $locale) {
+				if ($params["settings-msg_email-{$locale}"]) {
+					$params['settings-msg_email'] = true;
+					break;
+				}
+			}
+			$params_rules['settings-msg_email'] = "required";
+		}
+		// set sms personal message params
+		if ($msg_sms_checked) {
+			$params['settings-msg_sms'] = null;
+			foreach ($locales as $locale) {
+				if ($params["settings-msg_sms-{$locale}"]) {
+					$params['settings-msg_sms'] = true;
+					break;
+				}
+			}
+			$params_rules['settings-msg_sms'] = "required";
+		}
+
 		$validator = Validator::make($params, $params_rules, $params_messages);
 
 		if ($validator->fails()) {
@@ -137,10 +201,28 @@ class SettingsController extends Controller {
 			return back()->withErrors($validator->errors())->withInput();
 		}
 
+		$msg_email = [];
+		$msg_sms = [];
+		foreach ($locales as $locale) {
+			if ($settings_object["msg_email-{$locale}"]) {
+				$msg_email[$locale] = $settings_object["msg_email-{$locale}"];
+			}
+			unset($settings_object["msg_email-{$locale}"]);
+
+			if ($settings_object["msg_sms-{$locale}"]) {
+				$msg_sms[$locale] = $settings_object["msg_sms-{$locale}"];
+			}
+			unset($settings_object["msg_sms-{$locale}"]);
+		}
+		$settings_object['msg_email'] = count($msg_email) ?json_encode($msg_email, JSON_UNESCAPED_UNICODE) : null;
+		$settings_object['msg_sms'] = count($msg_sms) ?json_encode($msg_sms, JSON_UNESCAPED_UNICODE) : null;
+
 		$settings_object['amount'] = intval(currency_parse($settings_object['amount']));
 		$settings = Settings::whereUserId($user->id)->first();
 		foreach ($settings_object as $key => $value) {
-			$settings[$key] = $value;
+			if (substr($key, -8) !== '_checked') {
+				$settings[$key] = $value;
+			}
 		}
 		$settings->save();
 

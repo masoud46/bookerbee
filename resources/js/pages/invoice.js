@@ -212,15 +212,14 @@ removeSession.forEach(btn => {
 	})
 })
 
-// show/hide the out of office form and set/reset it's elements
+// show/hide the out of office form
 invoiceLocationCheck.addEventListener('change', e => {
 	if (invoiceLocationCheck.checked) {
 		invoiceLocation.classList.add('location-visible')
 	} else {
 		invoiceLocation.classList.remove('location-visible')
-		// resetChildrenValues(invoiceLocation)
 	}
-	// setInvoiceSaved(false)
+	setInvoiceSaved(false)
 })
 
 // disable the invoice

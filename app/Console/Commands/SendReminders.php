@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Mail\AppointmentReminder;
 use App\Models\Event;
+use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -41,15 +42,30 @@ class SendReminders extends Command {
 			"events.end",
 			"events.user_id",
 			"events.patient_id",
+			"events.location_id",
 			"events.reminder_email",
 			"events.reminder_sms",
 			"users.timezone",
 			"users.firstname AS user_firstname",
 			"users.lastname AS user_lastname",
+			"users.address_line1",
+			"users.address_line2",
+			"users.address_line3",
+			"users.address_code",
+			"users.address_city",
+			"users.address2_line1",
+			"users.address2_line2",
+			"users.address2_line3",
+			"users.address2_code",
+			"users.address2_city",
 			"users.email AS user_email",
 			"users.phone_number AS user_phone_number",
 			"users.features AS user_features",
-			"countries.prefix AS user_phone_prefix",
+			"settings.msg_email",
+			"settings.msg_sms",
+			"countries.name AS user_address_country",
+			"countries2.name AS user_address2_country",
+			"phone_countries.prefix AS user_phone_prefix",
 			"patients.firstname AS patient_firstname",
 			"patients.lastname AS patient_lastname",
 			"patients.locale AS patient_locale",
@@ -75,8 +91,11 @@ class SendReminders extends Command {
 					});
 			})
 			->join("users", "users.id", "=", "events.user_id")
+			->join("settings", "settings.id", "=", "events.user_id")
 			->join("patients", "patients.id", "=", "events.patient_id")
-			->join("countries", "countries.id", "=", "users.phone_country_id")
+			->join("countries", "countries.id", "=", "users.address_country_id")
+			->join("countries AS phone_countries", "phone_countries.id", "=", "users.phone_country_id")
+			->leftJoin("countries AS countries2", "countries2.id", "=", "users.address2_country_id")
 			->leftJoin("countries AS c", "c.id", "=", "patients.phone_country_id")
 			->get();
 
@@ -97,6 +116,30 @@ class SendReminders extends Command {
 
 			$start = Carbon::parse($event->start);
 			$event_array['remaining_time'] = $start->diffInHours(Carbon::now()->floorUnit('hour'));
+
+			$location = Location::whereId($event->location_id)->first();
+			$msg_email = $event->msg_email ? json_decode($event->msg_email, true) : [];
+			$msg_sms = $event->msg_sms ? json_decode($event->msg_sms, true) : [];
+
+			$event_array['address'] = $location->code === "009b" ? [
+				"line1" => $event->address2_line1,
+				"line2" => $event->address2_line2,
+				"line3" => $event->address2_line3,
+				"code" => $event->address2_code,
+				"city" => $event->address2_city,
+				"country" => __($event->user_address2_country, [], $event['patient_locale']),
+			] : [
+				"line1" => $event->address_line1,
+				"line2" => $event->address_line2,
+				"line3" => $event->address_line3,
+				"code" => $event->address_code,
+				"city" => $event->address_city,
+				"country" => __($event->user_address_country, [], $event['patient_locale']),
+			];
+			
+			$event_array['msg_email'] = $msg_email[$event['patient_locale']] ?? array_shift($msg_email) ?? null;
+			$event_array['msg_sms'] = $msg_sms[$event['patient_locale']] ?? array_shift($msg_sms) ?? null;
+			// echo var_export($event_array, true) . PHP_EOL;
 
 			if ($start->lessThanOrEqualTo($sms_time)) {
 				Log::channel('reminder')->info("User: {$event->user_lastname}, {$event->user_firstname} ({$event->user_id})");
@@ -157,7 +200,12 @@ class SendReminders extends Command {
 					$sms = new \App\Notifications\SmsMessage(['xxxprovider' => "smsto"]);
 					$sms = $sms->to(preg_replace('/\s+/', '', $number))
 						->line(__("Hello :name", ['name' => $patient_name]) . ",")
-						->line($message);
+						->line($message)
+						->line(__("Address:") . " " . makeOneLineAddress($event_array['address']));
+
+					if ($event_array['msg_sms']) {
+						$sms = $sms->line()->line($event_array['msg_sms']);
+					}
 
 					try {
 						Log::channel('reminder')->info("[SENDING SMS] {$number}");

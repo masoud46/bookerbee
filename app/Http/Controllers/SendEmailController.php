@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Mail\AppointmentEmail;
 use App\Mail\AppointmentReminder;
-use App\Mail\ChangeEmail;
-use App\Mail\ChangePassword;
-use App\Models\Event;
+use App\Models\Location;
 use App\Models\Patient;
+use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class SendEmailController extends Controller {
 	/**
@@ -23,8 +22,24 @@ class SendEmailController extends Controller {
 	}
 
 	// test
+	private function getMessage($locale) {
+		$settings = Settings::whereUserId(Auth::user()->id)->first();
+		$msg_email = $settings->msg_email ? json_decode($settings->msg_email, true) : [];
+
+		return $msg_email[$locale] ?? array_shift($msg_email) ?? null;
+	}
+
+	// test
 	public function sendReminderEmail(Request $request) {
 		$event = [
+			'address' => [
+				'line1' => 'Route de Luxembourg 205',
+				'line2' => null,
+				'line3' => 'Line 3',
+				'code' => '7374',
+				'city' => 'Lorentzweiler',
+				'country' => 'Luxembourg',
+			],
 			'start' => '2023-05-02 07:30:00',
 			'end' => '2023-05-02 09:00:00',
 			'remaining_time' => 26,
@@ -39,6 +54,8 @@ class SendEmailController extends Controller {
 			'patient_email' => 'masoudf46@gmail.com',
 		];
 		$event['user_phone'] = $event['user_phone_prefix'] . " " . $event['user_phone_number'];
+		$msg = $this->getMessage("fr");
+		if ($msg) $event['msg_email'] = $msg;
 		return new AppointmentReminder($event);
 	}
 
@@ -48,6 +65,14 @@ class SendEmailController extends Controller {
 			$data = $request->all();
 			$action = $data['action'];
 			$event = [
+				'address' => [
+					'line1' => 'Route de Luxembourg 205',
+					'line2' => null,
+					'line3' => 'Line 3',
+					'code' => '7374',
+					'city' => 'Lorentzweiler',
+					'country' => 'Luxembourg',
+				],
 				'user_phone' => "+352 620 123 456",
 				'allDay' => false,
 				'end' => '2023-05-31T09:00:00.000Z',
@@ -61,8 +86,8 @@ class SendEmailController extends Controller {
 						'phone' => '+32 621 654 987',
 					],
 				],
-				'id' => '5',
-				'hash_id' => \Hashids::encode(5),
+				'id' => '38',
+				'hash_id' => \Hashids::encode(38),
 				'localEnd' => '2023-05-31T11:30:00+02:00',
 				'localStart' => '2023-05-31T09:30:00+02:00',
 				'start' => '2023-05-31T07:00:00.000Z',
@@ -87,10 +112,11 @@ class SendEmailController extends Controller {
 				'start' => '2023-05-31T07:00:00.000Z',
 				'title' => 'Doe, John',
 			];
+			$msg = $this->getMessage("en");
+			if ($msg && $action !== "delete") $event['msg_email'] = $msg;
 			return new AppointmentEmail($action, $event, $old_event);
 		}
 
 		return new AppointmentEmail($request->action, $request->event, $request->old_event);
 	}
-
 }

@@ -13,6 +13,8 @@
 	:date="Carbon\Carbon::parse($event['localStart'])->translatedFormat('l j F Y')"
 	:start="Carbon\Carbon::parse($event['localStart'])->translatedFormat('H:i')"
 	:end="Carbon\Carbon::parse($event['localEnd'])->translatedFormat('H:i')"
+	:address="$event['address']"
+	:message="isset($event['msg_email']) ? $event['msg_email'] : null"
 />
 
 <x-mail::import-appointment :url="route('event.export', ['id' => $event['hash_id']])" />
