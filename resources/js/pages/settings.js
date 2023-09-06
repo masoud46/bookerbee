@@ -1,5 +1,7 @@
 import { utils } from '../utils/utils'
 
+import '../../scss/pages/settings.scss'
+
 
 const settingsForm = document.getElementById('settings-form')
 const settingsSaved = document.getElementById('settings-saved')
