@@ -10,3 +10,7 @@
 {{ __("Start:") }}: {{ $start }}
 {{ __("End:") }}: {{ $end }}
 {{ __("Address:") }}: {{ $location }}
+
+@if (isset($message))
+{{ $message }}
+@endif

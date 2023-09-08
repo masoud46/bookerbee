@@ -38,7 +38,7 @@
 </tr>
 @if (isset($message))
 <tr>
-<td colspan="2" style="padding-top: 20px; color: #c00000;">{{ $message }}</td>
+<td colspan="2" style="padding-top: 20px; color: #c00000;">{!! nl2br(strip_tags($message)) !!}</td>
 </tr>
 @endif
 </table>
