@@ -96,24 +96,37 @@
 								inputValue="{{ old('invoice-acc_date', $update ? $invoice->acc_date : '') }}" />
 						</div>
 					</div>
-					<h6 class="rounded-1 bg-{{ $title_color }} text-white mt-4 py-1 px-3">{{ __('Prescription') }}</h6>
-					<div class="mb-3 row">
-						<label for="invoice-doc_code" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Prescriber') }}</span></label>
-						<div class="col-sm-8 mb-1">
-							<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($lastInvoice ? $lastInvoice['doc_code'] : '')) }}" placeholder="{{ __('Code') }}">
-							@error('invoice-doc_code')
-								<div class="invalid-feedback">{{ $message }}</div>
-							@enderror
-							<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : ($lastInvoice ? $lastInvoice['doc_name'] : '')) }}" placeholder="{{ __('Name') }}">
+					<div class="d-flex mt-4">
+						<div class="form-check form-switch mb-0">
+							<input id="invoice-doc_checked" name="invoice-doc_checked" type="checkbox" role="switch" class="form-check-input" @checked(old('invoice-doc_checked', $update ? $invoice->doc_checked : true))>
 						</div>
-					</div>
-					<div class="row">
-						<label for="invoice-doc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Date') }}</span></label>
-						<div class="col-sm-8">
-							<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : ($lastInvoice ? $lastInvoice['doc_date'] : '')) }}">
-							@error('invoice-doc_date')
-								<div class="invalid-feedback">{{ $message }}</div>
-							@enderror
+						<div class="flex-grow-1">
+							<h6 class="rounded-1 bg-{{ $title_color }} text-white mb-1 py-1 px-3">
+								{{ __('Prescription') }}
+							</h6>
+							<div id="invoice-prescription" class="row {{ old('invoice-doc_checked', !$update || $invoice->doc_checked) ? 'prescription-visible' : '' }}">
+								<div class="col py-1">
+									<div class="mb-3 row">
+										<label for="invoice-doc_code" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Prescriber') }}</span></label>
+										<div class="col-sm-8 mb-1">
+											<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($lastInvoice ? $lastInvoice['doc_code'] : '')) }}" placeholder="{{ __('Code') }}">
+											@error('invoice-doc_code')
+												<div class="invalid-feedback">{{ $message }}</div>
+											@enderror
+											<input id="invoice-doc_name" name="invoice-doc_name" class="form-control form-control-sm" value="{{ old('invoice-doc_name', $update ? $invoice->doc_name : ($lastInvoice ? $lastInvoice['doc_name'] : '')) }}" placeholder="{{ __('Name') }}">
+										</div>
+									</div>
+									<div class="row">
+										<label for="invoice-doc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Date') }}</span></label>
+										<div class="col-sm-8">
+											<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : ($lastInvoice ? $lastInvoice['doc_date'] : '')) }}">
+											@error('invoice-doc_date')
+												<div class="invalid-feedback">{{ $message }}</div>
+											@enderror
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

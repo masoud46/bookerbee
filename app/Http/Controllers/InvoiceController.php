@@ -234,6 +234,7 @@ class InvoiceController extends Controller {
 			->timezone(Auth::user()->timezone)
 			->format('d/m/Y');
 
+		$invoice->doc_checked = $invoice->doc_code !== null;
 
 		$key = Crypt::encrypt([
 			'invoice_id' => $invoice->id,
@@ -439,7 +440,9 @@ class InvoiceController extends Controller {
 			$field = explode("-", $key, 2);
 			switch ($field[0]) {
 				case "invoice":
-					$invoice_object[$field[1]] = $value;
+					if ($field[1] !== 'doc_checked') {
+						$invoice_object[$field[1]] = $value;
+					}
 					break;
 				case "patient":
 					$patient_object[$field[1]] = $value;
@@ -463,10 +466,7 @@ class InvoiceController extends Controller {
 			'patient-address_country_id' => "required|numeric",
 			'invoice-session' => "required|gte:{$form_key['initial_session']}",
 			'invoice-name' => "required",
-			'invoice-acc_number' => "",
 			'invoice-acc_date' => "nullable|date_format:Y-m-d",
-			'invoice-doc_code' => "required",
-			'invoice-doc_date' => "required|date_format:Y-m-d",
 			'invoice-prepayment' => "nullable|regex:{$currency_regex}",
 			'invoice-granted_at' => "nullable|date_format:Y-m-d",
 		];
@@ -532,6 +532,13 @@ class InvoiceController extends Controller {
 			return back()->withInput();
 		}
 
+		$doc_checked = isset($params['invoice-doc_checked']);
+
+		if ($doc_checked) {
+			$params_rules['invoice-doc_code'] = "required";
+			$params_rules['invoice-doc_date'] = "required|date_format:Y-m-d";
+		}
+
 		if ($params['invoice-location_check']) {
 			$params['invoice-location'] =
 				$params['invoice-location_name'] &&
@@ -557,6 +564,17 @@ class InvoiceController extends Controller {
 		}
 
 		$invoice_object['patient_id'] = $form_key['patient_id'];
+
+		if (!$doc_checked) {
+			$request->merge([
+				'invoice-doc_code' => null,
+				'invoice-doc_name' => null,
+				'invoice-doc_date' => null,
+			]);
+			$invoice_object['doc_code'] = null;
+			$invoice_object['doc_name'] = null;
+			$invoice_object['doc_date'] = null;
+		}
 
 		DB::beginTransaction();
 
@@ -631,6 +649,7 @@ class InvoiceController extends Controller {
 			DB::rollBack();
 
 			Log::debug($th->__toString());
+			dd($th->__toString());
 
 			session()->flash("error", app('ERRORS')['form2']);
 			return back()->withErrors($validator->errors())->withInput();

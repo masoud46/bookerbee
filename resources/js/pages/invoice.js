@@ -21,6 +21,8 @@ patientNotes.storeUrl = document.getElementById('patient-notes-store-url').value
 setPatientNotesData()
 
 const invoiceForm = document.getElementById('invoice-form')
+const invoiceDocCheck = document.getElementById('invoice-doc_checked')
+const invoicePrescription = document.getElementById('invoice-prescription')
 const invoiceSessions = document.getElementById('invoice-sessions')
 const removeSession = invoiceSessions.querySelectorAll('.remove-session')
 const addSession = document.getElementById('add-session')
@@ -179,6 +181,16 @@ if (document.querySelector('.session-description').getAttribute('disabled') !== 
 		})
 	})
 }
+
+// show/hide the prescription form
+invoiceDocCheck.addEventListener('change', e => {
+	if (invoiceDocCheck.checked) {
+		invoicePrescription.classList.add('prescription-visible')
+	} else {
+		invoicePrescription.classList.remove('prescription-visible')
+	}
+	setInvoiceSaved(false)
+})
 
 // manage add session button
 addSession?.addEventListener('click', e => {
