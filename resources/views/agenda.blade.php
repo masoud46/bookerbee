@@ -179,7 +179,7 @@
 			url: `{{ route('event.fetch') }}`,
 			lock: {{ in_array('agenda_lock', Auth::user()->features) ? 'true' : 'false' }},
 			timezone: '{{ Auth::user()->timezone }}',
-			prefixes: {!! json_encode($prefixes) !!},
+			countries: {!! json_encode($countries) !!},
 			freq: {!! json_encode($FREQ) !!},
 			actions: {
 				[EVENT_ACTION_ADD]: {

@@ -17,9 +17,12 @@ return [
 		'serge.com',
 	],
 
+	'vat' => env('APP_VAT', '21'),
 	'default_country_code' => env('APP_DEFAULT_COUNTRY_CODE', 'LU'),
 	'default_timezone' => env('APP_DEFAULT_TIMEZONE', 'Europe/Luxembourg'),
 	'load_invoice_limits' => $limits,
+	'event_action_max_length' => env('APP_EVENT_ACTION_MAX_LENGTH', '15'),
+	'sms_price_multiplier' => env('APP_SMS_PRICE_MULTIPLIER', '10000'),
 
 	'send_emails' => env('APP_SEND_EMAILS', true),
 	'send_sms' => env('APP_SEND_SMS', true),
@@ -29,8 +32,7 @@ return [
 	'monitoring' => [
 		'email' => env('APP_MONITORING_EMAIL', null),
 		'phone' => env('APP_MONITORING_PHONE', null),
-		'sms_limit' => env('APP_MONITORING_SMS_LIMIT', null),
-		'email_limit' => env('APP_MONITORING_EMAIL_LIMIT', null),
+		'email_limit' => env('APP_MONITORING_EMAIL_LIMIT', 50),
 	],
 
 	'mail' => [
@@ -47,10 +49,12 @@ return [
 	],
 
 	'sms' => [
+		// ATT: provider's name, 10 characters max.
 		'default_provider' => env('SMS_DEFAULT_PROVIDER', 'ovh'),
 		'smsto' => [
 			'api_key' => env('SMS_SMSTO_API_KEY', null),
 			'sender_id' => env('SMS_SMSTO_SENDER_ID', null),
+			'critical_credit' => env('SMS_SMSTO_CRITICAL_CREDIT', 10),
 		],
 		'ovh' => [
 			'application_key' => env('SMS_OVH_APPLICATION_KEY', null),
@@ -59,6 +63,7 @@ return [
 			'endpoint' => env('SMS_OVH_ENDPOINT', null),
 			'service' => env('SMS_OVH_SERVICE', null),
 			'sender' => env('SMS_OVH_SENDER', null),
+			'critical_credit' => env('SMS_OVH_CRITICAL_CREDIT', 100),
 		],
 	],
 

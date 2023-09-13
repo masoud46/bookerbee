@@ -74,6 +74,8 @@ modal.props = {
 	patientName: modal.querySelector('.event-patient-name'),
 	patientEmail: modal.querySelector('.event-patient-email'),
 	patientPhone: modal.querySelector('.event-patient-phone'),
+	patientPhoneCountryId: null,
+	patientPhoneCountryCode: null,
 	rdvHasEmail: modal.querySelector('.calendar-event-has-email'),
 	rdvNoNotification: modal.querySelector('.calendar-event-no-notification'),
 	startDate: modal.querySelector('.calendar-event-start-date'),
@@ -137,6 +139,8 @@ const setRdvInfo = (patientInfo, location = null) => {
 	modal.props.patientName.setAttribute('data-patient-locale', patientInfo.locale)
 	modal.props.patientEmail.textContent = patientInfo.email ?? ''
 	modal.props.patientPhone.textContent = patientInfo.phone ?? ''
+	modal.props.patientPhoneCountryId = patientInfo.phoneCountryId ?? null
+	modal.props.patientPhoneCountryCode = patientInfo.phoneCountryCode ?? null
 
 	if (patientInfo.email || patientInfo.phone) {
 		modal.props.patientEmail.parentNode.classList.remove('d-none')
@@ -265,6 +269,8 @@ const applyAction = () => {
 
 			if (modal.props.patientPhone.textContent.length) {
 				event.extendedProps.patient.phone = modal.props.patientPhone.textContent
+				event.extendedProps.patient.phoneCountryId = modal.props.patientPhoneCountryId
+				event.extendedProps.patient.phoneCountryCode = modal.props.patientPhoneCountryCode
 			}
 
 			event.localStart = event.startStr
@@ -332,8 +338,8 @@ const applyAction = () => {
 			}
 
 			if (action === EVENT_ACTION_UPDATE) {
-// console.log(event, oldEvent); return;
 				oldEvent = JSON.parse(JSON.stringify(customProps.oldEvent))
+
 				if (!oldEvent.allDay) {
 					oldEvent.localStart = oldEvent.start
 					oldEvent.localEnd = oldEvent.end
@@ -424,6 +430,8 @@ const showModal = action => {
 			locale: event.extendedProps.patient.locale,
 			email: event.extendedProps.patient.email ?? null,
 			phone: event.extendedProps.patient.phone ?? null,
+			phoneCountryId: event.extendedProps.patient.phoneCountryId ?? null,
+			phoneCountryCode: event.extendedProps.patient.phoneCountryCode ?? null,
 		}
 
 		setRdvInfo(patientInfo, event.extendedProps.location_id)
@@ -847,11 +855,17 @@ Pickers.forEach(picker => {
 	picker.patients.onSelected = ({ patient, id }) => {
 		const name = patient.split(' - ')[1]
 		const patientInfo = modal.props.patients.find(patient => patient.id == id)
-		const prefixObj = window.laravel.agenda.prefixes.find(prefix => prefix.id == patientInfo.phone_country_id)
+		const prefixObj = window.laravel.agenda.countries.find(prefix => prefix.id == patientInfo.phone_country_id)
 
 		patientInfo.id = id
 		patientInfo.name = name
-		patientInfo.phone = prefixObj ? `${prefixObj.prefix} ${patientInfo.phone_number}` : null
+		patientInfo.phone = prefixObj ? `${prefixObj.prefix} ${patientInfo.phone_number.replace(/^0+/, '')}` : null
+		patientInfo.phoneCountryId = prefixObj ? prefixObj.id : null
+		patientInfo.phoneCountryCode = prefixObj ? prefixObj.code : null
+
+		delete patientInfo.phone_number
+		delete patientInfo.phone_country_id
+
 		setRdvInfo(patientInfo)
 	}
 })

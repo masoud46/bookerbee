@@ -63,6 +63,8 @@ class EventController extends Controller {
 
 			if ($e->patient_phone_number) {
 				$event['extendedProps']['patient']['phone'] = $e->patient_phone_number;
+				$event['extendedProps']['patient']['phoneCountryId'] = $e->patient_phone_country_id;
+				$event['extendedProps']['patient']['phoneCountryCode'] = $e->patient_phone_country_code;
 			}
 		} else if ($e->category === 0) {
 			$event['className'] = 'fc-locked-event';
@@ -176,8 +178,9 @@ class EventController extends Controller {
 		$end = Carbon::parse($end)->addDays(7);
 
 		$prefixes = array_column(
-			Country::select(["id", "prefix"])->get()->toArray(),
-			"prefix",
+			Country::select(["id", "code", "prefix"])->get()->toArray(),
+			// "prefix",
+			null,
 			"id"
 		);
 		$db_events = Event::select([
@@ -225,7 +228,10 @@ class EventController extends Controller {
 		$events = [];
 		foreach ($db_events as $e) {
 			if ($e->patient_phone_number) {
-				$e->patient_phone_number = "{$prefixes[$e->patient_phone_country_id]} {$e->patient_phone_number}";
+				$phone = ltrim($e->patient_phone_number, "0");
+				$e->patient_phone_number = "{$prefixes[$e->patient_phone_country_id]['prefix']} {$phone}";
+				$e->patient_phone_country_id = $prefixes[$e->patient_phone_country_id]['id'];
+				$e->patient_phone_country_code = $prefixes[$e->patient_phone_country_id]['code'];
 			}
 
 			$event = $this->dbToJs($e);
@@ -246,6 +252,10 @@ class EventController extends Controller {
 	 * @return Array $result
 	 */
 	private function sendEmail($action, $event, $old_event = null) {
+		if (strlen($action) > config('project.event_action_max_length')) {
+			return ['success' => false, 'error' => "action string length is greater " . config('project.event_action_max_length')];
+		}
+
 		if (config('app.env') !== 'production' && !config('project.send_emails')) {
 			return ['success' => true];
 		}
@@ -303,14 +313,20 @@ class EventController extends Controller {
 	 * @return Array $result
 	 */
 	private function sendSMS($action, $event, $old_event = null) {
-		if (config('app.env') !== 'production' && !config('project.send_sms')) {
-			return ['success' => true];
+		if (strlen($action) > config('project.event_action_max_length')) {
+			return ['success' => false, 'error' => "action string length is greater " . config('project.event_action_max_length')];
 		}
 
-		$result = ['success' => false];
+		if (config('app.env') !== 'production' && !config('project.send_sms')) {
+			return ['success' => true, 'data' => "project.send_sms is equal to false"];
+		}
+
+		$result = ['success' => false, 'data' => null];
 
 		$user_name = ucfirst(Auth::user()->firstname) . " " . strtoupper(Auth::user()->lastname);
 		$name = ucfirst(trim(explode(",", $event['extendedProps']['patient']['name'])[1]));
+		$country_id = $event['extendedProps']['patient']['phoneCountryId'];
+		$country_code = $event['extendedProps']['patient']['phoneCountryCode'];
 		$to = $event['extendedProps']['patient']['phone'];
 
 		$locale = $event['extendedProps']['patient']['locale'];
@@ -351,12 +367,17 @@ class EventController extends Controller {
 		// if (isset($event['extendedProps']['patient']['email']) && $action !== "delete") {
 		// 	$message .= " " . __("A detailed email has been sent to you.");
 		// }
-
 		try {
 			Log::channel('agenda')->info("[SENDING SMS] {$to}");
 
-			$sms = new \App\Notifications\SmsMessage();
-			$sms = $sms->to(preg_replace('/\s+/', '', $to))
+			$sms = new \App\Notifications\SmsMessage([
+				'event_id' => $event['id'],
+				'action' => $action,
+				'country' => $country_code,
+				// 'provider' => "smsto",
+			]);
+			$sms = $sms
+				->to(preg_replace('/\s+/', '', $to))
 				->line(__("Hello :name", ['name' => $name]) . ",")
 				->line($message);
 
@@ -370,6 +391,7 @@ class EventController extends Controller {
 
 			$res = ['success' => false, 'data' => null];
 
+
 			if (config('app.env') === 'production') {
 				$res = $sms->send();
 			} else if (config('project.send_sms')) {
@@ -381,6 +403,7 @@ class EventController extends Controller {
 				Log::channel('agenda')->info("[SMS SENT]");
 
 				$result['success'] = true;
+				$result['data'] = $res;
 			} else {
 				Log::channel('agenda')->info("[!!! SMS ERROR !!!]");
 				Log::channel('agenda')->info(print_r($res, true));
@@ -409,10 +432,10 @@ class EventController extends Controller {
 
 		$entries = 'resources/js/pages/agenda.js';
 		$settings = Settings::whereUserId(Auth::user()->id)->first()->toArray();
-		$prefixes = Country::select(["id", "prefix"])->get()->toArray();
+		$countries = Country::select(["id", "code", "prefix"])->get()->toArray();
 		$locations = Location::fetchAll();
 
-		return view('agenda', compact('entries', 'settings', 'prefixes', 'locations'));
+		return view('agenda', compact('entries', 'settings', 'countries', 'locations'));
 	}
 
 	/**
@@ -638,9 +661,7 @@ class EventController extends Controller {
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
 
-		DB::beginTransaction();
-
-		$event->delete();
+		$event->status = false;
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
@@ -678,22 +699,18 @@ class EventController extends Controller {
 				$result['success'] = $sms_result['success'] || $email_result['success'];
 
 				if ($result['success']) {
-					DB::commit();
+					$event->save();
 				} else {
-					DB::rollBack();
-
 					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
 					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
 				}
 			} else { // If SMS only, and send fails
-				DB::rollBack();
-
 				$result['sms_error'] = $sms_result['error'];
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");
 		} else {
-			DB::commit();
+			$event->save();
 
 			$result['success'] = true;
 		}

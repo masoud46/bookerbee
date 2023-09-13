@@ -8,7 +8,7 @@
 @section('content')
 	<style>
 		#log-result {
-			height: 500px;
+			height: 400px;
 		}
 	</style>
 	<div class="container">

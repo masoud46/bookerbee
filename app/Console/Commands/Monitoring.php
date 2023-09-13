@@ -26,15 +26,17 @@ class Monitoring extends Command {
 	 */
 	protected $description = "Send warning email and sms to developer about quotas etc...";
 
-	private $is_admin = false;
+	protected $for_admin_page;
+	protected $debug;
 
 	/**
 	 * Create a new console command instance.
 	 *
 	 * @return void
 	 */
-	public function __construct($is_admin = false) {
-		$this->is_admin = $is_admin;
+	public function __construct($for_admin_page = false) {
+		$this->for_admin_page = $for_admin_page;
+		$this->debug = !$for_admin_page && config('app.env') === 'local';
 
 		parent::__construct();
 	}
@@ -42,37 +44,38 @@ class Monitoring extends Command {
 	/**
 	 * Send report about critical status.
 	 */
-	private function sendCriticalReport($message, $link = null, $email_only = false, $mail_provider = "brevo", $sms_provider = "ovh") {
-		if (!$this->is_admin) {
-			$email = config('project.monitoring.email');
-			$phone = config('project.monitoring.phone');
+	private function sendCriticalReport($message, $link = null, $email_only = false, $mail_provider = "sendgrid", $sms_provider = "ovh") {
+		if ($this->for_admin_page || $this->debug) {
+			return;
+		}
 
+		$email = config('project.monitoring.email');
+		$phone = config('project.monitoring.phone');
+
+		try {
+			Mail::mailer($mail_provider)
+				->to($email)
+				->send(new MonitoringEmail($message, $link));
+		} catch (\Throwable $th) {
+		}
+
+		if (!$email_only) {
 			try {
-				Mail::mailer($mail_provider)
-					->to($email)
-					->send(new MonitoringEmail($message, $link));
+				$sms = new \App\Notifications\SmsMessage(['provider' => $sms_provider]);
+				$sms->to(preg_replace('/\s+/', '', $phone))
+					->line($message)
+					->send();
 			} catch (\Throwable $th) {
 			}
-
-			if (!$email_only) {
-				try {
-					$sms = new \App\Notifications\SmsMessage(['provider' => $sms_provider]);
-					$sms->to(preg_replace('/\s+/', '', $phone))
-						->line($message)
-						->send();
-				} catch (\Throwable $th) {
-				}
-			}
-
-			sleep(3);
 		}
+
+		sleep(3);
 	}
 
 	/**
-	 * Check status.
+	 * Execute the console command.
 	 */
-	public function check() {
-		$sms_limit = intval(config('project.monitoring.sms_limit'));
+	public function handle() {
 		$email_limit = intval(config('project.monitoring.email_limit'));
 
 		$any_error = false;
@@ -105,9 +108,9 @@ class Monitoring extends Command {
 		/*************************/
 		/*** SMS - OVH credits ***/
 		/*************************/
-		if (!$this->is_admin) echo "SMS credits - OVH" . PHP_EOL;
+		if ($this->debug) echo "SMS credits - OVH" . PHP_EOL;
 
-		$ovh = new \Ovh\Api(
+		$client = new \Ovh\Api(
 			config('project.sms.ovh.application_key'),
 			config('project.sms.ovh.application_secret'),
 			config('project.sms.ovh.endpoint'),
@@ -116,17 +119,17 @@ class Monitoring extends Command {
 		$service = config('project.sms.ovh.service');
 
 		try {
-			$response = $ovh->get("/sms/{$service}");
+			$response = $client->get("/sms/{$service}");
 			$credits = floatval($response['creditsLeft']);
 
-			if (!$this->is_admin) echo $credits . PHP_EOL . PHP_EOL;
+			if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
 
 			$result['sms']['ovh'] = [
 				'success' => true,
 				'data' => $credits,
 			];
 
-			if ($credits < $sms_limit) {
+			if ($credits < config('project.sms.ovh.critical_credit')) {
 				$result['sms']['ovh']['success'] = false;
 
 				if ($report['sms']['ovh'] === false) {
@@ -134,7 +137,7 @@ class Monitoring extends Command {
 
 					$this->sendCriticalReport("SMS critical credits - OVH: {$credits}");
 					Log::channel('monitoring')->info("SMS critical credits - OVH: {$credits}");
-					if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
 					$report['sms']['ovh'] = true;
@@ -149,7 +152,7 @@ class Monitoring extends Command {
 				$response = $e->getResponse();
 				$error = $response->getBody()->getContents();
 
-				if (!$this->is_admin) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
+				if ($this->debug) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
 				$result['sms']['ovh'] = [
 					'success' => false,
 					'data' => $error,
@@ -158,7 +161,7 @@ class Monitoring extends Command {
 				Log::channel('monitoring')->info("SMS ERROR - OVH! :: {$error}");
 
 				$this->sendCriticalReport("SMS ERROR - OVH: {$error}", null, true);
-				if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 				Log::channel('monitoring')->info("*** REPORT SENT.");
 				$report['sms']['ovh'] = true;
@@ -168,7 +171,7 @@ class Monitoring extends Command {
 				$any_error = true;
 
 				$error = $e->getMessage();
-				if (!$this->is_admin) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
+				if ($this->debug) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
 				$result['sms']['ovh'] = [
 					'success' => false,
 					'data' => $error,
@@ -177,7 +180,7 @@ class Monitoring extends Command {
 				Log::channel('monitoring')->info("SMS ERROR - OVH! :: {$error}");
 
 				$this->sendCriticalReport("SMS ERROR - OVH: {$error}", null, true);
-				if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 				Log::channel('monitoring')->info("*** REPORT SENT.");
 				$report['sms']['ovh'] = true;
@@ -188,80 +191,81 @@ class Monitoring extends Command {
 		/***************************/
 		/*** SMS - SMSto credits ***/
 		/***************************/
-		// if (!$this->is_admin) echo "SMS - SMSto credits" . PHP_EOL;
+		if ($this->debug) echo "SMS - SMSto credits" . PHP_EOL;
 
-		// $client = new Client();
-		// $headers = [
-		// 	'Authorization' => 'Bearer ' . config('project.sms.smsto.api_key'),
-		// 	'Content-Type' => 'application/json',
-		// ];
+		$client = new Client();
+		$headers = [
+			'Authorization' => 'Bearer ' . config('project.sms.smsto.api_key'),
+			'Content-Type' => 'application/json',
+		];
 
-		// try {
-		// 	$request = new Request('GET', 'https://auth.sms.to/api/balance', $headers);
-		// 	$response = $client->sendAsync($request)->wait();
-		// 	$credits = json_decode($response->getBody(), true)['balance'];
+		try {
+			$request = new Request('GET', 'https://auth.sms.to/api/balance', $headers);
+			$response = $client->sendAsync($request)->wait();
+			$credits = json_decode($response->getBody(), true)['balance'];
 
-		// 	if (!$this->is_admin) echo $credits . PHP_EOL . PHP_EOL;
+			if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
 
-		// 	$result['sms']['smsto'] = [
-		// 		'success' => false,
-		// 		'data' => $credits,
-		// 	];
+			$result['sms']['smsto'] = [
+				'success' => false,
+				'data' => $credits,
+			];
 
-		// 	if ($credits < $sms_limit) {
-		// 		$result['sms']['smsto']['success'] = false;
 
-		// 		if ($report['sms']['smsto'] === false) {
-		// 			$any_error = true;
+			if ($credits < config('project.sms.smsto.critical_credit')) {
+				$result['sms']['smsto']['success'] = false;
 
-		// 			$this->sendCriticalReport("SMS critical credits - SMSto: {$credits}");
-		// 			Log::channel('monitoring')->info("SMS critical credits - SMSto: {$credits}");
-		// 			if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+				if ($report['sms']['smsto'] === false) {
+					$any_error = true;
 
-		// 			Log::channel('monitoring')->info("*** REPORT SENT.");
-		// 			$report['sms']['smsto'] = true;
-		// 		}
-		// 	} else {
-		// 		$report['sms']['smsto'] = false;
-		// 	}
-		// } catch (ClientException $e) {
-		// 	if ($report['sms']['smsto'] === false) {
-		// 		$any_error = true;
+					$this->sendCriticalReport("SMS critical credits - SMSto: {$credits}");
+					Log::channel('monitoring')->info("SMS critical credits - SMSto: {$credits}");
+					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
-		// 		$response = $e->getResponse();
-		// 		$error = $response->getBody()->getContents();
-		// 		if (!$this->is_admin) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
-		// 		$result['sms']['smsto'] = [
-		// 			'success' => false,
-		// 			'data' => $error,
-		// 		];
+					Log::channel('monitoring')->info("*** REPORT SENT.");
+					$report['sms']['smsto'] = true;
+				}
+			} else {
+				$report['sms']['smsto'] = false;
+			}
+		} catch (ClientException $e) {
+			if ($report['sms']['smsto'] === false) {
+				$any_error = true;
 
-		// 		Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
+				$response = $e->getResponse();
+				$error = $response->getBody()->getContents();
+				if ($this->debug) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
+				$result['sms']['smsto'] = [
+					'success' => false,
+					'data' => $error,
+				];
 
-		// 		$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
-		// 		if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+				Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
 
-		// 		Log::channel('monitoring')->info("*** REPORT SENT.");
-		// 		$report['sms']['smsto'] = true;
-		// 	}
-		// } catch (\Exception $e) {
-		// 	if ($report['sms']['smsto'] === false) {
-		// 		$any_error = true;
+				$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
+				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
-		// 		$error = $e->getMessage();
-		// 		if (!$this->is_admin) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
-		// 		$result['sms']['smsto'] = [
-		// 			'success' => false,
-		// 			'data' => $error,
-		// 		];
+				Log::channel('monitoring')->info("*** REPORT SENT.");
+				$report['sms']['smsto'] = true;
+			}
+		} catch (\Exception $e) {
+			if ($report['sms']['smsto'] === false) {
+				$any_error = true;
 
-		// 		Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
+				$error = $e->getMessage();
+				if ($this->debug) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
+				$result['sms']['smsto'] = [
+					'success' => false,
+					'data' => $error,
+				];
 
-		// 		$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
-		// 		Log::channel('monitoring')->info("*** REPORT SENT.");
-		// 		$report['sms']['smsto'] = true;
-		// 	}
-		// }
+				Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
+
+				$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
+				Log::channel('monitoring')->info("*** REPORT SENT.");
+				$report['sms']['smsto'] = true;
+			}
+		}
 
 
 		/********************************/
@@ -284,26 +288,33 @@ class Monitoring extends Command {
 		$response = curl_exec($ch);
 		curl_close($ch);
 
-		if (!$this->is_admin) echo "Email credits - SendGrid" . PHP_EOL;
+		if ($this->debug) echo "Email credits - SendGrid" . PHP_EOL;
 
 		if ($response === false) {
-			if (!$this->is_admin) echo 'Could not get a response';
+			if ($this->debug) echo 'Could not get a response';
 			$result['email']['sendgrid'] = [
 				'success' => false,
 				'data' => 'Could not get a response',
 			];
 		} else {
 			$res = json_decode($response, true);
-			if (!$this->is_admin) echo ($res['remain'] ?? $res['message']) . PHP_EOL . PHP_EOL;
-			if (isset($res['remain'])) {
-				$res = [
-					'success' => true,
-					'data' => intval($res['remain']),
-				];
+			if (isset($res['remain']) || isset($res['message'])) {
+				if ($this->debug) echo ($res['remain'] ?? $res['message']) . PHP_EOL . PHP_EOL;
+				if (isset($res['remain'])) {
+					$res = [
+						'success' => true,
+						'data' => intval($res['remain']),
+					];
+				} else {
+					$res = [
+						'success' => false,
+						'data' => $res['message'],
+					];
+				}
 			} else {
 				$res = [
 					'success' => false,
-					'data' => $res['message'],
+					'data' => 'No $res[\'remain\']) and no $res[\'message\']',
 				];
 			}
 
@@ -314,7 +325,7 @@ class Monitoring extends Command {
 					$any_error = true;
 
 					$this->sendCriticalReport("Email ERROR - SendGrid: {$res['data']}", null, false, "brevo");
-					if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
 					$report['email']['sendgrid'] = true;
@@ -326,7 +337,7 @@ class Monitoring extends Command {
 
 					$this->sendCriticalReport("Email critical credits - SendGrid: {$res['data']}", null, false, "brevo");
 					Log::channel('monitoring')->info("Email critical credits - SendGrid: {$res['data']}");
-					if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
 					$report['email']['sendgrid'] = true;
@@ -357,7 +368,7 @@ class Monitoring extends Command {
 		$response = curl_exec($ch);
 		curl_close($ch);
 
-		if (!$this->is_admin) echo "Email credits - Brevo" . PHP_EOL;
+		if ($this->debug) echo "Email credits - Brevo" . PHP_EOL;
 
 		if ($response === false) {
 			$result['email']['brevo'] = [
@@ -366,16 +377,23 @@ class Monitoring extends Command {
 			];
 		} else {
 			$res = json_decode($response, true);
-			if (!$this->is_admin) echo ($res['plan'][0]['credits'] ?? $res['message']) . PHP_EOL . PHP_EOL;
-			if (isset($res['plan'][0]['credits'])) {
-				$res = [
-					'success' => true,
-					'data' => intval($res['plan'][0]['credits']),
-				];
+			if (isset($res['plan'][0]['credits']) || isset($res['message'])) {
+				if ($this->debug) echo ($res['plan'][0]['credits'] ?? $res['message']) . PHP_EOL . PHP_EOL;
+				if (isset($res['plan'][0]['credits'])) {
+					$res = [
+						'success' => true,
+						'data' => intval($res['plan'][0]['credits']),
+					];
+				} else {
+					$res = [
+						'success' => false,
+						'data' => $res['message'],
+					];
+				}
 			} else {
 				$res = [
 					'success' => false,
-					'data' => $res['message'],
+					'data' => 'No $res[\'plan\'][0][\'credits\']) and no $res[\'message\']',
 				];
 			}
 
@@ -386,7 +404,7 @@ class Monitoring extends Command {
 					$any_error = true;
 
 					$this->sendCriticalReport("Email ERROR - Brevo: {$res['data']}", null, false, "sendgrid");
-					if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
 					$report['email']['brevo'] = true;
@@ -398,7 +416,7 @@ class Monitoring extends Command {
 
 					$this->sendCriticalReport("Email critical credits - Brevo: {$res['data']}", null, false, "sendgrid");
 					Log::channel('monitoring')->info("Email critical credits - Brevo: {$res['data']}");
-					if (!$this->is_admin) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
 					$report['email']['brevo'] = true;
@@ -416,12 +434,5 @@ class Monitoring extends Command {
 		}
 
 		return $result;
-	}
-
-	/**
-	 * Execute the console command.
-	 */
-	public function handle() {
-		$this->check();
 	}
 }

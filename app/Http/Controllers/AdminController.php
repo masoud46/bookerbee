@@ -87,7 +87,7 @@ class AdminController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function monitoring() {
-		$monitoring = (new Monitoring(true))->check();
+		$monitoring = (new Monitoring(true))->handle();
 
 		return response()->json($monitoring);
 	}
