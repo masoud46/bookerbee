@@ -634,7 +634,7 @@ const calendar = new Calendar(calendarElement, {
 	forceEventDuration: true,
 	dayMaxEvents: true, // allow "more" link when too many events
 	navLinks: true, // can click day/week names to navigate views
-	editable: true,
+	// editable: true,
 	selectable: true,
 	eventStartEditable: true,
 	eventOverlap: false,

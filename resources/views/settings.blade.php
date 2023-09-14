@@ -23,6 +23,19 @@
 				<div class="col-12 mt-4">
 					<h4 class="border-bottom pb-2">{{ __('Session') }}</h4>
 				</div>
+				<div class="col-sm-4 col-md-3 col-lg-2 mb-3">
+					<label for="settings-duration" class="col-12 col-form-label">{{ __('Duration') }} <small class="text-muted">({{ __('minutes') }})</small></label>
+					<input id="settings-duration" name="settings-duration" type="number" min="10" class="form-control @error('settings-duration') is-invalid @enderror" value="{{ old('settings-duration', $settings->duration ?? 10) }}" onkeydown="if([13,38,40].indexOf(event.which)===-1)event.preventDefault()">
+					{{-- <select id="settings-duration" name="settings-duration" class="form-select">
+						<option value="" selected hidden>{{ __('Duration') }}</option>
+						@foreach ($durations as $duration)
+							<option value="{{ $duration }}" {{ intval(old('settings-duration')) === $duration || $settings->duration === $duration ? 'selected' : '' }}>{{ $duration }}</option>
+						@endforeach
+					</select> --}}
+					@error('settings-duration')
+						<div class="invalid-feedback">{{ $message }}</div>
+					@enderror
+				</div>
 				<div class="col-sm-8 col-md-7 col-lg-5 col-xl-4 mb-3">
 					<label for="settings-location" class="col-12 col-form-label">{{ __('Default location') }}</label>
 					<select id="settings-location" name="settings-location" class="form-select @error('settings-location') is-invalid @enderror">
@@ -87,7 +100,7 @@
 					@enderror
 				</div>
 				<div class="col-sm-6 col-md-3 col-lg-2 mb-3">
-					<label for="settings-cal_slot" class="col-12 col-form-label">{{ __('Time slots') }} <small class="text-muted">{{ __('minutes') }}</small></label>
+					<label for="settings-cal_slot" class="col-12 col-form-label">{{ __('Time slots') }} <small class="text-muted">({{ __('minutes') }})</small></label>
 					<select id="settings-cal_slot" name="settings-cal_slot" class="form-select @error('settings-cal_slot') is-invalid @enderror">
 						<option value="" selected hidden>{{ __('Location') }}</option>
 						@foreach ($cal_slots as $cal_slot)
@@ -95,18 +108,6 @@
 						@endforeach
 					</select>
 					@error('settings-cal_slot')
-						<div class="invalid-feedback">{{ $message }}</div>
-					@enderror
-				</div>
-				<div class="col-sm-6 col-md-3 col-lg-2 mb-3 d-none">
-					<label for="settings-cal_break" class="col-12 col-form-label">{{ __('Break') }} <small class="text-muted">{{ __('minutes') }}</small></label>
-					<select id="settings-cal_break" name="settings-cal_break" class="form-select @error('settings-cal_break') is-invalid @enderror">
-						<option value="" selected hidden>{{ __('Location') }}</option>
-						@foreach ($cal_breaks as $cal_break)
-							<option value="{{ $cal_break }}" {{ intval(old('settings-cal_break')) === $cal_break || $settings->cal_break === $cal_break ? 'selected' : '' }}>{{ $cal_break }}</option>
-						@endforeach
-					</select>
-					@error('settings-cal_break')
 						<div class="invalid-feedback">{{ $message }}</div>
 					@enderror
 				</div>
@@ -186,6 +187,6 @@
 	@vite($entries)
 
 	<script>
-		window.laravel.messages.errorBrealSlot = `{{ __('The "Time slots" value must be at least twice as the "Break" value.') }}`
+		window.laravel.messages.errorDurationSlot = `{{ __('The "Time slots" value must be equal or greater than the "Duration" value.') }}`
 	</script>
 @endpush

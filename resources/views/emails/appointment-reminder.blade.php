@@ -12,8 +12,8 @@ $end = Carbon\Carbon::parse($event['end'])->setTimezone($event['timezone']);
 	:firstname="ucfirst($event['user_firstname'])"
 	:lastname="strtoupper($event['user_lastname'])"
 	:date="$start->translatedFormat('l j F Y')"
-	:start="$start->translatedFormat('H:i')"
-	:end="$end->translatedFormat('H:i')"
+	:time="$start->translatedFormat('H:i')"
+	:duration="$event['duration'] . ' ' . __('minutes')"
 	:address="$event['address']"
 	:message="isset($event['msg_email']) ? $event['msg_email'] : null"
 />

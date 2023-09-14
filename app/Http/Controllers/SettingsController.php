@@ -65,9 +65,7 @@ class SettingsController extends Controller {
 	 */
 	public function edit() {
 		$entries = 'resources/js/pages/settings.js';
-
 		$cal_slots = [10, 15, 30, 45, 60];
-		$cal_breaks = [5, 10, 15, 30];
 
 		$locations = Location::all()->sortBy('code');
 		$types = Type::all()->sortBy('code');
@@ -95,7 +93,6 @@ class SettingsController extends Controller {
 			'locations',
 			'types',
 			'cal_slots',
-			'cal_breaks',
 			'settings',
 		));
 	}

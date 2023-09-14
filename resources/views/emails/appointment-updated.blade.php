@@ -11,8 +11,8 @@
 	:firstname="ucfirst(Auth::user()->firstname)"
 	:lastname="strtoupper(Auth::user()->lastname)"
 	:date="Carbon\Carbon::parse($event['localStart'])->translatedFormat('l j F Y')"
-	:start="Carbon\Carbon::parse($event['localStart'])->translatedFormat('H:i')"
-	:end="Carbon\Carbon::parse($event['localEnd'])->translatedFormat('H:i')"
+	:time="Carbon\Carbon::parse($event['localStart'])->translatedFormat('H:i')"
+	:duration="$event['duration'] . ' ' . __('minutes')"
 	:address="$event['address']"
 	:message="isset($event['msg_email']) ? $event['msg_email'] : null"
 />

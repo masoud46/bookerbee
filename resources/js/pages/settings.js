@@ -17,14 +17,15 @@ function setSettingsSaved(value) {
 }
 
 settingsForm.addEventListener('submit', e => {
-	const breakVal = document.getElementById('settings-cal_break').value
-	const slotVal = document.getElementById('settings-cal_slot').value
+	const slot = document.getElementById('settings-cal_slot')
+	const durationVal = document.getElementById('settings-duration').value
 
-	if (breakVal * 2 > slotVal) {
-			e.preventDefault();
-			utils.showMessage(window.laravel.messages.errorBrealSlot)
+	if (durationVal > slot.value) {
+		e.preventDefault();
+		utils.showAlert({ message: window.laravel.messages.errorDurationSlot, type: "error" })
+		slot.focus()
 
-			return
+		return
 	}
 
 	document.querySelector('body').classList.add('busy')

@@ -7,8 +7,8 @@
 @endphp
 {{ __("Practitioner:") }}: {{ $lastname }}, {{ $firstname }}
 {{ __("Date:") }}: {{ $date }}
-{{ __("Start:") }}: {{ $start }}
-{{ __("End:") }}: {{ $end }}
+{{ __("Time:") }}: {{ $time }}
+{{ __("Duration:") }}: {{ $duration }} {{ __('minutes') }}
 {{ __("Address:") }}: {{ $location }}
 
 @if (isset($message))

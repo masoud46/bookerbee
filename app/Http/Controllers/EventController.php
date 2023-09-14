@@ -124,6 +124,7 @@ class EventController extends Controller {
 			"users.address2_city",
 			"countries.name AS address_country",
 			"countries2.name AS address2_country",
+			"settings.duration",
 			"settings.msg_email",
 			"settings.msg_sms",
 		])
@@ -146,6 +147,7 @@ class EventController extends Controller {
 		}
 
 		return [
+			'duration' => $data->duration,
 			'msg_email' => $msg_email,
 			'msg_sms' => $msg_sms,
 			'address' => $location->code === "009b" ? [
@@ -259,7 +261,7 @@ class EventController extends Controller {
 		if (config('app.env') !== 'production' && !config('project.send_emails')) {
 			return ['success' => true];
 		}
-
+		
 		$provider = config('app.env') === 'production' ?
 			config('project.mail.default_provider') :
 			config('project.mail.default_dev_provider');
@@ -272,6 +274,7 @@ class EventController extends Controller {
 			'location_id' => $event['extendedProps']['location'],
 			'locale' => $event['extendedProps']['patient']['locale'],
 		]);
+		$event['duration'] = $info['duration'];
 		$event['address'] = $info['address'];
 		$personal_message = $info['msg_email'][$locale] ?? array_shift($info['msg_email']) ?? null;
 
@@ -296,6 +299,7 @@ class EventController extends Controller {
 			Log::channel('agenda')->info($th->__toString());
 
 			$result['error'] = $th->getMessage();
+			dd($event, $result);
 		}
 
 		return $result;

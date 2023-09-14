@@ -73,6 +73,7 @@ class SendReminders extends Command {
 			"users.phone_number AS user_phone_number",
 			"users.features AS user_features",
 			"users.is_admin AS user_is_admin",
+			"settings.duration",
 			"settings.msg_email",
 			"settings.msg_sms",
 			"countries.name AS user_address_country",

@@ -2,8 +2,8 @@
     'firstname',
     'lastname',
     'date',
-    'start',
-    'end',
+    'time',
+    'duration',
     'address',
     'message',
 ])
@@ -25,12 +25,12 @@
 <td style="font-weight: bold;">{{ $date }}</td>
 </tr>
 <tr>
-<td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("Start:") }}</td>
-<td style="font-weight: bold;">{{ $start }}</td>
+<td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("Time:") }}</td>
+<td style="font-weight: bold;">{{ $time }}</td>
 </tr>
 <tr>
-<td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("End:") }}</td>
-<td style="font-weight: bold;">{{ $end }}</td>
+<td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("Duration:") }}</td>
+<td style="font-weight: bold;">{{ $duration }}</td>
 </tr>
 <tr>
 <td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("Address:") }}</td>
