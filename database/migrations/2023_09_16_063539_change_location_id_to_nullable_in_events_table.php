@@ -14,7 +14,7 @@ return new class extends Migration {
 			$table->bigInteger('location_id')->nullable()->change();
 		});
 
-		DB::table('events')->where('location_id', '=', 3)->update(['location_id' => null]);
+		// DB::table('events')->where('location_id', '=', 3)->update(['location_id' => null]);
 	}
 
 	/**
