@@ -130,7 +130,7 @@ class SendReminders extends Command {
 			: config('project.mail.default_dev_provider');
 
 		// send reminders
-		$events->map(function ($event) use ($is_local, $sms_time, $mail_provider) {
+		$events->map(function ($event) use ($is_local, $is_production, $sms_time, $mail_provider) {
 			$event_array = $event->toArray();
 
 			$number = ltrim($event->user_phone_number, '0');
