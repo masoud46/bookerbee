@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-rectangle-list me-2"></i>' . __('Statements')])
+@extends('layouts.app', ['page_title' => '<i class="far fa-folder-open me-2"></i>' . __('Statements')])
 
 @php
 	$default_country_code = config('project.default_country_code');

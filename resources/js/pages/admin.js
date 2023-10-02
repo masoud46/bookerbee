@@ -32,6 +32,7 @@ document.querySelectorAll('[id$=-log]').forEach(btn => {
 		document.querySelector('#log-truncate').disabled = true
 
 		setTimeout(async () => {
+			const content = document.querySelector('#log-result');
 			const response = await utils.fetch({ url: `/admin/log/${log}` })
 
 			if (response.success) {
@@ -39,7 +40,10 @@ document.querySelectorAll('[id$=-log]').forEach(btn => {
 			}
 
 			e.target.classList.add('btn-success')
-			document.querySelector('#log-result').innerHTML = response.data
+			content.innerHTML = response.data
+			setTimeout(async () => {
+				content.scrollTop = content.scrollHeight;
+			}, 0);
 		}, 0);
 	})
 })

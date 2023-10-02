@@ -68,7 +68,7 @@
 		@endphp
 		<script>
 			window.laravel.flash = {
-				message: '{{ $message }}',
+				message: `{{ $message }}`,
 				type: '{{ $type }}',
 			}
 		</script>
@@ -94,51 +94,62 @@
 
 					<!-- Right Side Of Navbar -->
 					<ul class="navbar-nav ms-auto d-flex flex-wrap">
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('home') }}">{{ __('Statements') }}</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ route('patient.index') }}">{{ __('Patients') }}</a>
-						</li>
-						@if (in_array('agenda', Auth::user()->features))
+						@if (Auth::user()->status === 1)
 							<li class="nav-item">
-								<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
+								<a class="nav-link" href="{{ route('invoices') }}">{{ __('Statements') }}</a>
 							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('patients') }}">{{ __('Patients') }}</a>
+							</li>
+							@if (in_array('agenda', Auth::user()->features))
+								<li class="nav-item">
+									<a class="nav-link" href="{{ route('agenda.index') }}">{{ __('Agenda') }}</a>
+								</li>
+							@endif
 						@endif
-						<li class="nav-item dropdown">
-							<a id="navbarDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-								<i class="fa-solid fa-bars fa-fw"></i>
-							</a>
-							<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
-								<div id="navbarDropdown" class="dropdown-item disabled xborder-bottom fst-italic fw-bold xpt-1">
-									{{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
-								</div>
-								<hr class="my-2">
-								<a class="dropdown-item" href="{{ route('profile') }}">
-									<i class="far fa-user fa-fw me-1"></i> {{ __('My information') }}
+						@if (Auth::user()->status === -1)
+							<li class="nav-item">
+								<a class="nav-link" href="{{ route('logout.get') }}">{{ __('Logout') }}</a>
+							</li>
+						@else
+							<li class="nav-item dropdown">
+								<a id="navbarDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+									<i class="far fa-user fa-fw"></i>
 								</a>
-								<a class="dropdown-item" href="{{ route('settings') }}">
-									<i class="fas fa-sliders fa-fw me-1"></i> {{ __('Settings') }}
-								</a>
-								<hr class="my-2">
-								@if (Auth::user()->is_admin)
-									<a class="dropdown-item" href="{{ route('admin') }}">
-										<i class="fas fa-user-tie fa-fw me-1"></i> Admin
+								<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
+									<div id="navbarDropdown" class="dropdown-item disabled xborder-bottom fst-italic fw-bold xpt-1">
+										{{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
+									</div>
+									<hr class="my-2">
+									<a class="dropdown-item" href="{{ route('account.profile') }}">
+										<i class="fas fa-user fa-fw me-1"></i> {{ __('Profile') }}
+									</a>
+									<a class="dropdown-item" href="{{ route('account.address') }}">
+										<i class="fas fa-location-dot fa-fw me-1"></i> {{ __('Address') }}
+									</a>
+									<a class="dropdown-item" href="{{ route('settings') }}">
+										<i class="fas fa-sliders fa-fw me-1"></i> {{ __('Settings') }}
 									</a>
 									<hr class="my-2">
-								@endif
-								{{-- <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-								<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
-								</a>
-								<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-									@csrf
-								</form> --}}
-								<a class="dropdown-item" href="{{ route('logout.get') }}">
-									<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i>
-									{{ __('Logout') }}
-								</a>
-							</div>
-						</li>
+									@if (Auth::user()->is_admin)
+										<a class="dropdown-item" href="{{ route('admin') }}">
+											<i class="fas fa-user-tie fa-fw me-1"></i> Admin
+										</a>
+										<hr class="my-2">
+									@endif
+									{{-- <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+										<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i> {{ __('Logout') }}
+									</a>
+									<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+										@csrf
+									</form> --}}
+									<a class="dropdown-item" href="{{ route('logout.get') }}">
+										<i class="fa-solid fa-arrow-right-from-bracket fa-fw text-danger me-1"></i>
+										{{ __('Logout') }}
+									</a>
+								</div>
+							</li>
+						@endif
 						@php($locales = LaravelLocalization::getSupportedLocales())
 						@if (count($locales) > 1)
 							<li class="nav-item dropdown">

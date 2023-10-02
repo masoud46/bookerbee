@@ -1,9 +1,6 @@
 @extends('layouts.app', ['page_title' => '<i class="fas fa-user-tie me-2"></i>' . __('Admin')])
 
-@php
-	$default_country_code = config('project.default_country_code');
-@endphp
-
+@php($default_country_code = config('project.default_country_code'))
 
 @section('content')
 	<style>
@@ -30,6 +27,7 @@
 			<div class="col-12">
 				<div class="mt-3 mb-1">logs</div>
 				<button type="button" id="laravel-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Laravel</button>
+				<button type="button" id="application-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Application</button>
 				<button type="button" id="reminder-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Reminder</button>
 				<button type="button" id="agenda-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Agenda</button>
 				<button type="button" id="monitoring-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Monitoring</button>

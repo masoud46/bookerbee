@@ -36,6 +36,22 @@
 	<!-- Scripts -->
 	@vite($resources)
 
+	@if (session()->has('success') || session()->has('error'))
+		@php
+			$message = substr(json_encode(session('success') ?? session('error')), 1, -1);
+			$type = session()->has('error') ? 'error' : 'success';
+		@endphp
+		<script>
+			window.laravel = {
+				flash: {
+					message: `{{ $message }}`,
+					type: '{{ $type }}',
+					timeout: 10,
+				}
+			}
+		</script>
+	@endif
+
 </head>
 
 <body>
@@ -68,7 +84,14 @@
 
 		@yield('content')
 
+		<div id="flash-message" class="rounded shadow flash-message">
+			<div class="flash-message-text">Flash | Message</div>
+			<div class="flash-message-close" onclick="this.parentElement.classList.remove('flash-message-visible')">&times;</div>
+		</div>
+
 	</div>
+
+	@stack('scripts')
 
 </body>
 

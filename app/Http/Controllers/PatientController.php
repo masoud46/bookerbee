@@ -68,6 +68,10 @@ class PatientController extends Controller {
 		$patient = null;
 		$is_update = isset($form_key['patient_id']);
 
+		// New statement will be redirect to patient's profile if the profile is not complete
+		// and "incomplete_profile" will be set to 1 -> set fields as "required"
+		$updateRule = $params['incomplete_profile'] === "1" ? "required" : "nullable";
+
 		if ($is_update) { // update request
 			$patient = Patient::whereId($form_key['patient_id'])
 				->whereUserId(Auth::user()->id)
@@ -96,7 +100,7 @@ class PatientController extends Controller {
 
 		$params_rules = [
 			'patient-code' => [
-				"required",
+				$updateRule,
 				$code_regex,
 				Rule::unique('patients', 'code')
 					->where('user_id', Auth::user()->id)
@@ -112,12 +116,12 @@ class PatientController extends Controller {
 					->ignore($form_key['patient_id'] ?? -1),
 			],
 			'patient-phone_country_id' => "nullable|numeric",
-			'patient-phone_number' => "nullable",
-			'patient-address_line1' => "required",
-			'patient-address_code' => "required",
-			'patient-address_city' => "required",
-			'patient-address_country_id' => "required|numeric",
-			'patient-locale' => "required",
+			'patient-phone_number' => $updateRule,
+			'patient-address_line1' => $updateRule,
+			'patient-address_code' => $updateRule,
+			'patient-address_city' => $updateRule,
+			'patient-address_country_id' => "{$updateRule}|numeric",
+			'patient-locale' => $updateRule,
 		];
 
 		$params_messages = [
@@ -140,6 +144,10 @@ class PatientController extends Controller {
 		$validator = Validator::make($params, $params_rules, $params_messages);
 
 		if ($validator->fails()) {
+			if ($patient && !$patient->isProfileComplete()) {
+				session()->flash('incomplete_profile');
+			}
+
 			session()->flash("error", app('ERRORS')['form']);
 			return back()->withErrors($validator->errors())->withInput();
 		}
@@ -160,33 +168,7 @@ class PatientController extends Controller {
 		$patient->firstname = ucfirst($patient->firstname);
 		$patient->lastname = ucfirst($patient->lastname);
 
-		// // adjust reminders according to email and phone
-		// if ($is_update) {
-		// 	$events = Event::select('id')
-		// 		->wherePatientId($patient->id)
-		// 		->where("start", ">", date("Y-m-d H:i:00"))
-		// 		->get();
-			
-		// 	foreach ($events as $id) {
-		// 		$event = Event::find($id)->first();
-		// 		$event->setReminders([
-		// 			'email' => $patient->email,
-		// 			'phone' => $patient->phone_number,
-		// 		]);
-
-		// 		$event->save();
-		// 	}
-		// }
-
 		$patient->save();
-
-		// if ($is_update) {
-		// 	session()->flash("success", __("Patient data has been updated."));
-		// } else {
-		// 	session()->flash("success", __("The new patient has been created."));
-		// }
-
-		// return redirect()->route("patient.index");
 
 		if ($is_update) {
 			session()->flash("success", __("Patient data has been updated."));
@@ -225,6 +207,8 @@ class PatientController extends Controller {
 				$patient->phone_prefix = Country::find($patient->phone_country_id)->prefix;
 			}
 
+			$new_invoice = $patient->isProfileComplete();
+
 			$key = Crypt::encrypt([
 				'patient_id' => $patient->id,
 			]);
@@ -232,6 +216,7 @@ class PatientController extends Controller {
 			$patient_object = array_merge($patient_object, [
 				'key' => $key,
 				'patient' => $patient,
+				'new_invoice' => $new_invoice,
 			]);
 		}
 

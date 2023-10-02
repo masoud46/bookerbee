@@ -327,10 +327,6 @@ class InvoiceController extends Controller {
 			$invoice->editable = $invoice->id === Invoice::getLastActiveId($invoice->patient_id);
 		}
 
-		// after signing in,
-		if (url()->previous() === route("login")) {
-		}
-
 		return view('invoice-index', compact(
 			'entries',
 			'patients_count',
@@ -350,6 +346,11 @@ class InvoiceController extends Controller {
 			abort(404);
 		}
 
+		if (!$patient->isProfileComplete()) {
+			session()->flash('incomplete_profile');
+			return redirect()->route('patient.show', ['patient' => $patient->id]);
+		}
+
 		$entries = 'resources/js/pages/invoice.js';
 
 		$invoice_object = array_merge($this->getCommonData(), [
@@ -361,7 +362,7 @@ class InvoiceController extends Controller {
 		if ($patient->phone_country_id) {
 			$patient->phone_prefix = Country::find($patient->phone_country_id)->prefix;
 		}
-
+		
 		$lastInvoice = $this->getLastInvoice($patient->id);
 
 		$key = Crypt::encrypt([
@@ -661,7 +662,7 @@ class InvoiceController extends Controller {
 		// 	session()->flash("success", __("The new invoice has been saved."));
 		// }
 
-		// return redirect()->route("home");
+		// return redirect()->route("invoices");
 
 		if ($is_update) {
 			session()->flash("success", __("The invoice has been updated."));

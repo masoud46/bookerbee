@@ -239,10 +239,9 @@ class SendReminders extends Command {
 					try {
 						Log::channel('reminder')->info("[SENDING SMS] {$number}");
 
-						if (!$is_local) {
+						if ($is_production || config('project.send_sms')) {
 							$result = $sms->send();
-						} else if (config('project.send_sms')) {
-							// $result = $sms->send();
+						} else {
 							$result = $sms->dryRun()->send();
 						}
 

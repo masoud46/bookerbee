@@ -1,0 +1,21 @@
+#edit-phone-modal {
+	.edit-phone-confirm {
+        overflow-y: hidden;
+		max-height: 0;
+        transition: max-height 0.75s ease-out;
+	}
+
+    &.verify-code {
+		#phone-number-component * {
+			pointer-events: none;			
+		}
+
+		.edit-phone-confirm {
+			max-height: 300px;
+		}
+		
+		.btn-update-phone {
+			display: none;
+		}
+	}
+}

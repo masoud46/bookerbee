@@ -125,6 +125,12 @@ return [
 			'level' => env('LOG_LEVEL', 'debug'),
 		],
 
+		'application' => [
+			'driver' => 'single',
+			'path' => storage_path('logs/application.log'),
+			'level' => env('LOG_LEVEL', 'debug'),
+		],
+
 		'agenda' => [
 			'driver' => 'single',
 			'path' => storage_path('logs/agenda.log'),

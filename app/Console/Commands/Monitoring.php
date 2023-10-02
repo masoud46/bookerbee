@@ -135,8 +135,9 @@ class Monitoring extends Command {
 				if ($report['sms']['ovh'] === false) {
 					$any_error = true;
 
-					$this->sendCriticalReport("SMS critical credits - OVH: {$credits}");
-					Log::channel('monitoring')->info("SMS critical credits - OVH: {$credits}");
+					$message = "SMS critical credits - OVH: {$credits}";
+					$this->sendCriticalReport($message);
+					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -158,9 +159,9 @@ class Monitoring extends Command {
 					'data' => $error,
 				];
 
-				Log::channel('monitoring')->info("SMS ERROR - OVH! :: {$error}");
-
-				$this->sendCriticalReport("SMS ERROR - OVH: {$error}", null, true);
+				$message = "SMS ERROR - OVH: {$error}";
+				$this->sendCriticalReport($message, null, true);
+				Log::channel('monitoring')->info($message);
 				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 				Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -177,9 +178,9 @@ class Monitoring extends Command {
 					'data' => $error,
 				];
 
-				Log::channel('monitoring')->info("SMS ERROR - OVH! :: {$error}");
-
-				$this->sendCriticalReport("SMS ERROR - OVH: {$error}", null, true);
+				$message = "SMS ERROR - OVH: {$error}";
+				$this->sendCriticalReport($message, null, true);
+				Log::channel('monitoring')->info($message);
 				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 				Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -211,15 +212,15 @@ class Monitoring extends Command {
 				'data' => $credits,
 			];
 
-
 			if ($credits < config('project.sms.smsto.critical_credit')) {
 				$result['sms']['smsto']['success'] = false;
 
 				if ($report['sms']['smsto'] === false) {
 					$any_error = true;
 
-					$this->sendCriticalReport("SMS critical credits - SMSto: {$credits}");
-					Log::channel('monitoring')->info("SMS critical credits - SMSto: {$credits}");
+					$message = "SMS critical credits - SMSto: {$credits}";
+					$this->sendCriticalReport($message);
+					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -240,9 +241,9 @@ class Monitoring extends Command {
 					'data' => $error,
 				];
 
-				Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
-
-				$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
+				$message = "SMS ERROR - SMSto: {$error}";
+				$this->sendCriticalReport($message, null, true);
+				Log::channel('monitoring')->info($message);
 				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 				Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -259,9 +260,11 @@ class Monitoring extends Command {
 					'data' => $error,
 				];
 
-				Log::channel('monitoring')->info("SMS ERROR - SMSto! :: {$error}");
+				$message = "SMS ERROR - SMSto: {$error}";
+				$this->sendCriticalReport($message, null, true);
+				Log::channel('monitoring')->info($message);
+				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
-				$this->sendCriticalReport("SMS ERROR - SMSto: {$error}", null, true);
 				Log::channel('monitoring')->info("*** REPORT SENT.");
 				$report['sms']['smsto'] = true;
 			}
@@ -324,7 +327,9 @@ class Monitoring extends Command {
 				if ($report['email']['sendgrid'] === false) {
 					$any_error = true;
 
-					$this->sendCriticalReport("Email ERROR - SendGrid: {$res['data']}", null, false, "brevo");
+					$message = "Email ERROR - SendGrid: {$res['data']}";
+					$this->sendCriticalReport($message, null, false, "brevo");
+					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -335,8 +340,9 @@ class Monitoring extends Command {
 				if ($report['email']['sendgrid'] === false) {
 					$any_error = true;
 
-					$this->sendCriticalReport("Email critical credits - SendGrid: {$res['data']}", null, false, "brevo");
-					Log::channel('monitoring')->info("Email critical credits - SendGrid: {$res['data']}");
+					$message = "Email critical credits - SendGrid: {$res['data']}";
+					$this->sendCriticalReport($message, null, false, "brevo");
+					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -403,7 +409,9 @@ class Monitoring extends Command {
 				if ($report['email']['brevo'] === false) {
 					$any_error = true;
 
-					$this->sendCriticalReport("Email ERROR - Brevo: {$res['data']}", null, false, "sendgrid");
+					$message = "Email ERROR - Brevo: {$res['data']}";
+					$this->sendCriticalReport($message, null, false, "sendgrid");
+					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
@@ -414,8 +422,9 @@ class Monitoring extends Command {
 				if ($report['email']['brevo'] === false) {
 					$any_error = true;
 
-					$this->sendCriticalReport("Email critical credits - Brevo: {$res['data']}", null, false, "sendgrid");
-					Log::channel('monitoring')->info("Email critical credits - Brevo: {$res['data']}");
+					$message = "Email critical credits - Brevo: {$res['data']}";
+					$this->sendCriticalReport($message, null, false, "sendgrid");
+					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");

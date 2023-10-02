@@ -1,14 +1,19 @@
+{{-- @extends('layouts.app', ['page_title' => '<i class="fas fa-hospital-user me-2"></i>' . __('Patient')]) --}}
 @extends('layouts.app', ['page_title' => '<i class="fas fa-user me-2"></i>' . __('Patient')])
 
 @php
 	$default_country_code = config('project.default_country_code');
 	$update = isset($patient);
+	$incomplete = session()->has('incomplete_profile');
+	$required_class = $incomplete ? 'required-field' : '';
+	$required_star = $incomplete ? ' *' : '';
 @endphp
 
 @section('content')
 	<div class="container">
 		<form id="patient-form" method="post" action="{{ route('patient.store') }}" class="form" autocomplete="off" autofill="off">
 			@csrf
+			<input type="hidden" name="incomplete_profile" value="{{ intval($incomplete) }}">
 			<input type="hidden" id="patient-phone_prefix" value="{{ $update ? $patient->phone_prefix : '' }}">
 			<input type="hidden" id="patient-phone_number" value="{{ $update ? $patient->phone_number : '' }}">
 			<input type="hidden" id="patient-notes-fetch-url" value="{{ route('patient.notes') }}">
@@ -30,7 +35,7 @@
 				</div>
 				<div class="col-lg-6">
 					<div class="mb-3 row">
-						<label for="patient-code" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Reg. number') }}</span></label>
+						<label for="patient-code" class="col-sm-4 col-form-label text-sm-end"><span class="{{ $required_class }}">{{ __('Reg. number') }}</span></label>
 						<div class="col-sm-8">
 							<input id="patient-code" name="patient-code" class="form-control @error('patient-code') is-invalid @enderror" value="{{ old('patient-code', $update ? $patient->code : '') }}">
 							@error('patient-code')
@@ -88,10 +93,10 @@
 				</div>
 				<div class="col-lg-6">
 					<div class="mb-3 row">
-						<label for="patient-address_line1" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Address') }}</span></label>
+						<label for="patient-address_line1" class="col-sm-4 col-form-label text-sm-end"><span class="{{ $required_class }}">{{ __('Address') }}</span></label>
 						<div class="col-sm-8">
 							<div class="mb-1">
-								<input id="patient-address_line1" name="patient-address_line1" class="form-control @error('patient-address_line1') is-invalid @enderror" placeholder="{{ __('Line :line', ['line' => 1]) }}" value="{{ old('patient-address_line1', $update ? $patient->address_line1 : '') }}">
+								<input id="patient-address_line1" name="patient-address_line1" class="form-control @error('patient-address_line1') is-invalid @enderror" placeholder="{{ __('Line :line', ['line' => 1]) }}{{ $required_star }}" value="{{ old('patient-address_line1', $update ? $patient->address_line1 : '') }}">
 								@error('patient-address_line1')
 									<div class="invalid-feedback">{{ $message }}</div>
 								@enderror
@@ -104,20 +109,20 @@
 							</div>
 							<div class="row">
 								<div class="mb-1 col-5">
-									<input id="patient-address_code" name="patient-address_code" class="form-control @error('patient-address_code') is-invalid @enderror" placeholder="{{ __('Postal code') }}" value="{{ old('patient-address_code', $update ? $patient->address_code : '') }}">
+									<input id="patient-address_code" name="patient-address_code" class="form-control @error('patient-address_code') is-invalid @enderror" placeholder="{{ __('Postal code') }}{{ $required_star }}" value="{{ old('patient-address_code', $update ? $patient->address_code : '') }}">
 									@error('patient-address_code')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
 								<div class="mb-1 col-7">
-									<input id="patient-address_city" name="patient-address_city" class="form-control @error('patient-address_city') is-invalid @enderror" placeholder="{{ __('City') }}" value="{{ old('patient-address_city', $update ? $patient->address_city : '') }}">
+									<input id="patient-address_city" name="patient-address_city" class="form-control @error('patient-address_city') is-invalid @enderror" placeholder="{{ __('City') }}{{ $required_star }}" value="{{ old('patient-address_city', $update ? $patient->address_city : '') }}">
 									@error('patient-address_city')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
 								<div class="col-12">
 									<select style="appearance:none;" id="patient-address_country_id" name="patient-address_country_id" class="form-select @error('patient-address_country_id') is-invalid @enderror">
-										<option value="" selected hidden>{{ __('Country') }}</option>
+										<option value="" selected hidden>{{ __('Country') }}{{ $required_star }}</option>
 										@foreach ($countries as $country)
 											@php($selected = $update ? $country->id === $patient->address_country_id : $country->code === $default_country_code)
 											@if (old('patient-address_country_id'))
@@ -134,10 +139,10 @@
 						</div>
 					</div>
 					<div class="mb-3 row">
-						<label for="patient-locale" class="col-sm-4 col-form-label text-sm-end"><span class="required-field">{{ __('Language') }}</span></label>
+						<label for="patient-locale" class="col-sm-4 col-form-label text-sm-end"><span class="{{ $required_class }}">{{ __('Language') }}</span></label>
 						<div class="col-sm-8">
 							<select style="appearance:none;" id="patient-locale" name="patient-locale" class="form-select @error('patient-locale') is-invalid @enderror">
-								<option value="" selected hidden>{{ __('Language') }}</option>
+								<option value="" selected hidden></option>
 								@foreach (LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
 									@php($selected = $update ? $localeCode === $patient->locale : $country->code === config('app.locale'))
 									@if (old('patient-locale'))
@@ -167,7 +172,7 @@
 						</div>
 						{{ __('Save') }}
 					</button>
-					@if ($update)
+					@if ($update && $new_invoice)
 						<a id="new-invoice" href="{{ route('invoice.new', ['patient' => $patient->id]) }}" class="btn btn-outline-secondary {{ session()->has('error') ? 'disabled' : '' }}"><i class="fas fa-receipt fa-fw"></i> {{ __('New invoice') }}</a>
 					@endif
 				</div>
@@ -184,5 +189,15 @@
 @endsection
 
 @push('assets')
+	@if ($incomplete)
+		<script>
+			window.laravel.flash = {
+				message: `{{ __("Please complete the patient's mandatory information prior creating a new statement.") }}`,
+				type: 'error',
+				timeout: 10,
+			}
+		</script>
+	@endif
+
 	@vite($entries)
 @endpush

@@ -12,11 +12,11 @@ class SmsMessage {
 	protected string $country;
 	protected string $provider;
 	protected string $hlr;
-	protected string $action;
+	protected ?string $action;
 	protected string $to;
 	protected array $lines;
 	protected string $dryrun;
-	protected int $event_id;
+	protected ?int $event_id;
 
 	protected string $service;
 	protected string $sender;

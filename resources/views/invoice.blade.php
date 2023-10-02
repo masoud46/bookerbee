@@ -2,10 +2,6 @@
 
 
 @php
-	// var_dump(currency_format('112230'));
-	// var_dump(currency_parse('1212,30'));
-	// var_dump(currency_parse('1212,30 €', ['show_symbol' => true]));
-	
 	$locations_tooltip = '';
 	foreach ($locations as $location) {
 	    $locations_tooltip .= "<div>{$location->code} : {$location->description}</div>";
@@ -109,7 +105,7 @@
 									<div class="mb-3 row">
 										<label for="invoice-doc_code" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Prescriber') }}</span></label>
 										<div class="col-sm-8 mb-1">
-											<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($lastInvoice ? $lastInvoice['doc_code'] : '')) }}" placeholder="{{ __('Code') }}">
+											<input id="invoice-doc_code" name="invoice-doc_code" class="form-control form-control-sm mb-1 @error('invoice-doc_code') is-invalid @enderror" value="{{ old('invoice-doc_code', $update ? $invoice->doc_code : ($lastInvoice ? $lastInvoice['doc_code'] : '')) }}" placeholder="{{ __('Code') }} *">
 											@error('invoice-doc_code')
 												<div class="invalid-feedback">{{ $message }}</div>
 											@enderror
@@ -154,7 +150,7 @@
 						<label for="patient-address_line1" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Address') }}</span></label>
 						<div class="col-sm-8">
 							<div class="mb-1">
-								<input id="patient-address_line1" name="patient-address_line1" class="form-control form-control-sm @error('patient-address_line1') is-invalid @enderror" placeholder="{{ __('Line :line', ['line' => 1]) }}" value="{{ old('patient-address_line1', $update ? $invoice->patient_address_line1 : $patient->address_line1) }}">
+								<input id="patient-address_line1" name="patient-address_line1" class="form-control form-control-sm @error('patient-address_line1') is-invalid @enderror" placeholder="{{ __('Line :line', ['line' => 1]) }} *" value="{{ old('patient-address_line1', $update ? $invoice->patient_address_line1 : $patient->address_line1) }}">
 								@error('patient-address_line1')
 									<div class="invalid-feedback">{{ $message }}</div>
 								@enderror
@@ -167,13 +163,13 @@
 							</div>
 							<div class="row">
 								<div class="mb-1 col-lg-5">
-									<input id="patient-address_code" name="patient-address_code" class="form-control form-control-sm @error('patient-address_code') is-invalid @enderror" placeholder="{{ __('Postal code') }}" value="{{ old('patient-address_code', $update ? $invoice->patient_address_code : $patient->address_code) }}">
+									<input id="patient-address_code" name="patient-address_code" class="form-control form-control-sm @error('patient-address_code') is-invalid @enderror" placeholder="{{ __('Postal code') }} *" value="{{ old('patient-address_code', $update ? $invoice->patient_address_code : $patient->address_code) }}">
 									@error('patient-address_code')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
 								</div>
 								<div class="mb-1 col-lg-7">
-									<input id="patient-address_city" name="patient-address_city" class="form-control form-control-sm @error('patient-address_city') is-invalid @enderror" placeholder="{{ __('City') }}" value="{{ old('patient-address_city', $update ? $invoice->patient_address_city : $patient->address_city) }}">
+									<input id="patient-address_city" name="patient-address_city" class="form-control form-control-sm @error('patient-address_city') is-invalid @enderror" placeholder="{{ __('City') }} *" value="{{ old('patient-address_city', $update ? $invoice->patient_address_city : $patient->address_city) }}">
 									@error('patient-address_city')
 										<div class="invalid-feedback">{{ $message }}</div>
 									@enderror
@@ -291,14 +287,14 @@
 								@enderror
 							</div>
 							<div class="col-md-4 col-lg-4 mb-1">
-								<input name="session-description-{{ $i }}" class="session-description form-control form-control-sm @error("session-description-{$i}") is-invalid @enderror" placeholder="{{ __('Description') }}" {{ $category === 1 ? 'disabled' : '' }} value="{{ old("session-description-{$i}", $session && $session->description ? $session->description : $description) }}">
+								<input name="session-description-{{ $i }}" class="session-description form-control form-control-sm @error("session-description-{$i}") is-invalid @enderror" placeholder="{{ __('Description') }} *" {{ $category === 1 ? 'disabled' : '' }} value="{{ old("session-description-{$i}", $session && $session->description ? $session->description : $description) }}">
 								@error("session-description-{$i}")
 									<div class="invalid-feedback"></div>
 								@enderror
 							</div>
 							<div class="col-md-2 mb-1 d-flex">
 								<div class="input-group input-group-sm flex-grow-1 @error("session-amount-{$i}") has-validation @enderror">
-									<input name="session-amount-{{ $i }}" class="xsession-amount form-control form-control-sm @error("session-amount-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __('Amount') }}" default-value="{{ $settings->amount }}" value="{{ old("session-amount-{$i}", $session && $session->amount ? $session->amount : $settings->amount) }}">
+									<input name="session-amount-{{ $i }}" class="xsession-amount form-control form-control-sm @error("session-amount-{$i}") is-invalid @enderror" aria-describedby="input-group-sizing-sm" placeholder="{{ __('Amount') }} *" default-value="{{ $settings->amount }}" value="{{ old("session-amount-{$i}", $session && $session->amount ? $session->amount : $settings->amount) }}">
 									<span class="input-group-text px-1" id="input-group-sizing-sm">€</span>
 									@error("session-amount-{$i}")
 										<div class="invalid-feedback">{{ $message }}</div>
@@ -372,20 +368,20 @@
 					<div class="@error('invoice-location') is-invalid @enderror">
 						<div class="row" name="invoice-location">
 							<div class="col-sm-8 col-md-6 col-lg-5 my-1">
-								<input id="invoice-location_name" name="invoice-location_name" class="form-control form-control-sm @error('invoice-location_name') is-invalid @enderror" placeholder="{{ __('Location name') }}" value="{{ old('invoice-location_name', $update ? $invoice->location_name : '') }}">
+								<input id="invoice-location_name" name="invoice-location_name" class="form-control form-control-sm @error('invoice-location_name') is-invalid @enderror" placeholder="{{ __('Location name') }} *" value="{{ old('invoice-location_name', $update ? $invoice->location_name : '') }}">
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-md-10 col-lg-8 mb-1">
-								<input id="invoice-location_address" name="invoice-location_address" class="form-control form-control-sm @error('invoice-location_address') is-invalid @enderror" placeholder="{{ __('Address') }}" value="{{ old('invoice-location_address', $update ? $invoice->location_address : '') }}">
+								<input id="invoice-location_address" name="invoice-location_address" class="form-control form-control-sm @error('invoice-location_address') is-invalid @enderror" placeholder="{{ __('Address') }} *" value="{{ old('invoice-location_address', $update ? $invoice->location_address : '') }}">
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-sm-3 col-md-2 mb-1">
-								<input id="invoice-location_code" name="invoice-location_code" class="form-control form-control-sm @error('invoice-location_code') is-invalid @enderror" placeholder="{{ __('Postal code') }}" value="{{ old('invoice-location_code', $update ? $invoice->location_code : '') }}">
+								<input id="invoice-location_code" name="invoice-location_code" class="form-control form-control-sm @error('invoice-location_code') is-invalid @enderror" placeholder="{{ __('Postal code') }} *" value="{{ old('invoice-location_code', $update ? $invoice->location_code : '') }}">
 							</div>
 							<div class="col-sm-5 col-md-4 col-lg-3 mb-1">
-								<input id="invoice-location_city" name="invoice-location_city" class="form-control form-control-sm @error('invoice-location_city') is-invalid @enderror" placeholder="{{ __('City') }}" value="{{ old('invoice-location_city', $update ? $invoice->location_city : '') }}">
+								<input id="invoice-location_city" name="invoice-location_city" class="form-control form-control-sm @error('invoice-location_city') is-invalid @enderror" placeholder="{{ __('City') }} *" value="{{ old('invoice-location_city', $update ? $invoice->location_city : '') }}">
 							</div>
 							<div class="col-sm-4 col-md-4 col-lg-3 mb-1">
 								<select id="invoice-location_country_id" name="invoice-location_country_id" class="form-select form-select-sm @error('invoice-location_country_id') is-invalid @enderror">

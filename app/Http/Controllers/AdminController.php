@@ -51,6 +51,7 @@ class AdminController extends Controller {
 
 		if (file_exists($path)) {
 			$data = file_get_contents($path);
+
 			$result['data'] = strlen($data) ? $data : "[empty]";
 			$result['success'] = true;
 		}

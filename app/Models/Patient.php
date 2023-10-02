@@ -30,4 +30,19 @@ class Patient extends Model {
 
 		return $sessions;
 	}
+
+	/**
+	 * Check if the profile is complete
+	 *
+	 * @return Boolean
+	 */
+	public function isProfileComplete() {
+		return
+			$this->code &&
+			$this->address_line1 &&
+			$this->address_code &&
+			$this->address_city &&
+			$this->address_country_id &&
+			$this->locale;
+	}
 }

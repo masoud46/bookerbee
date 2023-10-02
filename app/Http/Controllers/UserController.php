@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ChangeEmailAddress;
 use App\Models\Country;
 use App\Models\Location;
 use App\Models\Settings;
 use App\Models\Timezone;
 use App\Models\User;
+use App\Models\UserToken;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class UserController extends Controller {
 	/**
@@ -18,7 +25,7 @@ class UserController extends Controller {
 	 * @return void
 	 */
 	public function __construct() {
-		$this->middleware('auth');
+		$this->middleware('auth')->except(['updateEmail']);
 	}
 
 	/**
@@ -27,7 +34,7 @@ class UserController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function index() {
-		//
+		return view('user-suspended');
 	}
 
 	/**
@@ -64,16 +71,29 @@ class UserController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function edit() {
-		$entries = 'resources/js/pages/user.js';
-
-		$locations = Location::all()->sortBy('code');
 		$countries = Country::sortedList();
-		$timezones = Timezone::all()->sortBy('offset');
 
-		return view('user', compact(
+		if (Route::is('account.profile')) {
+			$entries = 'resources/js/pages/user-profile.js';
+			$timezones = Timezone::all()->sortBy('offset');
+
+			return view('user-profile', compact(
+				'entries',
+				'countries',
+				'timezones',
+			));
+		}
+
+		$entries = 'resources/js/pages/user-address.js';
+		$locations = Location::select('code')
+			->where('code', 'like', '009%')
+			->get()
+			->sortBy('code')
+			->toArray();
+
+		return view('user-address', compact(
 			'entries',
 			'countries',
-			'timezones',
 			'locations',
 		));
 	}
@@ -85,11 +105,11 @@ class UserController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function update(Request $request) {
-		session()->flash("active-tab", $request['active-tab']);
-
-		$user = Auth::user();
 		$params = $request->all();
-		$is_profile = $params['active-tab'] === "profile";
+
+		$user = User::whereId(Auth::user()->id)->first();
+
+		$is_profile = Route::is('account.profile.update');
 		$user_object = [];
 
 		foreach ($params as $key => $value) {
@@ -108,9 +128,9 @@ class UserController extends Controller {
 				'user-titles' => "required",
 				'user-firstname' => "required",
 				'user-lastname' => "required",
-				'user-email' => "required|email|unique:users,email,{$user->id}",
-				'user-phone_country_id' => "required|numeric",
-				'user-phone_number' => "required",
+				// 'user-email' => "required|email|unique:users,email,{$user->id}",
+				// 'user-phone_country_id' => "required|numeric",
+				// 'user-phone_number' => "required",
 				'user-fax_country_id' => "nullable|numeric",
 				'user-bank_account' => "required|size:20",
 				'user-bank_swift' => "nullable",
@@ -155,9 +175,12 @@ class UserController extends Controller {
 			'user-email.required' => app('ERRORS')['required'],
 			'user-email.email' => app('ERRORS')['email'],
 			'user-email.unique' => app('ERRORS')['unique']['email'],
-			'user-phone_number.required' => app('ERRORS')['required'],
+			'user-phone_country_id.required' => app('ERRORS')['required'],
 			'user-phone_country_id.numeric' => app('ERRORS')['numeric'],
+			'user-phone_number.required' => app('ERRORS')['required'],
+			'user-fax_country_id.required' => app('ERRORS')['required'],
 			'user-fax_country_id.numeric' => app('ERRORS')['numeric'],
+			'user-fax_number.required' => app('ERRORS')['required'],
 			'user-bank_account.required' => app('ERRORS')['required'],
 			'user-bank_account.size' => app('ERRORS')['iban'],
 			'user-address_line1.required' => app('ERRORS')['required'],
@@ -217,13 +240,13 @@ class UserController extends Controller {
 
 		$user->save();
 
-		session()->flash(
-			"success",
-			$is_profile
-				? __("Your profile has been updated.")
-				: __("Your address has been updated.")
-		);
-		return redirect()->route("profile");
+		if ($is_profile) {
+			session()->flash("success", __("Your profile has been updated."));
+			return redirect()->route("account.profile");
+		}
+
+		session()->flash("success", __("Your address has been updated."));
+		return redirect()->route("account.address");
 	}
 
 	/**
@@ -234,6 +257,351 @@ class UserController extends Controller {
 	 */
 	public function destroy(User $user) {
 		//
+	}
+
+	/**
+	 * Send update email address confirmation email.
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function updateEmailRequest(Request $request) {
+		$params = $request->all();
+		$email = $params['email'];
+
+		$result = ['success' => false];
+
+		$params_rules = [
+			'email' => "required|email|unique:users,email",
+			// 'email' => "required|email|unique:users,email," . Auth::user()->id,
+		];
+
+		$params_messages = [
+			'email.required' => app('ERRORS')['required'],
+			'email.email' => app('ERRORS')['email'],
+			'email.unique' => app('ERRORS')['unique']['email'],
+		];
+
+		$validator = Validator::make($params, $params_rules, $params_messages);
+
+		$result['success'] = !$validator->fails();
+
+		if ($result['success']) {
+			$provider = config('app.env') === 'production' ?
+				config('project.mail.default_provider') :
+				config('project.mail.default_dev_provider');
+			$expiration = config('project.token_expiration_time');
+			$token = Str::random(64);
+
+			Log::channel('application')->info("[SENDING CHANGE_EMAIL EMAIL] {$email}");
+
+			$res = UserToken::create(Auth::user()->id, $email, 'change-email', $token);
+
+			if ($res['success']) {
+				try {
+					Mail::mailer($provider)
+						->to($email)
+						->send(new ChangeEmailAddress(route('account.email.update', ['token' => "{$token}?email={$email}"]), $expiration));
+
+					$result['data'] = __('An email has been sent to :email. Click on the button in email to confirm the modification.', [
+						'email' => "\"{$email}\"",
+					]);
+
+					Log::channel('application')->info("[EMAIL SENT]");
+				} catch (\Throwable $th) {
+					Log::channel('application')->info("[!!! ERROR !!!]");
+					Log::channel('application')->info($th->__toString());
+
+					$result['error'] = $th->getMessage();
+				}
+			} else {
+				Log::channel('application')->info("[!!! ERROR !!!]");
+				Log::channel('application')->info($res['error']);
+
+				$result['error'] = $res['error'];
+			}
+		} else {
+			$result['error'] = $validator->errors()->get('email')[0];
+		}
+
+		return response()->json($result);
+	}
+
+	/**
+	 * Update user's email address.
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function updateEmail(Request $request) {
+		$token = $request->route()->parameter('token');
+		// ^^^ why not "$token = $request->token" !!?? ^^^
+		$email = $request->email;
+		$connected = Auth::check();
+		
+		if ($token && $email) {
+			$res = UserToken::verify($email, 'change-email', $token);
+
+			if ($res['success']) {
+				User::whereId($res['id'])->update(['email' => $email]);
+
+				$message = __('Your email address has been updated.');
+
+				if ($connected) {
+					session()->flash('success', $message);
+					return redirect()->route('account.profile');
+				}
+
+				session()->flash('success', $message);
+				return redirect()->route('login');
+			}
+		}
+
+		$responseCode = 503;
+		$title = __('Error');
+		$icon = 'fas fa-bomb';
+		$message = __('An unexpected error has occurred.');
+
+		if (isset($res['error'])) {
+			switch ($res['error']) {
+				case 'expired':
+					$timezone = $connected ? Auth::user()->timezone : config('project.default_timezone');
+					$time = Carbon::parse($res['time'])->setTimezone($timezone);
+
+					$responseCode = 410;
+					$title = __('Expired link');
+					$icon = 'fas fa-hourglass';
+					$message = __('The provided link is expired on :date at :time.', [
+						'date' => $time->translatedFormat('l j F Y'),
+						'time' => $time->translatedFormat('H:i:s'),
+					]);
+					break;
+				case 'invalid':
+				case 'format':
+					$responseCode = 403;
+					$title = __('Invalid link');
+					$icon = 'fas fa-ban';
+					$message = __('The provided link is not valid.');
+					break;
+				case 'not found':
+					$responseCode = 404;
+					$title = __('Page not found');
+					$icon = 'far fa-circle-question';
+					$message = __('Page not found') . ".";
+					break;
+			}
+		}
+
+		return response()->view('information', [
+			'title' => $title,
+			'icon' => $icon,
+			'message' => $message,
+		], $responseCode);
+	}
+
+	/**
+	 * Send notification SMS.
+	 *
+	 * @param  String $name
+	 * @param  Boolean $email
+	 * @param  String $to
+	 * @param  String $action
+	 * @param  Array $event
+	 * @param  Array $old_event
+	 * @return Array $result
+	 */
+	private function sendSMS($country, $to, $lines) {
+		$result = ['success' => false, 'data' => null];
+
+		$to = preg_replace('/(\(0\)|\s)+/', '', $to);
+
+		try {
+			Log::channel('application')->info("[SENDING CHANGE_PHONE SMS] {$to}");
+
+			$sms = new \App\Notifications\SmsMessage([
+				'country' => $country,
+				// 'provider' => "smsto",
+			]);
+			$sms = $sms->to($to);
+
+			foreach ($lines as $line) {
+				$sms = $sms->line($line);
+			}
+
+			$res = ['success' => false, 'data' => null];
+
+			if (config('app.env') === 'production' || config('project.send_sms')) {
+				$res = $sms->send();
+			} else {
+				$res = $sms->dryRun()->send();
+			}
+
+			if ($res['success']) {
+				Log::channel('application')->info("[SMS SENT]");
+
+				$result['success'] = true;
+				$result['data'] = $res;
+			} else {
+				Log::channel('application')->info("[!!! SMS ERROR !!!]");
+				Log::channel('application')->info(print_r($res, true));
+
+				$result['error'] = $res['data'];
+			}
+		} catch (\Throwable $th) {
+			Log::channel('application')->info("[!!! ERROR !!!]");
+			Log::channel('application')->info($th->__toString());
+
+			$result['error'] = $th->getMessage();
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Generate update phone array.
+	 *
+	 * @param  String $country_id
+	 * @param  String $number
+	 * @param  String $code
+	 * @return Array
+	 */
+	public function generateUpdatePhoneData(string $country_id, string $number) {
+		return [
+			'country_id' => $country_id,
+			'number' => $number,
+		];
+	}
+
+	/**
+	 * Send update phone number confirmation SMS.
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function updatePhoneRequest(Request $request) {
+		$result = ['success' => false];
+
+		$params = $request->all();
+
+		$params_rules = [
+			'phone_country_id' => "required|numeric",
+			'phone_number' => "required",
+		];
+
+		$params_messages = [
+			'phone_country_id.required' => app('ERRORS')['required'],
+			'phone_country_id.numeric' => app('ERRORS')['numeric'],
+			'phone_number.required' => app('ERRORS')['required'],
+		];
+
+		$validator = Validator::make($params, $params_rules, $params_messages);
+
+		$result['success'] = !$validator->fails();
+
+		if ($result['success']) {
+			$expiration = config('project.token_expiration_time');
+			$token = mt_rand(123456, 987654);
+			$phone = $this->generateUpdatePhoneData(
+				$params['phone_country_id'],
+				$params['phone_number'],
+			);
+			$data = json_encode($phone);
+
+			Log::channel('application')->info("[SENDING CHANGE_PHONE PHONE] {$data}");
+
+			$res = UserToken::create(Auth::user()->id, $data, 'change-phone', $token);
+
+			if ($res['success']) {
+				$country = Country::select(['code', 'prefix'])
+					->whereId($phone['country_id'])
+					->first();
+				$number = $country->prefix . " " . $phone['number'];
+
+
+				$sms_res = $this->sendSMS($country->code, $number, [
+					__('Your :app verification code is: :code', [
+						'app' => config('project.app_name'),
+						'code' => $token,
+					]),
+					'',
+					__('This code will expire in :time minutes.', ['time' => $expiration])
+				]);
+
+				if ($sms_res['success']) {
+					$result['code'] = config('app.env') === 'production' ? '' : $token;
+					$result['success'] = true;
+				} else {
+					UserToken::deleteRow(Auth::user()->id, $data, 'change-phone');
+					$result['error'] = $res['error'];
+				}
+			} else {
+				Log::channel('application')->info("[!!! ERROR !!!]");
+				Log::channel('application')->info($res['error']);
+
+				$result['error'] = $res['error'];
+			}
+		} else {
+			$result['error'] = $validator->errors()->get('phone_number')[0];
+		}
+
+		return response()->json($result);
+	}
+
+	/**
+	 * Update user's phone number.
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function updatePhone(Request $request) {
+		$result = ['success' => false];
+		
+		$params = $request->all();
+		
+		if ($params['phone_country_id'] && $params['phone_number']) {
+			$phone = $this->generateUpdatePhoneData(
+				$params['phone_country_id'],
+				$params['phone_number'],
+			);
+
+			$res = UserToken::verify(json_encode($phone), 'change-phone', $params['token']);
+
+			if ($res['success']) {
+				User::whereId($res['id'])->update([
+					'phone_country_id' => $phone['country_id'],
+					'phone_number' => $phone['number'],
+				]);
+
+				$prefix = Country::whereId($phone['country_id'])->first()->prefix;
+				
+				$result['data'] = "{$prefix} {$phone['number']}";
+				$result['message'] = __('Your phone number has been updated.');
+				$result['success'] = true;
+			} else {
+				$result['error'] = __('An unexpected error has occurred.');
+
+				if (isset($res['error'])) {
+					switch ($res['error']) {
+						case 'expired':
+							$time = Carbon::parse($res['time'])->setTimezone(Auth::user()->timezone);
+							$result['error'] = __('The provided code is expired on :date at :time.', [
+								'date' => $time->translatedFormat('l j F Y'),
+								'time' => $time->translatedFormat('H:i:s'),
+							]);
+							break;
+						case 'invalid':
+						case 'format':
+						case 'not found':
+							$result['error'] = __('The provided code is not valid.');
+							break;
+					}
+				}
+			}
+		} else {
+			$result['error'] = __('Incomplete request!');
+		}
+
+		return response()->json($result);
 	}
 
 	// Signed URL test

@@ -1,0 +1,82 @@
+.flash-message {
+  z-index: 10000;
+  position: fixed;
+  top: -100%;
+  left: 50%;
+  transform: translate(-50%);
+  width: calc(100% - 30px);
+  min-height: 40px;
+  transition: top 0.4s;
+
+  > div {
+    position: relative;
+  }
+
+  .flash-message-text {
+    margin: 10px 30px 10px 15px;
+  }
+
+  .flash-message-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.3em;
+    opacity: 0.6;
+    transition: opacity 0.25s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    svg {
+      pointer-events: none;
+    }
+  }
+
+  &.flash-message-success {
+    color: #fff;
+    background-color: $green;
+  }
+
+  &.flash-message-warning {
+    color: #000;
+    background-color: $yellow;
+  }
+
+  &.flash-message-error {
+    color: #fff;
+    background-color: $red;
+  }
+
+  &.flash-message-visible {
+    top: 15px !important;
+  }
+}
+
+
+@media only screen and (min-width: 576px) {
+  .flash-message {
+    width: 75%;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .flash-message {
+    width: 60%;
+  }
+}
+
+@media only screen and (min-width: 992px) {
+  .flash-message {
+    width: 50%;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+}

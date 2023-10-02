@@ -137,7 +137,7 @@ class EventController extends Controller {
 		$location = Location::whereId($params['location_id'])->first();
 		$msg_email = $data->msg_email ? json_decode($data->msg_email, true) : [];
 		$msg_sms = $data->msg_sms ? json_decode($data->msg_sms, true) : [];
-		
+
 		if (isset($params['locale'])) {
 			$data->address_country = __($data->address_country, [], $params['locale']);
 
@@ -261,7 +261,7 @@ class EventController extends Controller {
 		if (config('app.env') !== 'production' && !config('project.send_emails')) {
 			return ['success' => true];
 		}
-		
+
 		$provider = config('app.env') === 'production' ?
 			config('project.mail.default_provider') :
 			config('project.mail.default_dev_provider');
@@ -299,7 +299,6 @@ class EventController extends Controller {
 			Log::channel('agenda')->info($th->__toString());
 
 			$result['error'] = $th->getMessage();
-			dd($event, $result);
 		}
 
 		return $result;
@@ -321,17 +320,13 @@ class EventController extends Controller {
 			return ['success' => false, 'error' => "action string length is greater " . config('project.event_action_max_length')];
 		}
 
-		if (config('app.env') !== 'production' && !config('project.send_sms')) {
-			return ['success' => true, 'data' => "project.send_sms is equal to false"];
-		}
-
 		$result = ['success' => false, 'data' => null];
 
 		$user_name = ucfirst(Auth::user()->firstname) . " " . strtoupper(Auth::user()->lastname);
 		$name = ucfirst(trim(explode(",", $event['extendedProps']['patient']['name'])[1]));
 		$country_id = $event['extendedProps']['patient']['phoneCountryId'];
 		$country_code = $event['extendedProps']['patient']['phoneCountryCode'];
-		$to = $event['extendedProps']['patient']['phone'];
+		$to = preg_replace('/(\(0\)|\s)+/', '', $event['extendedProps']['patient']['phone']);
 
 		$locale = $event['extendedProps']['patient']['locale'];
 		$info = $this->getExtraInfo([
@@ -381,7 +376,7 @@ class EventController extends Controller {
 				// 'provider' => "smsto",
 			]);
 			$sms = $sms
-				->to(preg_replace('/\s+/', '', $to))
+				->to($to)
 				->line(__("Hello :name", ['name' => $name]) . ",")
 				->line($message);
 
@@ -395,11 +390,9 @@ class EventController extends Controller {
 
 			$res = ['success' => false, 'data' => null];
 
-
-			if (config('app.env') === 'production') {
+			if (config('app.env') === 'production' || config('project.send_sms')) {
 				$res = $sms->send();
-			} else if (config('project.send_sms')) {
-				// $res = $sms->send();
+			} else {
 				$res = $sms->dryRun()->send();
 			}
 
@@ -506,7 +499,7 @@ class EventController extends Controller {
 		$data['id'] = $event->id;
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
-		$send_sms = $phone && in_array("sms", Auth::user()->features);
+		$sms = $phone && in_array("sms", Auth::user()->features);
 
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
@@ -517,17 +510,17 @@ class EventController extends Controller {
 		// 	'event' => $data,
 		// ];
 
-		if ($event->patient_id && ($email || $send_sms)) {
+		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
 				"Event ADD: {$event->id} - email " .
 					($email ? "YES" : "NO") . " - phone " .
 					($phone ? "YES" : "NO") . " - sms " .
-					($send_sms ? "YES" : "NO")
+					($sms ? "YES" : "NO")
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			if ($send_sms) {
+			if ($sms) {
 				$sms_result = $this->sendSMS("add", $data);
 			}
 
@@ -538,23 +531,17 @@ class EventController extends Controller {
 				$email_result = $this->sendEmail("add", $data);
 			}
 
-			if ($sms_result['success'] || $email) {
-				// Successful if either SMS or email passes
-				$result['success'] = $sms_result['success'] || $email_result['success'];
+			// Successful if either SMS or email has been sent
+			$result['success'] = $sms_result['success'] || $email_result['success'];
 
-				if ($result['success']) {
-					$result['id'] = $event->id;
+			if ($result['success']) {
+				$result['id'] = $event->id;
 
-					DB::commit();
-				} else {
-					DB::rollBack();
-
-					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
-					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
-				}
-			} else { // If SMS only, and send fails
+				DB::commit();
+			} else {
 				DB::rollBack();
 
+				$result['email_error'] = $email_result['error'];
 				$result['sms_error'] = $sms_result['error'];
 			}
 
@@ -595,7 +582,7 @@ class EventController extends Controller {
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
-		$send_sms = $phone && in_array("sms", Auth::user()->features);
+		$sms = $phone && in_array("sms", Auth::user()->features);
 
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
@@ -607,17 +594,17 @@ class EventController extends Controller {
 		// 	'old_event' => $old_event,
 		// ];
 
-		if ($event->patient_id && ($email || $send_sms)) {
+		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
 				"Event UPDATE: {$event->id} - email " .
 					($email ? "YES" : "NO") . " - phone " .
 					($phone ? "YES" : "NO") . " - sms " .
-					($send_sms ? "YES" : "NO")
+					($sms ? "YES" : "NO")
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			if ($send_sms) {
+			if ($sms) {
 				$sms_result = $this->sendSMS("update", $data, $old_event);
 			}
 
@@ -628,21 +615,15 @@ class EventController extends Controller {
 				$email_result = $this->sendEmail("update", $data, $old_event);
 			}
 
-			if ($sms_result['success'] || $email) {
-				// Successful if either SMS or email passes
-				$result['success'] = $sms_result['success'] || $email_result['success'];
+			// Successful if either SMS or email has been sent
+			$result['success'] = $sms_result['success'] || $email_result['success'];
 
-				if ($result['success']) {
-					DB::commit();
-				} else {
-					DB::rollBack();
-
-					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
-					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
-				}
-			} else { // If SMS only, and send fails
+			if ($result['success']) {
+				DB::commit();
+			} else {
 				DB::rollBack();
 
+				$result['email_error'] = $email_result['error'];
 				$result['sms_error'] = $sms_result['error'];
 			}
 
@@ -665,11 +646,14 @@ class EventController extends Controller {
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
 
+		DB::beginTransaction();
+
 		$event->status = false;
+		$event->save();
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
-		$send_sms = $phone && in_array("sms", Auth::user()->features);
+		$sms = $phone && in_array("sms", Auth::user()->features);
 
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
@@ -680,17 +664,17 @@ class EventController extends Controller {
 		// 	'dbevent' => $event->toArray(),
 		// ];
 
-		if ($event->patient_id && ($email || $send_sms)) {
+		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
 				"Event DELETE: {$event->id} - email " .
 					($email ? "YES" : "NO") . " - phone " .
 					($phone ? "YES" : "NO") . " - sms " .
-					($send_sms ? "YES" : "NO")
+					($sms ? "YES" : "NO")
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
-			if ($send_sms) {
+			if ($sms) {
 				$sms_result = $this->sendSMS("delete", $data);
 			}
 
@@ -698,23 +682,21 @@ class EventController extends Controller {
 				$email_result = $this->sendEmail("delete", $data);
 			}
 
-			if ($sms_result['success'] || $email) {
-				// Successful if either SMS or email passes
-				$result['success'] = $sms_result['success'] || $email_result['success'];
+			// Successful if either SMS or email has been sent
+			$result['success'] = $sms_result['success'] || $email_result['success'];
 
-				if ($result['success']) {
-					$event->save();
-				} else {
-					if (!$sms_result['success']) $result['sms_error'] = $sms_result['error'];
-					if (!$email_result['success']) $result['email_error'] = $email_result['error'];
-				}
-			} else { // If SMS only, and send fails
+			if ($result['success']) {
+				DB::commit();
+			} else {
+				DB::rollBack();
+
+				$result['email_error'] = $email_result['error'];
 				$result['sms_error'] = $sms_result['error'];
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");
 		} else {
-			$event->save();
+			DB::commit();
 
 			$result['success'] = true;
 		}
