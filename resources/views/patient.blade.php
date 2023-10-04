@@ -193,7 +193,7 @@
 		<script>
 			window.laravel.flash = {
 				message: `{{ __("Please complete the patient's mandatory information prior creating a new statement.") }}`,
-				type: 'error',
+				type: 'warning',
 				timeout: 10,
 			}
 		</script>

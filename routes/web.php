@@ -3,12 +3,10 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientNoteController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
@@ -40,6 +38,7 @@ Route::get('/unsubscribe/{id}/{email}', function (Request $request, $id, $email)
 
 	dd($id, $email);
 })->name('unsubscribe');
+
 
 Route::get('/ping', [AdminController::class, 'ping'])->name('ping');
 
