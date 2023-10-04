@@ -48,6 +48,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 	function () {
 		Config::set('recaptcha_locale', LaravelLocalization::getCurrentLocale());
 
+		Route::get('/event/export/{id}', [EventController::class, 'export'])->name('event.export');
 		Route::get('/account/email/{token}', [UserController::class, 'updateEmail'])->name('account.email.update');
 
 		Auth::routes([
@@ -105,7 +106,6 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 				Route::post('/event', [EventController::class, 'store'])->name('event.add');
 				Route::put('/event/{event}', [EventController::class, 'update'])->name('event.update');
 				Route::delete('/event/{event}', [EventController::class, 'destroy'])->name('event.cancel');
-				Route::get('/event/export/{id}', [EventController::class, 'export'])->name('event.export');
 
 				Route::post('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');
 				// test

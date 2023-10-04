@@ -791,14 +791,16 @@ class EventController extends Controller {
 			"users.email",
 			"users.phone_number",
 			"countries.prefix AS phone_prefix",
+			"settings.duration AS session_duration",
 		])
 			->join("countries", "countries.id", "=", "users.phone_country_id")
+			->join("settings", "settings.user_id", "=", "users.id")
 			->where("users.id", "=", $event->user_id)
 			->first();
 
 		$event->created = Carbon::parse($event->created_at)->setTimezone($user->timezone)->format("Ymd\THis");
 		$event->local_start = Carbon::parse($event->start)->setTimezone($user->timezone)->format("Ymd\THis");
-		$event->local_end = Carbon::parse($event->end)->setTimezone($user->timezone)->format("Ymd\THis");
+		$event->local_end = Carbon::parse($event->start)->addMinutes($user->session_duration)->setTimezone($user->timezone)->format("Ymd\THis");
 		$event->user_name = strtoupper($user->lastname) . ", " . ucfirst($user->firstname);
 		$event->user_email = $user->email;
 		$event->user_phone = $user->phone_prefix . " " . $user->phone_number;
