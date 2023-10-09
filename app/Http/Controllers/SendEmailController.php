@@ -42,6 +42,7 @@ class SendEmailController extends Controller {
 			],
 			'start' => '2023-05-02 07:30:00',
 			'end' => '2023-05-02 09:00:00',
+			'duration' => 50,
 			'remaining_time' => 26,
 			'timezone' => 'Europe/Brussels',
 			'user_firstname' => 'Masoud',
@@ -91,6 +92,8 @@ class SendEmailController extends Controller {
 				'localEnd' => '2023-05-31T11:30:00+02:00',
 				'localStart' => '2023-05-31T09:30:00+02:00',
 				'start' => '2023-05-31T07:00:00.000Z',
+				'end' => '2023-05-31T09:00:00.000Z',
+				'duration' => 50,
 				'title' => 'Doe, John',
 			];
 			$old_event = [

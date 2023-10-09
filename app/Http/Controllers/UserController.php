@@ -12,6 +12,7 @@ use App\Models\UserToken;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -105,6 +106,11 @@ class UserController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function update(Request $request) {
+		if (!$request->verify_password || !Hash::check($request->verify_password, Auth::user()->password)) {
+			session()->flash("error", __('The provided password is not correct.'));
+			return back();
+		}
+		
 		$params = $request->all();
 
 		$user = User::whereId(Auth::user()->id)->first();
@@ -128,9 +134,6 @@ class UserController extends Controller {
 				'user-titles' => "required",
 				'user-firstname' => "required",
 				'user-lastname' => "required",
-				// 'user-email' => "required|email|unique:users,email,{$user->id}",
-				// 'user-phone_country_id' => "required|numeric",
-				// 'user-phone_number' => "required",
 				'user-fax_country_id' => "nullable|numeric",
 				'user-bank_account' => "required|size:20",
 				'user-bank_swift' => "nullable",
@@ -524,7 +527,7 @@ class UserController extends Controller {
 						'code' => $token,
 					]),
 					'',
-					__('This code will expire in :time minutes.', ['time' => $expiration])
+					__('This code will expire in :count minutes.', ['count' => $expiration])
 				]);
 
 				if ($sms_res['success']) {

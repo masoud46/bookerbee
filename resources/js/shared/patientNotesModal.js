@@ -1,4 +1,3 @@
-import { Modal } from 'bootstrap'
 import { utils } from '../utils/utils'
 
 

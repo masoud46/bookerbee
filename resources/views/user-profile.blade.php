@@ -10,6 +10,7 @@
 @section('content')
 	<div class="container">
 		<form id="profile-form" method="post" action="{{ route('account.profile.update') }}" class="form" autocomplete="off" autofill="off">
+			<input type="hidden" name="verify_password">
 			<input type="hidden" id="edit-email-url" value="{{ route('account.email') }}">
 			<input type="hidden" id="edit-phone-url" value="{{ route('account.phone') }}">
 			<input type="hidden" id="update-phone-url" value="{{ route('account.phone.update') }}">
@@ -137,7 +138,7 @@
 			</div>
 			<div class="row my-4">
 				<div class="col-12">
-					<button type="submit" class="btn btn-primary btn-spinner me-3 mb-1" data-saved="0">
+					<button type="button" data-bs-toggle="modal" data-bs-target="#confirm-password-modal" class="btn btn-primary btn-spinner me-3 mb-1" data-saved="0">
 						<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
 						<div class="icon-hidden spinner">
 							<div class="spinner-border"></div>
@@ -238,6 +239,8 @@
 			</div>
 		</div>
 	</div>
+
+	@include('shared.confirm-password-modal')
 @endsection
 
 

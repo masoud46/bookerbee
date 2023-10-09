@@ -1,5 +1,6 @@
 import { utils } from '../utils/utils'
 import { Phones } from '../components/phoneNumber'
+import { password } from '../shared/confirmPasswordModal'
 
 import '../../scss/pages/user-profile.scss'
 import '../../scss/components/phone-number.scss'
@@ -12,6 +13,14 @@ Phones.forEach(phone => {
 		}
 	}
 })
+
+
+password.get = password => {
+	console.log(password);
+	document.querySelector('body').classList.add('busy')
+	profileForm.querySelector('input[type="hidden"][name="verify_password"]').value = password
+	profileForm.submit()
+}
 
 
 function resetInvalidFields(parent) {
@@ -118,10 +127,6 @@ async function updatePhone() {
 		utils.showAlert({ message: result.error, type: 'error' })
 	}
 }
-
-profileForm.addEventListener('submit', () => {
-	document.querySelector('body').classList.add('busy')
-})
 
 // when any of the profile elements changes, set saved state to false
 profileForm.querySelectorAll(utils.editableElements).forEach(element => {

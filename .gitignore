@@ -24,3 +24,5 @@ yarn-error.log
 
 /resources/templates/serge.com
 /resources/templates/manager.eva.com
+
+/app/Http/Controllers/TestController.php

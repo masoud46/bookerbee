@@ -9,6 +9,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientNoteController;
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,9 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 // Route::get('/ss', [UserController::class, 'ss']);
 
-// Signed URL test
+// Test routes
+Route::get('/test/sms-cost/{user_id}/{start}/{end}', [TestController::class, 'getSmsCost'])->name('test.sms_cost');
+// Signed URL
 Route::get('/subscribe/{id}/{email}', [UserController::class, 'sign'])->name('subscribe');
 Route::get('/unsubscribe/{id}/{email}', function (Request $request, $id, $email) {
 	if (!$request->hasValidSignature()) {
@@ -72,6 +75,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 			Route::get('/account/address', [UserController::class, 'edit'])->name('account.address');
 			Route::put('/account/profile', [UserController::class, 'update'])->name('account.profile.update');
 			Route::put('/account/address', [UserController::class, 'update'])->name('account.address.update');
+			Route::post('/account/password', [UserController::class, 'confirmPassword'])->name('account.password');
 			Route::post('/account/email', [UserController::class, 'updateEmailRequest'])->name('account.email');
 			Route::post('/account/phone', [UserController::class, 'updatePhoneRequest'])->name('account.phone');
 			Route::put('/account/phone', [UserController::class, 'UpdatePhone'])->name('account.phone.update');

@@ -6,6 +6,7 @@
 @section('content')
 	<div class="container">
 		<form id="address-form" method="post" action="{{ route('account.address.update') }}" class="form" autocomplete="off" autofill="off">
+			<input type="hidden" name="verify_password">
 			<input type="hidden" id="address-saved">
 			@method('put')
 			@csrf
@@ -120,7 +121,7 @@
 			</div>
 			<div class="row my-4">
 				<div class="col-12">
-					<button type="submit" class="btn btn-primary btn-spinner me-3" data-saved="0">
+					<button type="button" data-bs-toggle="modal" data-bs-target="#confirm-password-modal" class="btn btn-primary btn-spinner me-3" data-saved="0">
 						<i class="icon-visible fas fa-file-arrow-down fa-fw"></i>
 						<div class="icon-hidden spinner">
 							<div class="spinner-border"></div>
@@ -134,6 +135,11 @@
 			</div>
 		</form>
 	</div>
+@endsection
+
+
+@section('modals')
+	@include('shared.confirm-password-modal')
 @endsection
 
 

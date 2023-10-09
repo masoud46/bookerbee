@@ -48,6 +48,7 @@
 				unexpectedError: `{{ __('An unexpected error has occurred.') }}<br>{{ __('Try again.') }}`,
 				sessionError: `{{ __('Your session has been timed out, please sign back in to continue.') }}`,
 				databaseError: `{{ __('The modifications could not be applied.') }}<br>{{ __('Try again.') }}`,
+				passwordError: `{{ __('Wrong password.') }}`,
 				irreversibleAction: `{{ __('This action is irreversible!') }}<br>{{ __('Do you want to continue?') }}`,
 				saveModification: `{{ __('The modifications are not saved.') }}<br>{{ __('Do you want to continue?') }}`,
 				modificationSaved: `{{ __('The modifications have been saved.') }}`,
@@ -113,14 +114,14 @@
 							</li>
 						@else
 							<li class="nav-item dropdown">
-								<a id="navbarDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+								<a id="navbarUserDropdown" class="nav-link dropdown-toggle" href="/#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
 									<i class="far fa-user fa-fw"></i>
 								</a>
-								<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
-									<div id="navbarDropdown" class="dropdown-item disabled xborder-bottom fst-italic fw-bold xpt-1">
+								<div class="dropdown-menu dropdown-menu-end m-0 pt-0 shadow" aria-labelledby="navbarUserDropdown">
+									<div class="dropdown-item disabled bg-light rounded-top fst-italic fw-bold">
 										{{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
 									</div>
-									<hr class="my-2">
+									<hr class="mt-0 mb-2">
 									<a class="dropdown-item" href="{{ route('account.profile') }}">
 										<i class="fas fa-user fa-fw me-1"></i> {{ __('Profile') }}
 									</a>
@@ -154,7 +155,7 @@
 						@if (count($locales) > 1)
 							<li class="nav-item dropdown">
 								<a id="navbarLangDropdown" class="nav-link dropdown-toggle font-monospace" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><small>{{ strtoupper(substr(LaravelLocalization::getCurrentLocaleName(), 0, 2)) }}</small></a>
-								<div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarLangDropdown">
+								<div class="dropdown-menu dropdown-menu-end m-0 shadow" aria-labelledby="navbarLangDropdown">
 									@foreach ($locales as $localeCode => $properties)
 										<a class="dropdown-item" rel="alternate" hreflang="{{ $localeCode }}" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
 											{{ $properties['native'] }}

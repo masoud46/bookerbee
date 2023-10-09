@@ -184,8 +184,10 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		event.start = event.startStr
 		event.end = event.endStr
 	}
-	
-	event.extendedProps.location = modal.props.location.value
+
+	if (event.extendedProps) { // event is an appointment
+		event.extendedProps.location = modal.props.location.value
+	}
 
 	delete event.startStr
 	delete event.endStr
@@ -251,7 +253,7 @@ const applyAction = () => {
 	const modalClass = [...modal.classList].find(cls => cls.startsWith(modal.props.actionClass))
 	const action = modalClass.substring(modal.props.actionClass.length)
 	const event = JSON.parse(JSON.stringify(customProps.event))
-	
+
 	switch (action) {
 		case EVENT_ACTION_ADD:
 			event.title = modal.props.patientName.textContent

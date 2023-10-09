@@ -463,7 +463,7 @@ class EventController extends Controller {
 			$event->location_id = $data['extendedProps']['location'];
 			$event->category = 1;
 		} else {
-			$event->location_id = 0;
+			$event->location_id = null;
 			$event->category = 0;
 		}
 

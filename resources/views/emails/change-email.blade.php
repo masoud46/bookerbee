@@ -14,7 +14,7 @@
 {{ __("If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:", ['actionText' => $actionText]) }}
 <a href="{{ $url }}">{{ $url }}</a>
 
-{{ __("This email address confirmation link will expire in :time minutes.", ['time' => $timeout]) }}
+{{ __("This email address confirmation link will expire in :count minutes.", ['count' => $timeout]) }}
 
 {{ __("If you did not request an email address change, no further action is required.") }}
 
