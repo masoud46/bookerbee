@@ -69,6 +69,7 @@ modal.props = {
 	header: modal.querySelector('.modal-title'),
 	title: modal.querySelector('.calendar-event-title'),
 	location: document.getElementById('calendar-event-location'),
+	locationAddress: document.getElementById('event-location-address'),
 	patient: modal.querySelector('.patient-picker-input'),
 	rdvInfo: modal.querySelector('.calendar-event-rdv-info'),
 	patientName: modal.querySelector('.event-patient-name'),
@@ -95,6 +96,7 @@ const customProps = {
 	lastSelectOverlap: null,
 	lockedClass: 'fc-locked-event',
 	privateClass: 'fc-private-event',
+	outOfOfficeClass: 'fc-out-of-office-event',
 	event: null,
 	oldEvent: null,
 	revert: null,
@@ -132,6 +134,7 @@ const removeClassStartsWith = (node, className) => {
 const setRdvInfo = (patientInfo, location = null) => {
 	if (location) {
 		modal.props.location.value = location
+		modal.props.location.dispatchEvent(new Event('change', {}))
 	}
 
 	modal.props.patientName.textContent = patientInfo.name
@@ -186,7 +189,11 @@ const storeEvent = async (action, event, oldEvent = null) => {
 	}
 
 	if (event.extendedProps) { // event is an appointment
-		event.extendedProps.location = modal.props.location.value
+		event.extendedProps.location = parseInt(modal.props.location.value)
+
+		if (action === EVENT_ACTION_UPDATE) {
+			customProps.event.setExtendedProp('location', event.extendedProps.location)
+		}
 	}
 
 	delete event.startStr
@@ -207,6 +214,14 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		})
 
 		if (result.success) {
+			if (typeof result.outOfOffice === 'boolean') {
+				event.extendedProps.outOfOffice = result.outOfOffice
+
+				if (action === EVENT_ACTION_UPDATE) {
+					customProps.event.setExtendedProp('outOfOffice', event.extendedProps.outOfOffice)
+				}
+			}
+
 			if (method === 'POST') {
 				event.id = result.id
 				calendar.addEvent(event)
@@ -277,13 +292,6 @@ const applyAction = () => {
 
 			event.localStart = event.startStr
 			event.localEnd = event.endStr
-
-
-
-			// let e = toMoment(event.endStr, calendar).subtract('minutes', window.laravel.settings.cal_break)
-			// console.log(e, event);return;
-
-
 
 			storeEvent(action, event)
 			break;
@@ -372,6 +380,7 @@ const showModal = action => {
 	const event = customProps.event
 	const rrule = event._def?.recurringDef ?? false
 	const privateEvent = event.extendedProps?.private ?? false
+	const outOfOfficeEvent = event.extendedProps?.outOfOffice ?? false
 	const sameDay = event.allDay
 		? toMoment(event.start, calendar).add(1, 'd').isSame(event.end)
 		: event.startStr.substring(0, 10) === event.endStr.substring(0, 10)
@@ -414,6 +423,7 @@ const showModal = action => {
 
 	if (action === EVENT_ACTION_ADD) {
 		modal.props.location.value = window.laravel.settings.location
+		modal.props.location.dispatchEvent(new Event('change', {}))
 		modal.props.patient.value = ''
 		modal.props.rdvInfo.classList.add('d-none')
 		modal.props.actionButton.classList.add('d-none')
@@ -436,7 +446,7 @@ const showModal = action => {
 			phoneCountryCode: event.extendedProps.patient.phoneCountryCode ?? null,
 		}
 
-		setRdvInfo(patientInfo, event.extendedProps.location_id)
+		setRdvInfo(patientInfo, event.extendedProps.location)
 	}
 
 	if (event.allDay) {
@@ -499,6 +509,14 @@ const showModal = action => {
 
 	customProps.action.show()
 }
+
+modal.props.location.addEventListener('change', () => {
+	if (modal.props.location.value == 2) {
+		modal.classList.add('location-address-visible')
+	} else {
+		modal.classList.remove('location-address-visible')
+	}
+})
 
 modal.props.recurrCheck.addEventListener('change', () => {
 	if (modal.props.recurrCheck.checked) {
@@ -600,6 +618,14 @@ modal.addEventListener('show.bs.modal', () => {
 	modal.props.dismissed = false
 })
 modal.addEventListener('hidden.bs.modal', () => {
+	modal.classList.remove('location-address-visible')
+	modal.querySelectorAll('.is-invalid').forEach(el => {
+		el.classList.remove('is-invalid')
+	})
+	modal.querySelectorAll('.invalid-feedback').forEach(el => {
+		el.classList.add('d-none')
+	})
+
 	if (modal.props.dismissed) {
 		if (customProps.revert) {
 			customProps.revert()
@@ -658,6 +684,13 @@ const calendar = new Calendar(calendarElement, {
 		minute: '2-digit',
 		hour12: false,
 		// timeZoneName: 'short',
+	},
+	eventClassNames: function (arg) {
+		if (arg.event.extendedProps.outOfOffice) {
+			return ['fc-out-of-office-event']
+		}
+
+		return null
 	},
 	events: async (info, successCallback, failureCallback) => {
 		// console.log('%c*** events', 'color:#c00;');
@@ -764,7 +797,9 @@ const calendar = new Calendar(calendarElement, {
 		} else {
 			if (arg.event.extendedProps.private) {
 				// console.log('%c cancel private ', 'color:#fff;background-color:#999;');
-			} else {
+			} else if (arg.event.extendedProps.outOfOffice) {
+				// console.log('%c cancel outOfOffice ', 'color:#fff;background-color:#999;');
+			} {
 				// console.log('%c cancel ', 'color:#fff;background-color:#999;');
 			}
 			showModal(EVENT_ACTION_CANCEL)
@@ -815,6 +850,8 @@ const calendar = new Calendar(calendarElement, {
 		} else {
 			if (arg.event.extendedProps.private) {
 				// console.log('%c save private ', 'color:#fff;background-color:#999;');
+			} else if (arg.event.extendedProps.outOfOffice) {
+				// console.log('%c save outOfOffice ', 'color:#fff;background-color:#999;');
 			} else {
 				// console.log('%c save and email ', 'color:#fff;background-color:#999;');
 			}

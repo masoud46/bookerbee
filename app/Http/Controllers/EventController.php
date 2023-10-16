@@ -30,6 +30,40 @@ class EventController extends Controller {
 	}
 
 	/**
+	 * Get a listing of the resource between two dates.
+	 *
+	 * @return String
+	 */
+	private function getUserPhone() {
+		$prefix = Country::select("prefix")
+		->whereId(Auth::user()->phone_country_id)
+			->first()
+			->prefix;
+
+		return $prefix . " " . Auth::user()->phone_number;
+	}
+
+	/**
+	 * Get out of office status according to location id.
+	 *
+	 * @param  Int $location
+	 * @return String
+	 */
+	private function outOfOffice($location) {
+		if (!$location) {
+			return false;
+		}
+
+		$locations = array_column(
+			Location::fetchAll()->toArray(),
+			"code",
+			"id"
+		);
+	
+		return !in_array($locations[$location], ["009", "009b"]);
+	}
+
+	/**
 	 * Convert database row to FullCalendar JavaScript compatible object.
 	 *
 	 * @param  Event $event
@@ -40,8 +74,9 @@ class EventController extends Controller {
 			'id' => $e->id,
 			// 'all_day' => $e->all_day === true,
 			'extendedProps' => [
-				'location_id' => $e->location_id,
 				'category' => $e->category,
+				'location' => $e->location_id,
+				'outOfOffice' => $this->outOfOffice($e->location_id),
 			],
 		];
 		$rrule = $e->rrule_freq ? [
@@ -86,20 +121,6 @@ class EventController extends Controller {
 		if ($e->duration) $event['duration'] = $e->duration;
 
 		return $event;
-	}
-
-	/**
-	 * Get a listing of the resource between two dates.
-	 *
-	 * @return String
-	 */
-	private function getUserPhone() {
-		$prefix = Country::select("prefix")
-			->whereId(Auth::user()->phone_country_id)
-			->first()
-			->prefix;
-
-		return $prefix . " " . Auth::user()->phone_number;
 	}
 
 	/**
@@ -181,7 +202,6 @@ class EventController extends Controller {
 
 		$prefixes = array_column(
 			Country::select(["id", "code", "prefix"])->get()->toArray(),
-			// "prefix",
 			null,
 			"id"
 		);
@@ -392,6 +412,13 @@ class EventController extends Controller {
 
 			if (config('app.env') === 'production' || config('project.send_sms')) {
 				$res = $sms->send();
+				
+				if (!$res['success']) { // If failed, retry once
+					Log::channel('agenda')->info("[*** SMS ERROR ***]");
+					if ($res['error']) Log::channel('agenda')->info($res['error']);
+					Log::channel('agenda')->info("[RESENDING SMS]");
+					$res = $sms->send();
+				}
 			} else {
 				$res = $sms->dryRun()->send();
 			}
@@ -429,7 +456,7 @@ class EventController extends Controller {
 
 		$entries = 'resources/js/pages/agenda.js';
 		$settings = Settings::whereUserId(Auth::user()->id)->first()->toArray();
-		$countries = Country::select(["id", "code", "prefix"])->get()->toArray();
+		$countries = Country::select(["id", "code", "name", "prefix"])->get()->toArray();
 		$locations = Location::fetchAll();
 
 		return view('agenda', compact('entries', 'settings', 'countries', 'locations'));
@@ -504,11 +531,6 @@ class EventController extends Controller {
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
 		$result = ['success' => false];
-		// $result = [
-		// 	'success' => false,
-		// 	'id' => $event->id,
-		// 	'event' => $data,
-		// ];
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -536,6 +558,7 @@ class EventController extends Controller {
 
 			if ($result['success']) {
 				$result['id'] = $event->id;
+				$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 
 				DB::commit();
 			} else {
@@ -549,6 +572,7 @@ class EventController extends Controller {
 		} else {
 			DB::commit();
 
+			$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 			$result['success'] = true;
 		}
 
@@ -573,6 +597,7 @@ class EventController extends Controller {
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
 		$event->start = Carbon::parse($data['start'])->format('Y-m-d H:i:s');
 		$event->end = Carbon::parse($data['end'])->format('Y-m-d H:i:s');
+		$event->location_id = $data['extendedProps']['location'] ?? null;
 
 		if ($event->category === 1) {
 			$event->setReminders($data['extendedProps']['patient']);
@@ -587,12 +612,6 @@ class EventController extends Controller {
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
 		$result = ['success' => false];
-		// $result = [
-		// 	'success' => true,
-		// 	'dbevent' => $event->toArray(),
-		// 	'event' => $data,
-		// 	'old_event' => $old_event,
-		// ];
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -620,6 +639,8 @@ class EventController extends Controller {
 
 			if ($result['success']) {
 				DB::commit();
+
+				$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 			} else {
 				DB::rollBack();
 
@@ -631,6 +652,7 @@ class EventController extends Controller {
 		} else {
 			DB::commit();
 
+			$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 			$result['success'] = true;
 		}
 
@@ -658,11 +680,6 @@ class EventController extends Controller {
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
 		$result = ['success' => false, 'id' => $event->id];
-		// $result = [
-		// 	'success' => true,
-		// 	'id' => $event->id,
-		// 	'dbevent' => $event->toArray(),
-		// ];
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -812,10 +829,10 @@ class EventController extends Controller {
 			'location_id' => $event->location_id,
 			'locale' => $locale,
 		]);
-		$event['location'] = makeOneLineAddress($info['address']);
+		$event->location = makeOneLineAddress($info['address']);
 
+		$ical = $this->iCalendar($event->toArray());
 		$filename = "rdv_" . Carbon::parse($event->start)->setTimezone($user->timezone)->format("Y-m-d_Hi");
-		$ical = $this->iCalendar($event);
 
 		return (new \Illuminate\Http\Response($ical))
 			->header('Content-Type', 'text/calendar')

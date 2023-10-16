@@ -21,6 +21,6 @@ class UserIsActive
 		}
 
 		// abort(404);
-		return redirect()->route("account.profile")->with('error', __('Your account information is not complete!'));
+		return redirect()->route("account.profile");
     }
 }

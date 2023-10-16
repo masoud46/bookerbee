@@ -126,7 +126,7 @@ class InvoiceController extends Controller {
 	 * @param  Boolean $fraction
 	 * @return Array
 	 */
-	protected function getInvoice($id, $fraction = false, $params = null) {
+	protected function getInvoice($id, $fraction = false, $params = null, $isPrint = false) {
 		$invoice = Invoice::whereId($id)->whereUserId(Auth::user()->id);
 		if (!$invoice) {
 			abort(404);
@@ -138,6 +138,8 @@ class InvoiceController extends Controller {
 			"invoices.id",
 			"invoices.user_id",
 			"invoices.patient_id",
+			"invoices.user_address",
+			"invoices.patient_address",
 			"invoices.serial",
 			"invoices.session",
 			"invoices.name",
@@ -201,7 +203,9 @@ class InvoiceController extends Controller {
 		$invoice->total_insurance = 0;
 		foreach ($sessions as $key => $value) {
 			if ($invoice->patient_category === 1) {
-				$value->description = $value->type_description;
+				$value->description = $isPrint ?
+					__($value->type_description, [], 'fr') :
+					__($value->type_description);
 			}
 			unset($value->type_description);
 
@@ -763,7 +767,7 @@ class InvoiceController extends Controller {
 		$currency_params = app('DEFAULT_CURRENCY_PARAMS');
 		$currency_params['grouping_used'] = true;
 
-		$invoice_object = $this->getInvoice($invoice->id, true, $currency_params);
+		$invoice_object = $this->getInvoice($invoice->id, true, $currency_params, true);
 
 		$user = Auth::user();
 		$countries = Country::select("id", "prefix", "name")

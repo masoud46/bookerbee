@@ -51,6 +51,14 @@
 	"You are logged in!": "Vous êtes connecté·e !",
 	"You are receiving this email because we received a password reset request for your account.": "Vous recevez cet e-mail car nous avons reçu une demande de réinitialisation de mot de passe pour votre compte.",
 
+	"Insured's residence": "Domicile de l'assuré",
+	"Assistance and care facility": "Établissement d'aides et de soins",
+	"Professional office": "Cabinet professionnel",
+	"Secondary professional office": "Cabinet professionnel secondaire",
+	"Introductory psychotherapy session": "Séance de psychothérapie d'initiation",
+	"Supportive psychotherapy session": "Séance de psychothérapie de soutien",
+	"Extended supportive psychotherapy session": "Séance de psychothérapie de soutien prolongée",
+
 	"Language": "Langue",
 	"Loading...": "Chargement...",
 	"Reload": "Recharger",

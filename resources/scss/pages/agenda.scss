@@ -17,6 +17,15 @@
 		}
 	}
 
+	&.fc-out-of-office-event { // the location is out of office
+		background-color: rgba(#8000aa, 0.75) !important;
+		border-color: rgba(#8000aa, 0.75) !important;
+
+		.fc-event-main {
+			// color: rgba(#000, 0.75) !important;
+		}
+	}
+
 	.fc-event-time {
 		font-weight: bold;
 	}
@@ -95,6 +104,18 @@ body.busy-agenda-loaded {
 #calendar-modal {
 	.calendar-event {
 		display: none;
+	}
+	
+	#event-location-address {
+		overflow: hidden;
+		max-height: 0;
+		transition: all 0.3s ease-in-out;
+	}
+	
+	&.location-address-visible {
+		#event-location-address {
+			max-height: 460px;
+		}
 	}
 
 	&.modal-event-action-update_event,
@@ -232,14 +253,14 @@ body.busy-agenda-loaded {
 			padding: 0 1rem !important;
 			overflow: hidden;
 			max-height: 0;
-			transition: max-height 0.25s;
+			transition: all 0.25s;
 		}
 
 		.event-recurr-days {
 			max-height: 0;
 
 			&:not(.no-animation) {
-				transition: max-height 0.25s;
+				transition: all 0.25s;
 			}
 
 			&.event-recurr-days-visible {

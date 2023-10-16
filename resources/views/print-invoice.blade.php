@@ -29,14 +29,17 @@
 									@foreach ($titles as $title)
 										<div>{{ $title }}</div>
 									@endforeach
-									<div class="address address-line1">{{ $user->address_line1 }}</div>
+									{{-- @if ($user->address_line1)
+										<div class="address address-line1">{{ $user->address_line1 }}</div>
+									@endif
 									@if ($user->address_line2)
 										<div class="address">{{ $user->address_line2 }}</div>
 									@endif
 									@if ($user->address_line3)
 										<div class="address">{{ $user->address_line3 }}</div>
 									@endif
-									<div class="address">{{ $user->address_country }} - {{ $user->address_code }} {{ $user->address_city }}</div>
+									<div class="address">{{ $user->address_country }} - {{ $user->address_code }} {{ $user->address_city }}</div> --}}
+									<div class="address address-line1">{!! nl2br($invoice->user_address) !!}</div>
 								</div>
 								<div class="user-info">
 									<div class="user-tel">
@@ -90,7 +93,7 @@
 							<div class="header-right-address">
 								<div>
 									<div>{{ strtoupper($invoice->patient_lastname) }}, {{ ucfirst($invoice->patient_firstname) }}</div>
-									@if ($invoice->patient_address_line1)
+									{{-- @if ($invoice->patient_address_line1)
 										<div>{{ $invoice->patient_address_line1 }}</div>
 									@endif
 									@if ($invoice->patient_address_line2)
@@ -99,9 +102,8 @@
 									@if ($invoice->patient_address_line3)
 										<div>{{ $invoice->patient_address_line3 }}</div>
 									@endif
-									<div>{{ $invoice->patient_address_city }}</div>
-									<div>{{ $invoice->patient_address_code }}</div>
-									<div>{{ $invoice->patient_address_country }}</div>
+									<div>{{ $invoice->patient_address_country }} - {{ $invoice->patient_address_code }} {{ $invoice->patient_address_city }}</div> --}}
+									<div>{!! nl2br($invoice->patient_address) !!}</div>
 								</div>
 							</div>
 							<div class="header-right-date">

@@ -142,6 +142,7 @@ class SmsMessage {
 		$result = [
 			'success' => false,
 			'data' => null,
+			'error' => false,
 		];
 
 		if (!$this->provider || !$this->to) {

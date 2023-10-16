@@ -73,6 +73,10 @@ class UserController extends Controller {
 	 */
 	public function edit() {
 		$countries = Country::sortedList();
+		
+		if (Auth::user()->status === 0) {
+			session()->now("error", __("Your account information is not complete!"));
+		}
 
 		if (Route::is('account.profile')) {
 			$entries = 'resources/js/pages/user-profile.js';
@@ -229,7 +233,7 @@ class UserController extends Controller {
 			$user['bank_swift'] = $user['bank_swift'] ? strtoupper($user['bank_swift']) : null;
 		} else if (!$user->address2_line1) {
 			$settings = Settings::whereUserId($user->id)->first();
-			$locations = Location::all()->sortBy('code');
+			$locations = Location::fetchAll();
 			$locations = array_column($locations->toArray(), 'code', 'id');
 
 			if ($locations[$settings->location] === "009b") {

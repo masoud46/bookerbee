@@ -137,4 +137,21 @@ if (!function_exists('makeOneLineAddress')) {
 	}
 }
 
+/**
+ * Make address from array for invoice.
+ *
+ * @param  Array $params
+ * @return String
+ */
+if (!function_exists('makeInvoiceAddress')) {
+	function makeInvoiceAddress($params) {
+		$address = "{$params['line1']}\n";
+		if ($params['line2'])  $address .= "{$params['line2']}\n";
+		if ($params['line3'])  $address .= "{$params['line3']}\n";
+		$address .= "{$params['country']} - {$params['code']} {$params['city']}";
+
+		return $address;
+	}
+}
+
 

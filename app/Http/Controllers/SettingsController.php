@@ -67,7 +67,7 @@ class SettingsController extends Controller {
 		$entries = 'resources/js/pages/settings.js';
 		$cal_slots = [10, 15, 30, 45, 60];
 
-		$locations = Location::all()->sortBy('code');
+		$locations = Location::fetchAll();
 		$types = Type::all()->sortBy('code');
 		$settings = Settings::whereUserId(Auth::user()->id)->first();
 
@@ -158,7 +158,7 @@ class SettingsController extends Controller {
 		// check location against secondary address
 		$user = Auth::user();
 		if (!$user->address2_line1 || !$user->address2_code || !$user->address2_city || !$user->address2_country_id) {
-			$locations = Location::all()->sortBy('code');
+			$locations = Location::fetchAll();
 			$locations = array_column($locations->toArray(), 'id', 'code');
 			if (intval($settings_object['location']) === $locations['009b']) {
 				$params_rules['settings-location'] = "required|numeric|not_in:{$locations['009b']}";

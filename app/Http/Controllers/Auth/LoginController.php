@@ -56,7 +56,7 @@ class LoginController extends Controller {
 			'g-recaptcha-response' => "required|recaptchav3:login,{$maxAllowedScore}",
 		];
 
-		session()->flash('recaptcha', __('Recaptcha validation failed!'));
+		// session()->flash('recaptcha', __('Recaptcha validation failed!'));
 
 		$request->validate($rules);
 	}

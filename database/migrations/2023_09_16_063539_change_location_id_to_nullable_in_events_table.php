@@ -21,10 +21,10 @@ return new class extends Migration {
 	 * Reverse the migrations.
 	 */
 	public function down(): void {
-		DB::table('events')->whereNull('location_id')->update(['location_id' => 3]);
+		// DB::table('events')->whereNull('location_id')->update(['location_id' => 3]);
 
-		Schema::table('events', function (Blueprint $table) {
-			$table->bigInteger('location_id')->nullable(false)->change();
-		});
+		// Schema::table('events', function (Blueprint $table) {
+		// 	$table->bigInteger('location_id')->nullable(false)->change();
+		// });
 	}
 };

@@ -79,11 +79,45 @@
 					</div>
 					<div class="calendar-event calendar-event-rdv mb-3">
 						<label>{{ __('Location') }}</label>
-						<select id="calendar-event-location" class="form-select mb-3 {{ $locations->count() === 1 ? 'pe-none' : '' }}" {{ $locations->count() === 1 ? 'disabled' : '' }}>
+						<select id="calendar-event-location" class="form-select {{ $locations->count() === 1 ? 'pe-none' : '' }}" {{ $locations->count() === 1 ? 'disabled' : '' }}>
 							@foreach ($locations as $location)
 								<option value="{{ $location->id }}" {{ $location->disabled ? 'disabled' : '' }}>{{ $location->code }} - {{ $location->description }}</option>
 							@endforeach
 						</select>
+				<div class="mb-3">
+					<div id="event-location-address">
+						<div class="p-1">
+								<div class="row g-1">
+									<div class="col-sm-8 mb-1">
+										<input id="location-address_name" name="location-address_name" class="form-control form-control-sm" placeholder="{{ __('Location name') }} *">
+									</div>
+								</div>
+								<div class="row g-1">
+									<div class="col-12 mb-1">
+										<input id="location-address_address" name="location-address_address" class="form-control form-control-sm" placeholder="{{ __('Address') }} *">
+									</div>
+								</div>
+								<div class="row g-1">
+									<div class="col-sm-3">
+										<input id="location-address_code" name="location-address_code" class="form-control form-control-sm" placeholder="{{ __('Postal code') }} *">
+									</div>
+									<div class="col-sm-5">
+										<input id="location-address_city" name="location-address_city" class="form-control form-control-sm" placeholder="{{ __('City') }} *">
+									</div>
+									<div class="col-sm-4">
+										<select id="location-address_country_id" name="location-address_country_id" class="form-select form-select-sm">
+											<option value="" selected hidden>{{ __('Country') }}</option>
+											@foreach ($countries as $country)
+													@php($selected = $country['code'] === $default_country_code ? 'selected' : '')
+													<option value="{{ $country['id'] }}" {{ $selected }}>{{ $country['name'] }}</option>
+											@endforeach
+										</select>
+									</div>
+								</div>
+							<div class="invalid-feedback">{{ __('All fields are mandatory.') }}</div>
+						</div>
+					</div>
+				</div>
 						<label>{{ __('Patient') }}</label>
 						<x-patient-picker
 							id="patient-picker-component"
