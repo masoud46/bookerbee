@@ -53,23 +53,14 @@ return new class extends Migration {
 
 		foreach ($invoices as $invoice) {
 			$invoice = $invoice[0];
-			
-			$user_address = makeInvoiceAddress($invoice->location === '009' || !$invoice->user_address2_code ? [
+			$user_address = makeInvoiceAddress([
 				'line1' => $invoice->user_address_line1,
 				'line2' => $invoice->user_address_line2,
 				'line3' => $invoice->user_address_line3,
 				'code' => $invoice->user_address_code,
 				'city' => $invoice->user_address_city,
 				'country' => $countries[$invoice->user_address_country_id],
-			] : [
-				'line1' => $invoice->user_address2_line1,
-				'line2' => $invoice->user_address2_line2,
-				'line3' => $invoice->user_address2_line3,
-				'code' => $invoice->user_address2_code,
-				'city' => $invoice->user_address2_city,
-				'country' => $countries[$invoice-> user_address2_country_id],
 			]);
-
 			$patient_address = makeInvoiceAddress([
 				'line1' => $invoice->patient_address_line1,
 				'line2' => $invoice->patient_address_line2,

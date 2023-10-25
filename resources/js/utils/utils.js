@@ -157,11 +157,13 @@ utils.showConfirmation = (message, cbYes = null, cbNo = null) => {
 	const modal = document.getElementById('yes-no-modal')
 	const yesBtn = modal.querySelector('.btn-yes')
 	const noBtn = modal.querySelector('.btn-no')
+	let yesClicked = false
 	let activeElement = null
 
 	const onShow = () => {
 		modal.removeEventListener('show.bs.modal', onShow)
 		// retrieve the active element to focus back on it when modal is hidden
+		yesClicked = false
 		activeElement = document.activeElement
 	}
 
@@ -174,6 +176,10 @@ utils.showConfirmation = (message, cbYes = null, cbNo = null) => {
 		modal.removeEventListener('hide.bs.modal', onHide)
 		yesBtn.removeEventListener('click', onYes)
 		noBtn.removeEventListener('click', onNo)
+		
+		if (!yesClicked && typeof cbNo === 'function') {
+			cbNo()
+		}
 	}
 
 	const onHidden = () => {
@@ -184,11 +190,11 @@ utils.showConfirmation = (message, cbYes = null, cbNo = null) => {
 
 	const onYes = () => {
 		if (typeof cbYes === 'function') cbYes()
+		yesClicked = true
 		modalObj.hide()
 	}
 
 	const onNo = () => {
-		if (typeof cbNo === 'function') cbNo()
 		modalObj.hide()
 	}
 

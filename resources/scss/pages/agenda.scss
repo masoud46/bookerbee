@@ -17,7 +17,8 @@
 		}
 	}
 
-	&.fc-out-of-office-event { // the location is out of office
+	&.fc-out-of-office-event {
+		// the location is out of office
 		background-color: rgba(#8000aa, 0.75) !important;
 		border-color: rgba(#8000aa, 0.75) !important;
 
@@ -33,7 +34,6 @@
 
 .fc-list-event {
 	&.fc-private-event {
-
 		.fc-list-event-dot {
 			border-color: rgba(#198754, 0.5) !important;
 		}
@@ -68,16 +68,13 @@
 	font-size: 0.8em;
 }
 
-
 .app-tooltip-agenda {
-
 	.tooltip-inner {
 		padding: 0.75rem;
 		line-height: 2;
 		font-size: 1.1em;
 	}
 }
-
 
 .app-calendar-overlay {
 	z-index: 10000;
@@ -100,21 +97,30 @@ body.busy-agenda-loaded {
 	}
 }
 
-
 #calendar-modal {
 	.calendar-event {
 		display: none;
 	}
-	
-	#event-location-address {
+
+	#event-location-container {
 		overflow: hidden;
 		max-height: 0;
 		transition: all 0.3s ease-in-out;
 	}
-	
-	&.location-address-visible {
-		#event-location-address {
-			max-height: 460px;
+
+	&.location-visible {
+		#event-location-container {
+			max-height: 150px;
+		}
+	}
+
+	.calendar-old-event-date-time {
+		display: none;
+	}
+
+	&.modal-event-old-event {
+		.calendar-old-event-date-time {
+			display: block;
 		}
 	}
 
@@ -133,13 +139,11 @@ body.busy-agenda-loaded {
 
 		&.modal-event-action-cancel,
 		&.modal-event-action-update_event {
-
 			.patient-picker-input {
 				pointer-events: none;
 			}
 
 			.patient-picker-component {
-
 				i,
 				small.text-muted {
 					display: none;
@@ -151,6 +155,11 @@ body.busy-agenda-loaded {
 			.calendar-event-cancel {
 				display: inherit;
 			}
+
+			#calendar-event-location,
+			#event-location-container * {
+				pointer-events: none;
+			}
 		}
 
 		&.modal-event-action-update_event {
@@ -158,7 +167,6 @@ body.busy-agenda-loaded {
 				display: inherit;
 			}
 		}
-
 	}
 
 	&.modal-event-action-update_lock,
@@ -199,27 +207,33 @@ body.busy-agenda-loaded {
 	}
 
 	&.modal-event-all-day.modal-event-same-day {
-
 		.calendar-event-to,
-		.calendar-event-end {
+		.calendar-event-end,
+		.calendar-old-event-to,
+		.calendar-old-event-end {
 			display: none !important;
 		}
 
-		.calendar-event-start {
+		.calendar-event-start,
+		.calendar-old-event-start {
 			text-align: center !important;
 		}
 	}
 
 	&.modal-event-all-day {
-
 		.calendar-event-start-space,
 		.calendar-event-end-space,
 		.calendar-event-start-time,
-		.calendar-event-end-time {
+		.calendar-event-end-time,
+		.calendar-old-event-start-space,
+		.calendar-old-event-end-space,
+		.calendar-old-event-start-time,
+		.calendar-old-event-end-time {
 			display: none !important;
 		}
 
-		.calendar-event-all-day {
+		.calendar-event-all-day,
+		.calendar-old-event-all-day {
 			display: inherit;
 		}
 
@@ -231,13 +245,15 @@ body.busy-agenda-loaded {
 	}
 
 	&.modal-event-same-day {
-
 		.calendar-event-end-space,
-		.calendar-event-end-date {
+		.calendar-event-end-date,
+		.calendar-old-event-end-space,
+		.calendar-old-event-end-date {
 			display: none !important;
 		}
 
-		.calendar-event-end-time {
+		.calendar-event-end-time,
+		.calendar-old-event-end-time {
 			text-align: left !important;
 		}
 	}
@@ -303,5 +319,4 @@ body.busy-agenda-loaded {
 			}
 		}
 	}
-
 }

@@ -32,7 +32,11 @@ class AppointmentEmail extends Mailable {
 		$subject = __("New appointment");
 
 		if ($this->action === "update") {
-			$subject = __("Your appointment has been rescheduled");
+			if ($this->old_event) {
+				$subject = __("Your appointment has been rescheduled");
+			} else {
+				$subject = __("The location of you appointment has been changed");
+			}
 		} else if ($this->action === "delete") {
 			$subject = __("Your appointment has been canceled");
 		}

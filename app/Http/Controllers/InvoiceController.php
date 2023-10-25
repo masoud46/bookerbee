@@ -414,12 +414,12 @@ class InvoiceController extends Controller {
 			return back()->withInput();
 		}
 
-		$user_id = Auth::user()->id;
+		$user = Auth::user();
 		$is_update = isset($form_key['invoice_id']);
 
 		if ($is_update) { // update request
 			$invoice = Invoice::find($form_key['invoice_id']);
-			if ($invoice === null || $invoice->user_id !== $user_id) {
+			if ($invoice === null || $invoice->user_id !== $user->id) {
 				session()->flash("error", __("Invoice not found."));
 				return back()->withInput();
 			}
@@ -592,8 +592,8 @@ class InvoiceController extends Controller {
 
 			if (!$is_update) { // create request
 				$invoice = new Invoice();
-				$invoice->user_id = $user_id;
-				$invoice->serial = Invoice::whereUserId($user_id)->count() + 1;
+				$invoice->user_id = $user->id;
+				$invoice->serial = Invoice::whereUserId($user->id)->count() + 1;
 			}
 
 			foreach ($patient_object as $key => $value) {
@@ -612,7 +612,7 @@ class InvoiceController extends Controller {
 
 			// get all the sessions of the invoice
 			$sessions = Session::whereInvoiceId($invoice->id)
-				->orderBy("id")
+				->orderBy('id')
 				->get();
 
 			for ($i = 0; $i < count($visible_sessions); $i++) {
@@ -649,12 +649,29 @@ class InvoiceController extends Controller {
 				$session->delete();
 			}
 
+			$countries = array_column(Country::get()->toArray(), 'name', 'id');
+			$invoice->user_address = makeInvoiceAddress([
+				'line1' => $user->address_line1,
+				'line2' => $user->address_line2,
+				'line3' => $user->address_line3,
+				'code' => $user->address_code,
+				'city' => $user->address_city,
+				'country' => $countries[$user->address_country_id],
+			]);
+			$invoice->patient_address = makeInvoiceAddress([
+				'line1' => $patient->address_line1,
+				'line2' => $patient->address_line2,
+				'line3' => $patient->address_line3,
+				'code' => $patient->address_code,
+				'city' => $patient->address_city,
+				'country' => $countries[$patient->address_country_id],
+			]);
+			$invoice->save();
+
 			DB::commit();
 		} catch (\Throwable $th) {
 			DB::rollBack();
-
 			Log::debug($th->__toString());
-			dd($th->__toString());
 
 			session()->flash("error", app('ERRORS')['form2']);
 			return back()->withErrors($validator->errors())->withInput();

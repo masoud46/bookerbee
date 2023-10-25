@@ -37,6 +37,7 @@
  * @return Integer
  */
 
+use App\Models\Country;
 use Illuminate\Support\Facades\App;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -127,11 +128,19 @@ if (!function_exists('currency_regex')) {
  */
 if (!function_exists('makeOneLineAddress')) {
 	function makeOneLineAddress($params) {
+		if (!isset($params['line1'])) return '';
+
 		$address = $params['line1'];
-		if ($params['line2']) $address .= ", " . $params['line2'];
-		if ($params['line3']) $address .= ", " . $params['line3'];
-		$address .= ", " . $params['code'] . ' ' . $params['city'];
-		$address .= ", " . $params['country'];
+		if (isset($params['line2']) && $params['line2'])
+			$address .= ", {$params['line2']}";
+		if (isset($params['line3']) && $params['line3'])
+			$address .= ", {$params['line3']}";
+		if (
+			isset($params['code']) && $params['code'] &&
+			isset($params['city']) && $params['city'] &&
+			isset($params['country']) && $params['country']
+		)
+			$address .= ", {$params['code']} {$params['city']}, {$params['country']}";
 
 		return $address;
 	}
@@ -146,11 +155,37 @@ if (!function_exists('makeOneLineAddress')) {
 if (!function_exists('makeInvoiceAddress')) {
 	function makeInvoiceAddress($params) {
 		$address = "{$params['line1']}\n";
-		if ($params['line2'])  $address .= "{$params['line2']}\n";
-		if ($params['line3'])  $address .= "{$params['line3']}\n";
+		if (isset($params['line2']) && $params['line2'])
+			$address .= "{$params['line2']}\n";
+		if (isset($params['line3']) && $params['line3'])
+			$address .= "{$params['line3']}\n";
 		$address .= "{$params['country']} - {$params['code']} {$params['city']}";
 
 		return $address;
+	}
+}
+
+/**
+ * Convert location array to address array.
+ *
+ * @param  Array $location
+ * @return Array
+ */
+if (!function_exists('locationToAddress')) {
+	function locationToAddress($location) {
+		$countries = array_column(
+			Country::all()->toArray(),
+			'name',
+			'id'
+		);
+
+		return [
+			'line1' => $location['name'],
+			'line2' => $location['address'],
+			'code' => $location['code'],
+			'city' => $location['city'],
+			'country' => __($countries[$location['country_id']]),
+		];
 	}
 }
 

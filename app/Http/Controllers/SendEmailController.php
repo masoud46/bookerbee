@@ -67,12 +67,13 @@ class SendEmailController extends Controller {
 			$action = $data['action'];
 			$event = [
 				'address' => [
-					'line1' => 'Route de Luxembourg 205',
-					'line2' => null,
-					'line3' => 'Line 3',
-					'code' => '7374',
-					'city' => 'Lorentzweiler',
-					'country' => 'Luxembourg',
+					'line1' => __('Your home address'),
+					// 'line1' => 'Route de Luxembourg 205',
+					// 'line2' => null,
+					// 'line3' => 'Line 3',
+					// 'code' => '7374',
+					// 'city' => 'Lorentzweiler',
+					// 'country' => 'Luxembourg',
 				],
 				'user_phone' => "+352 620 123 456",
 				'allDay' => false,
@@ -117,7 +118,8 @@ class SendEmailController extends Controller {
 			];
 			$msg = $this->getMessage("en");
 			if ($msg && $action !== "delete") $event['msg_email'] = $msg;
-			return new AppointmentEmail($action, $event, $old_event);
+			// return new AppointmentEmail($action, $event, $old_event);
+			return new AppointmentEmail($action, $event);
 		}
 
 		return new AppointmentEmail($request->action, $request->event, $request->old_event);

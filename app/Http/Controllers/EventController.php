@@ -36,7 +36,7 @@ class EventController extends Controller {
 	 */
 	private function getUserPhone() {
 		$prefix = Country::select("prefix")
-		->whereId(Auth::user()->phone_country_id)
+			->whereId(Auth::user()->phone_country_id)
 			->first()
 			->prefix;
 
@@ -44,14 +44,17 @@ class EventController extends Controller {
 	}
 
 	/**
-	 * Get out of office status according to location id.
+	 * Set event's className according to location.
 	 *
-	 * @param  Int $location
 	 * @return String
 	 */
-	private function outOfOffice($location) {
-		if (!$location) {
-			return false;
+	private function eventClassName($location_id, $category = null) {
+		if ($category === 2) {
+			return 'fc-private-event';
+		}
+
+		if (!$location_id) {
+			return 'fc-locked-event';
 		}
 
 		$locations = array_column(
@@ -59,8 +62,12 @@ class EventController extends Controller {
 			"code",
 			"id"
 		);
-	
-		return !in_array($locations[$location], ["009", "009b"]);
+
+		if (!in_array($locations[$location_id], ["009", "009b"])) {
+			return 'fc-out-of-office-event';
+		}
+
+		return null;
 	}
 
 	/**
@@ -73,10 +80,9 @@ class EventController extends Controller {
 		$event = [
 			'id' => $e->id,
 			// 'all_day' => $e->all_day === true,
+			'className' => $this->eventClassName($e->location_id, $e->category),
 			'extendedProps' => [
 				'category' => $e->category,
-				'location' => $e->location_id,
-				'outOfOffice' => $this->outOfOffice($e->location_id),
 			],
 		];
 		$rrule = $e->rrule_freq ? [
@@ -101,8 +107,20 @@ class EventController extends Controller {
 				$event['extendedProps']['patient']['phoneCountryId'] = $e->patient_phone_country_id;
 				$event['extendedProps']['patient']['phoneCountryCode'] = $e->patient_phone_country_code;
 			}
-		} else if ($e->category === 0) {
-			$event['className'] = 'fc-locked-event';
+
+			if ($e->location_id) {
+				$event['extendedProps']['location_id'] = $e->location_id;
+			}
+
+			if ($e->location_name) {
+				$event['extendedProps']['location'] = [
+					'name' => $e->location_name,
+					'address' => $e->location_address,
+					'code' => $e->location_code,
+					'city' => $e->location_city,
+					'country_id' => $e->location_country_id,
+				];
+			}
 		}
 
 		if ($rrule) {
@@ -155,7 +173,7 @@ class EventController extends Controller {
 			->where("users.id", "=", $params['user_id'])
 			->first();
 
-		$location = Location::whereId($params['location_id'])->first();
+		$location = Location::whereId($params['location_id'])->first()->code;
 		$msg_email = $data->msg_email ? json_decode($data->msg_email, true) : [];
 		$msg_sms = $data->msg_sms ? json_decode($data->msg_sms, true) : [];
 
@@ -167,25 +185,38 @@ class EventController extends Controller {
 			}
 		}
 
+		$address = [];
+		switch ($location) {
+			case '003':
+				$address = ['line1' => __('Your home address')];
+				break;
+			case '009':
+				$address = [
+					"line1" => $data->address_line1,
+					"line2" => $data->address_line2,
+					"line3" => $data->address_line3,
+					"code" => $data->address_code,
+					"city" => $data->address_city,
+					"country" => $data->address_country,
+				];
+				break;
+			case '009b':
+				$address = [
+					"line1" => $data->address2_line1,
+					"line2" => $data->address2_line2,
+					"line3" => $data->address2_line3,
+					"code" => $data->address2_code,
+					"city" => $data->address2_city,
+					"country" => $data->address2_country,
+				];
+				break;
+		}
+
 		return [
 			'duration' => $data->duration,
 			'msg_email' => $msg_email,
 			'msg_sms' => $msg_sms,
-			'address' => $location->code === "009b" ? [
-				"line1" => $data->address2_line1,
-				"line2" => $data->address2_line2,
-				"line3" => $data->address2_line3,
-				"code" => $data->address2_code,
-				"city" => $data->address2_city,
-				"country" => $data->address2_country,
-			] : [
-				"line1" => $data->address_line1,
-				"line2" => $data->address_line2,
-				"line3" => $data->address_line3,
-				"code" => $data->address_code,
-				"city" => $data->address_city,
-				"country" => $data->address_country,
-			],
+			'address' => $address,
 		];
 	}
 
@@ -225,6 +256,11 @@ class EventController extends Controller {
 			"patients.phone_number AS patient_phone_number",
 			"patients.phone_country_id AS patient_phone_country_id",
 			"patients.locale AS patient_locale",
+			"event_locations.name AS location_name",
+			"event_locations.address AS location_address",
+			"event_locations.code AS location_code",
+			"event_locations.city AS location_city",
+			"event_locations.country_id AS location_country_id",
 		])
 			->where("events.user_id", "=", Auth::user()->id)
 			->where("events.status", "=", true)
@@ -245,6 +281,7 @@ class EventController extends Controller {
 				}
 			})
 			->leftJoin("patients", "patients.id", "=", "events.patient_id")
+			->leftJoin("event_locations", "event_locations.event_id", "=", "events.id")
 			->get();
 
 		$events = [];
@@ -265,9 +302,41 @@ class EventController extends Controller {
 	}
 
 	/**
+	 * Add or update or delete event's locations.
+	 *
+	 * @param  Int $event_id
+	 * @param  Array $event_location
+	 * @return Array $result
+	 */
+	private function addUpdateDeleteLocation($event_id, $event_location) {
+		$result = ['success' => false];
+
+		try {
+			if ($event_location) {
+				$location = array_merge($event_location, [
+					'event_id' => $event_id,
+				]);
+
+				if (DB::table('event_locations')->whereEventId($event_id)->first()) {
+					DB::table('event_locations')->whereEventId($event_id)->update($location);
+				} else {
+					DB::table('event_locations')->insert($location);
+				}
+			} else {
+				DB::table('event_locations')->whereEventId($event_id)->delete();
+			}
+
+			$result['success'] = true;
+		} catch (\Throwable $th) {
+			$result['error'] = $th->__toString();
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Send notification email.
 	 *
-	 * @param  String $to
 	 * @param  String $action
 	 * @param  Array $event
 	 * @param  Array $old_event
@@ -291,11 +360,11 @@ class EventController extends Controller {
 		$locale = $event['extendedProps']['patient']['locale'];
 		$info = $this->getExtraInfo([
 			'user_id' => Auth::user()->id,
-			'location_id' => $event['extendedProps']['location'],
+			'location_id' => $event['extendedProps']['location_id'],
 			'locale' => $event['extendedProps']['patient']['locale'],
 		]);
 		$event['duration'] = $info['duration'];
-		$event['address'] = $info['address'];
+		$event['address'] = $event['extendedProps']['address'] ?? $info['address'];
 		$personal_message = $info['msg_email'][$locale] ?? array_shift($info['msg_email']) ?? null;
 
 		if ($personal_message && $action !== "delete") {
@@ -351,7 +420,7 @@ class EventController extends Controller {
 		$locale = $event['extendedProps']['patient']['locale'];
 		$info = $this->getExtraInfo([
 			'user_id' => Auth::user()->id,
-			'location_id' => $event['extendedProps']['location'],
+			'location_id' => $event['extendedProps']['location_id'],
 			'locale' => $event['extendedProps']['patient']['locale'],
 		]);
 		$personal_message = $info['msg_sms'][$locale] ?? array_shift($info['msg_sms']) ?? null;
@@ -365,13 +434,19 @@ class EventController extends Controller {
 				]);
 				break;
 			case 'update':
-				$message = __("Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.", [
-					'name' => $user_name,
-					'old_date' => Carbon::parse($old_event['localStart'])->format('d/m/Y'),
-					'old_start' => Carbon::parse($old_event['localStart'])->format('H:i'),
-					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
-					'start' => Carbon::parse($event['localStart'])->format('H:i'),
-				]);
+				$message = $old_event ?
+					__("Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.", [
+						'name' => $user_name,
+						'old_date' => Carbon::parse($old_event['localStart'])->format('d/m/Y'),
+						'old_start' => Carbon::parse($old_event['localStart'])->format('H:i'),
+						'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
+						'start' => Carbon::parse($event['localStart'])->format('H:i'),
+					]) :
+					__("The location for you appointment of :date at :start with :name has been changed.", [
+						'name' => $user_name,
+						'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
+						'start' => Carbon::parse($event['localStart'])->format('H:i'),
+					]);
 				break;
 			case 'delete':
 				$personal_message = null;
@@ -400,8 +475,12 @@ class EventController extends Controller {
 				->line(__("Hello :name", ['name' => $name]) . ",")
 				->line($message);
 
-			if ($action !== "delete") {
-				$sms = $sms->line(__("Address:") . " " . makeOneLineAddress($info["address"]));
+			if ($action !== 'delete') {
+				$address = $event['extendedProps']['address'] ?? $info['address'];
+				$sms = $sms->line(($action === 'update' && !$old_event ?
+						__('New address:') :
+						__('Address:')) . ' ' . makeOneLineAddress($address)
+				);
 			}
 
 			if ($personal_message) {
@@ -412,7 +491,7 @@ class EventController extends Controller {
 
 			if (config('app.env') === 'production' || config('project.send_sms')) {
 				$res = $sms->send();
-				
+
 				if (!$res['success']) { // If failed, retry once
 					Log::channel('agenda')->info("[*** SMS ERROR ***]");
 					if ($res['error']) Log::channel('agenda')->info($res['error']);
@@ -477,6 +556,7 @@ class EventController extends Controller {
 		}
 
 		$data = $request->all()['event'];
+		$location = $data['extendedProps']['location'] ?? null;
 
 		DB::beginTransaction();
 
@@ -487,7 +567,7 @@ class EventController extends Controller {
 
 		if (isset($data['extendedProps']['patient']['id'])) {
 			$event->patient_id = $data['extendedProps']['patient']['id'];
-			$event->location_id = $data['extendedProps']['location'];
+			$event->location_id = $data['extendedProps']['location_id'];
 			$event->category = 1;
 		} else {
 			$event->location_id = null;
@@ -523,14 +603,28 @@ class EventController extends Controller {
 
 		$event->save();
 
-		$data['id'] = $event->id;
+		// Add location (006) to database
+		$res = $this->addUpdateDeleteLocation($event->id, $location);
+		if (!$res['success']) {
+			DB::rollBack();
+			Log::debug($res['error']);
+
+			$result['error'] = $res['error'];
+
+			return response()->json($result);
+		}
+
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
 		$sms = $phone && in_array("sms", Auth::user()->features);
 
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
-		$result = ['success' => false];
+		$result = [
+			'success' => false,
+			'id' => $event->id,
+			'className' => $this->eventClassName($event->location_id)
+		];
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -542,12 +636,16 @@ class EventController extends Controller {
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
 
+			if (isset($data['extendedProps']['location'])) {
+				$data['extendedProps']['address'] = locationToAddress($data['extendedProps']['location']);
+			}
+
 			if ($sms) {
 				$sms_result = $this->sendSMS("add", $data);
 			}
 
 			if ($email) {
-				$data['hash_id'] = Hashids::encode($data['id']);
+				$data['hash_id'] = Hashids::encode($event->id);
 				$data['user_phone'] = $this->getUserPhone();
 
 				$email_result = $this->sendEmail("add", $data);
@@ -557,9 +655,6 @@ class EventController extends Controller {
 			$result['success'] = $sms_result['success'] || $email_result['success'];
 
 			if ($result['success']) {
-				$result['id'] = $event->id;
-				$result['outOfOffice'] = $this->outOfOffice($event->location_id);
-
 				DB::commit();
 			} else {
 				DB::rollBack();
@@ -572,7 +667,6 @@ class EventController extends Controller {
 		} else {
 			DB::commit();
 
-			$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 			$result['success'] = true;
 		}
 
@@ -590,6 +684,9 @@ class EventController extends Controller {
 		$data = $request->all();
 		$old_event = $data['oldEvent'];
 		$data = $data['event'];
+		$location = $data['extendedProps']['location'] ?? null;
+
+		$result = ['success' => false];
 
 		DB::beginTransaction();
 
@@ -597,13 +694,31 @@ class EventController extends Controller {
 		$event->title = $event->patient_id ? null : ($data['title'] ?? null);
 		$event->start = Carbon::parse($data['start'])->format('Y-m-d H:i:s');
 		$event->end = Carbon::parse($data['end'])->format('Y-m-d H:i:s');
-		$event->location_id = $data['extendedProps']['location'] ?? null;
+
+		if (isset($data['extendedProps']['patient']['id'])) {
+			$event->location_id = $data['extendedProps']['location_id'];
+		} else {
+			$event->location_id = null;
+		}
 
 		if ($event->category === 1) {
 			$event->setReminders($data['extendedProps']['patient']);
 		}
 
+		// Update/delete location (006) to/from database
+		$res = $this->addUpdateDeleteLocation($event->id, $location);
+		if (!$res['success']) {
+			DB::rollBack();
+			Log::debug($res['error']);
+
+			$result['error'] = $res['error'];
+
+			return response()->json($result);
+		}
+
 		$event->save();
+
+		$result['className'] = $this->eventClassName($event->location_id);
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
@@ -611,7 +726,6 @@ class EventController extends Controller {
 
 		$sms_result = ['success' => true];
 		$email_result = ['success' => true];
-		$result = ['success' => false];
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -622,6 +736,10 @@ class EventController extends Controller {
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
+
+			if (isset($data['extendedProps']['location'])) {
+				$data['extendedProps']['address'] = locationToAddress($data['extendedProps']['location']);
+			}
 
 			if ($sms) {
 				$sms_result = $this->sendSMS("update", $data, $old_event);
@@ -639,8 +757,6 @@ class EventController extends Controller {
 
 			if ($result['success']) {
 				DB::commit();
-
-				$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 			} else {
 				DB::rollBack();
 
@@ -652,7 +768,6 @@ class EventController extends Controller {
 		} else {
 			DB::commit();
 
-			$result['outOfOffice'] = $this->outOfOffice($event->location_id);
 			$result['success'] = true;
 		}
 
@@ -672,6 +787,17 @@ class EventController extends Controller {
 
 		$event->status = false;
 		$event->save();
+
+		// Delete location (006) from database
+		$res = $this->addUpdateDeleteLocation($event->id, null);
+		if (!$res['success']) {
+			DB::rollBack();
+			Log::debug($res['error']);
+
+			$result['error'] = $res['error'];
+
+			return response()->json($result);
+		}
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;

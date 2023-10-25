@@ -2,7 +2,9 @@
 
 @php
 	$default_country_code = config('project.default_country_code');
-	
+	$country_codes = array_column($countries, 'id', 'code');
+	$default_country_id = $country_codes[$default_country_code];
+
 	$ACTIONS = [
 	    'ADD' => 'add',
 	    'CANCEL' => 'cancel',
@@ -11,7 +13,7 @@
 	    'UNLOCK' => 'unlock',
 	    'UPDATE_LOCK' => 'update_lock',
 	];
-	
+
 	$FREQ = [
 	    'NONE' => [
 	        'value' => 0,
@@ -26,7 +28,7 @@
 	        'title' => 'weekly',
 	    ],
 	];
-	
+
 	$date = \Carbon\Carbon::now()->next('Monday');
 	$week_days = [$date->isoFormat('ddd')];
 	for ($x = 0; $x < 6; $x++) {
@@ -61,18 +63,37 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body p-4" tabindex="-1">
+					<div class="calendar-old-event-date-time mb-2">
+						<div class="container-fluide text-muted text-opacity-50">
+							<div class="row font-monospace text-decoration-line-through">
+								<div class="col calendar-old-event-start text-end">
+									<span class="calendar-old-event-start-date"></span>
+									<span class="calendar-old-event-start-space mx-1"></span>
+									<span class="calendar-old-event-start-time text-end"></span>
+								</div>
+								<div class="col-auto calendar-old-event-to px-1"><i class="fas fa-angles-right"></i></div>
+								<div class="col calendar-old-event-end">
+									<span class="calendar-old-event-end-date"></span>
+									<span class="calendar-old-event-end-space mx-1"></span>
+									<span class="calendar-old-event-end-time text-end"></span>
+								</div>
+							</div>
+							<div class="calendar-event calendar-old-event-all-day text-center">{{ __('All day') }}</div>
+						</div>
+						{{-- <h4 class="text-center my-1"><i class="fas fa-down-long"></i></h4> --}}
+					</div>
 					<div class="calendar-event-date-time container-fluide bg-secondary bg-opacity-10 rounded-1 border border-secondary border-opacity-50 py-2 mb-3">
 						<div class="row font-monospace">
 							<div class="col calendar-event-start text-end">
 								<span class="calendar-event-start-date"></span>
 								<span class="calendar-event-start-space mx-1"></span>
-								<span class="text-end calendar-event-start-time"></span>
+								<span class="calendar-event-start-time text-end"></span>
 							</div>
 							<div class="col-auto calendar-event-to text-info px-1"><i class="fas fa-angles-right"></i></div>
 							<div class="col calendar-event-end">
 								<span class="calendar-event-end-date"></span>
 								<span class="calendar-event-end-space mx-1"></span>
-								<span class="text-end calendar-event-end-time"></span>
+								<span class="calendar-event-end-time text-end"></span>
 							</div>
 						</div>
 						<div class="calendar-event calendar-event-all-day text-muted text-center">{{ __('All day') }}</div>
@@ -84,40 +105,40 @@
 								<option value="{{ $location->id }}" {{ $location->disabled ? 'disabled' : '' }}>{{ $location->code }} - {{ $location->description }}</option>
 							@endforeach
 						</select>
-				<div class="mb-3">
-					<div id="event-location-address">
-						<div class="p-1">
-								<div class="row g-1">
-									<div class="col-sm-8 mb-1">
-										<input id="location-address_name" name="location-address_name" class="form-control form-control-sm" placeholder="{{ __('Location name') }} *">
+						<div class="mb-3">
+							<div id="event-location-container">
+								<div class="p-1">
+									<div class="row g-1">
+										<div class="col-sm-8 mb-1">
+											<input id="event-location-name" class="form-control form-control-sm" placeholder="{{ __('Location name') }} *">
+										</div>
 									</div>
-								</div>
-								<div class="row g-1">
-									<div class="col-12 mb-1">
-										<input id="location-address_address" name="location-address_address" class="form-control form-control-sm" placeholder="{{ __('Address') }} *">
+									<div class="row g-1">
+										<div class="col-12 mb-1">
+											<input id="event-location-address" class="form-control form-control-sm" placeholder="{{ __('Address') }} *">
+										</div>
 									</div>
-								</div>
-								<div class="row g-1">
-									<div class="col-sm-3">
-										<input id="location-address_code" name="location-address_code" class="form-control form-control-sm" placeholder="{{ __('Postal code') }} *">
-									</div>
-									<div class="col-sm-5">
-										<input id="location-address_city" name="location-address_city" class="form-control form-control-sm" placeholder="{{ __('City') }} *">
-									</div>
-									<div class="col-sm-4">
-										<select id="location-address_country_id" name="location-address_country_id" class="form-select form-select-sm">
-											<option value="" selected hidden>{{ __('Country') }}</option>
-											@foreach ($countries as $country)
+									<div class="row g-1">
+										<div class="col-sm-3">
+											<input id="event-location-code" class="form-control form-control-sm" placeholder="{{ __('Postal code') }} *">
+										</div>
+										<div class="col-sm-5">
+											<input id="event-location-city" class="form-control form-control-sm" placeholder="{{ __('City') }} *">
+										</div>
+										<div class="col-sm-4">
+											<select id="event-location-country_id" autocomplete="off" class="form-select form-select-sm">
+												<option value="" selected hidden>{{ __('Country') }}</option>
+												@foreach ($countries as $country)
 													@php($selected = $country['code'] === $default_country_code ? 'selected' : '')
 													<option value="{{ $country['id'] }}" {{ $selected }}>{{ $country['name'] }}</option>
-											@endforeach
-										</select>
+												@endforeach
+											</select>
+										</div>
 									</div>
 								</div>
-							<div class="invalid-feedback">{{ __('All fields are mandatory.') }}</div>
+								<div class="invalid-feedback">{{ __('All fields are mandatory.') }}</div>
+							</div>
 						</div>
-					</div>
-				</div>
 						<label>{{ __('Patient') }}</label>
 						<x-patient-picker
 							id="patient-picker-component"
@@ -206,8 +227,13 @@
 			const EVENT_ACTION_{{ $key }} = '{{ $value }}'
 		@endforeach
 
-		window.laravel.messages.createAppointment = "{{ __('Create un appointment') }}"
-		window.laravel.messages.lockSlot = "{{ __('Lock this slot') }}"
+		window.laravel.messages.createAppointment = "{{ __('Create an appointment') }}"
+		window.laravel.messages.lockSlot = "{{ __('Lock') }}"
+		window.laravel.messages.deleteAppointment = "{{ __('Cancel') }}"
+		window.laravel.messages.unlockSlot = "{{ __('Unlock') }}"
+		window.laravel.messages.edit = "{{ __('Edit') }}"
+		window.laravel.messages.close = "{{ __('Close') }}"
+		window.laravel.defaultCountryId = {{ $default_country_id }}
 		window.laravel.settings = {!! json_encode($settings) !!}
 		window.laravel.agenda = {
 			url: `{{ route('event.fetch') }}`,

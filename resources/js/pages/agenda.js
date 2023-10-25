@@ -61,15 +61,29 @@ bootstrap5Plugin.themeClasses.bootstrap5.prototype.classes.button = 'btn btn-sm 
 
 // document.body.classList.add('busy', 'busy-agenda')
 
-const popoverKeyIds = ['btn-popover-add-event', 'btn-popover-lock-slot']
+const popoverKeyIds = [
+	'btn-popover-add-event',
+	'btn-popover-lock-slot',
+	'btn-popover-edit-event',
+	'btn-popover-edit-slot',
+	'btn-popover-delete-event',
+	'btn-popover-unlock-slot',
+]
 const modal = document.getElementById('calendar-modal')
 modal.props = {
 	patients: [],
 	actionClass: 'modal-event-action-',
 	header: modal.querySelector('.modal-title'),
 	title: modal.querySelector('.calendar-event-title'),
-	location: document.getElementById('calendar-event-location'),
-	locationAddress: document.getElementById('event-location-address'),
+	locationContainer: document.getElementById('event-location-container'),
+	location_id: document.getElementById('calendar-event-location'),
+	location: {
+		name: document.getElementById('event-location-name'),
+		address: document.getElementById('event-location-address'),
+		code: document.getElementById('event-location-code'),
+		city: document.getElementById('event-location-city'),
+		country_id: document.getElementById('event-location-country_id'),
+	},
 	patient: modal.querySelector('.patient-picker-input'),
 	rdvInfo: modal.querySelector('.calendar-event-rdv-info'),
 	patientName: modal.querySelector('.event-patient-name'),
@@ -79,6 +93,10 @@ modal.props = {
 	patientPhoneCountryCode: null,
 	rdvHasEmail: modal.querySelector('.calendar-event-has-email'),
 	rdvNoNotification: modal.querySelector('.calendar-event-no-notification'),
+	oldStartDate: modal.querySelector('.calendar-old-event-start-date'),
+	oldStartTime: modal.querySelector('.calendar-old-event-start-time'),
+	oldEndDate: modal.querySelector('.calendar-old-event-end-date'),
+	oldEndTime: modal.querySelector('.calendar-old-event-end-time'),
 	startDate: modal.querySelector('.calendar-event-start-date'),
 	startTime: modal.querySelector('.calendar-event-start-time'),
 	endDate: modal.querySelector('.calendar-event-end-date'),
@@ -94,14 +112,17 @@ modal.props = {
 /* Custom properties */
 const customProps = {
 	lastSelectOverlap: null,
-	lockedClass: 'fc-locked-event',
-	privateClass: 'fc-private-event',
-	outOfOfficeClass: 'fc-out-of-office-event',
 	event: null,
 	oldEvent: null,
 	revert: null,
 	popover: null,
 	action: new Modal(modal),
+	hidePopover: () => {
+		if (customProps.popover) {
+			customProps.popover.hide()
+			delete customProps.popover
+		}
+	}
 }
 
 
@@ -130,11 +151,43 @@ const removeClassStartsWith = (node, className) => {
 	})
 }
 
+/// validate location information
+const validateLocation = () => {
+	const form = modal.props.locationContainer.querySelector('&>div')
+	let isValid = true
+
+	modal.props.locationContainer.querySelectorAll('input').forEach(input => {
+		input.value = input.value.trim()
+
+		if (input.value.length) {
+			input.classList.remove('is-invalid')
+		} else {
+			input.classList.add('is-invalid')
+			isValid = false
+		}
+	})
+
+	if (isValid) {
+		form.classList.remove('is-invalid')
+	} else {
+		form.classList.add('is-invalid')
+		form.querySelector('input.is-invalid').focus()
+	}
+
+	return isValid
+}
+
 // Show/hide appointment specific elements
-const setRdvInfo = (patientInfo, location = null) => {
-	if (location) {
-		modal.props.location.value = location
-		modal.props.location.dispatchEvent(new Event('change', {}))
+const setRdvInfo = (patientInfo, props = null) => {
+	if (props) {
+		modal.props.location_id.value = props.location_id
+		modal.props.location_id.dispatchEvent(new Event('change', {}))
+
+		modal.props.location.name.value = props.location ? props.location.name : null
+		modal.props.location.address.value = props.location ? props.location.address : null
+		modal.props.location.code.value = props.location ? props.location.code : null
+		modal.props.location.city.value = props.location ? props.location.city : null
+		modal.props.location.country_id.value = props.location ? props.location.country_id : window.laravel.defaultCountryId
 	}
 
 	modal.props.patientName.textContent = patientInfo.name
@@ -165,7 +218,7 @@ const setRdvInfo = (patientInfo, location = null) => {
 	modal.props.actionButton.classList.remove('d-none')
 }
 
-// Add/Update event
+// Add/Update/Delete event
 const storeEvent = async (action, event, oldEvent = null) => {
 	const method = [EVENT_ACTION_ADD, EVENT_ACTION_LOCK].indexOf(action) !== -1
 		? 'POST'
@@ -183,18 +236,14 @@ const storeEvent = async (action, event, oldEvent = null) => {
 
 	event = JSON.parse(JSON.stringify(event))
 
-	if (event.allDay) {
-		event.start = event.startStr
-		event.end = event.endStr
-	}
+	// if (event.allDay) {
+	// 	event.start = event.startStr
+	// 	event.end = event.endStr
+	// }
 
-	if (event.extendedProps) { // event is an appointment
-		event.extendedProps.location = parseInt(modal.props.location.value)
-
-		if (action === EVENT_ACTION_UPDATE) {
-			customProps.event.setExtendedProp('location', event.extendedProps.location)
-		}
-	}
+	event.extendedProps.location_id = event.extendedProps.patient?.id // event is an appointment
+		? parseInt(modal.props.location_id.value)
+		: null
 
 	delete event.startStr
 	delete event.endStr
@@ -214,19 +263,32 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		})
 
 		if (result.success) {
-			if (typeof result.outOfOffice === 'boolean') {
-				event.extendedProps.outOfOffice = result.outOfOffice
-
-				if (action === EVENT_ACTION_UPDATE) {
-					customProps.event.setExtendedProp('outOfOffice', event.extendedProps.outOfOffice)
-				}
-			}
-
-			if (method === 'POST') {
-				event.id = result.id
-				calendar.addEvent(event)
-			} else if (method === 'DELETE') {
-				calendar.getEventById(result.id).remove()
+			switch (method) {
+				case 'POST':
+					event.id = result.id
+					if (result.className) event.classNames = result.className
+					calendar.addEvent(event)
+					break;
+				case 'PUT':
+					customProps.event.setProp('classNames', result.className ? [result.className] : [])
+					customProps.event.setExtendedProp('location_id', event.extendedProps.location_id)
+					if (event.extendedProps.location) {
+						const location = {
+							'name': event.extendedProps.location.name,
+							'address': event.extendedProps.location.address,
+							'code': event.extendedProps.location.code,
+							'city': event.extendedProps.location.city,
+							'country_id': event.extendedProps.location.country_id,
+						}
+						customProps.event.setExtendedProp('location', location)
+					}
+					if (action === EVENT_ACTION_UPDATE_LOCK && customProps.event.title !== event.title) {
+						customProps.event.setProp('title', event.title)
+					}
+					break;
+				case 'DELETE':
+					calendar.getEventById(result.id).remove()
+					break;
 			}
 
 			customProps.action.hide()
@@ -260,7 +322,32 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		document.body.classList.remove('sending-email')
 	}
 
+	customProps.event = null
+	customProps.oldEvent = null
+	customProps.revert = null
+
 	utils.showAlert({ message, type: error ? 'error' : 'success' })
+}
+
+// set/delete event's location (006) and return validation status
+const setEventLocation = event => {
+	if (modal.classList.contains('location-visible')) {
+		if (!validateLocation()) {
+			return false
+		}
+
+		event.extendedProps.location = {
+			name: modal.props.location.name.value,
+			address: modal.props.location.address.value,
+			code: modal.props.location.code.value,
+			city: modal.props.location.city.value,
+			country_id: modal.props.location.country_id.value,
+		}
+	} else {
+		delete event.extendedProps.location
+	}
+
+	return true
 }
 
 // Apply the modifications
@@ -293,11 +380,10 @@ const applyAction = () => {
 			event.localStart = event.startStr
 			event.localEnd = event.endStr
 
-			storeEvent(action, event)
+			if (setEventLocation(event)) storeEvent(action, event)
 			break;
 		case EVENT_ACTION_LOCK:
-			event.className = customProps.lockedClass
-			event.title = modal.props.title.value
+			event.title = modal.props.title.value.trim()
 			// if (modal.props.title.value.trim().length) {
 			// 	event.title = modal.props.title.value
 			// }
@@ -338,34 +424,39 @@ const applyAction = () => {
 
 		case EVENT_ACTION_UPDATE:
 		case EVENT_ACTION_UPDATE_LOCK:
-			let oldEvent = null
-
-			if (!event.allDay) {
-				event.localStart = event.start
-				event.localEnd = event.end
-				event.start = new Date(event.start).toISOString()
-				event.end = new Date(event.end).toISOString()
-			}
+			// if (!event.allDay) {
+			event.localStart = event.start
+			event.localEnd = event.end
+			event.start = new Date(event.start).toISOString()
+			event.end = new Date(event.end).toISOString()
+			// }
 
 			if (action === EVENT_ACTION_UPDATE) {
-				oldEvent = JSON.parse(JSON.stringify(customProps.oldEvent))
+				const oldEvent = JSON.parse(JSON.stringify(customProps.oldEvent))
 
-				if (!oldEvent.allDay) {
+				if (oldEvent && !oldEvent.allDay) {
 					oldEvent.localStart = oldEvent.start
 					oldEvent.localEnd = oldEvent.end
 					oldEvent.start = new Date(oldEvent.start).toISOString()
 					oldEvent.end = new Date(oldEvent.end).toISOString()
 				}
-			}
 
-			storeEvent(action, event, oldEvent)
+				if (setEventLocation(event)) storeEvent(action, event, oldEvent)
+			} else {
+				event.title = modal.props.title.value.trim()
+				storeEvent(action, event)
+			}
 			break;
 
 		case EVENT_ACTION_CANCEL:
-			event.localStart = event.start
-			event.localEnd = event.end
+			utils.showConfirmation(window.laravel.messages.irreversibleAction, () => {
+				event.localStart = event.start
+				event.localEnd = event.end
 
-			storeEvent(action, event)
+				storeEvent(action, event)
+			}, () => {
+				customProps.action.hide();
+			})
 			break;
 
 		case EVENT_ACTION_UNLOCK:
@@ -378,9 +469,9 @@ const applyAction = () => {
 const showModal = action => {
 	const format = 'DD/MM/YYYY'
 	const event = customProps.event
+	const oldEvent = customProps.oldEvent
 	const rrule = event._def?.recurringDef ?? false
 	const privateEvent = event.extendedProps?.private ?? false
-	const outOfOfficeEvent = event.extendedProps?.outOfOffice ?? false
 	const sameDay = event.allDay
 		? toMoment(event.start, calendar).add(1, 'd').isSame(event.end)
 		: event.startStr.substring(0, 10) === event.endStr.substring(0, 10)
@@ -399,6 +490,13 @@ const showModal = action => {
 	modal.props.endDate.textContent = toMoment(event.end, calendar).format(format)
 	modal.props.endTime.textContent = event.end.toTimeString().substring(0, 5)
 
+	if (oldEvent) {
+		modal.props.oldStartDate.textContent = toMoment(oldEvent.start, calendar).format(format)
+		modal.props.oldStartTime.textContent = oldEvent.start.toTimeString().substring(0, 5)
+		modal.props.oldEndDate.textContent = toMoment(oldEvent.end, calendar).format(format)
+		modal.props.oldEndTime.textContent = oldEvent.end.toTimeString().substring(0, 5)
+	}
+
 	modal.querySelector('.event-recurr-form').reset()
 	modal.props.recurrDays.forEach(day => {
 		day.disabled = false
@@ -407,11 +505,11 @@ const showModal = action => {
 	switch (action) {
 		case EVENT_ACTION_ADD:
 		case EVENT_ACTION_UPDATE:
-			modal.props.location.disabled = false
+			modal.props.location_id.disabled = false
 			modal.props.actionButton.classList.add('btn-primary')
 			break
 		case EVENT_ACTION_CANCEL:
-			modal.props.location.disabled = true
+			modal.props.location_id.disabled = true
 			modal.props.actionButton.classList.add('btn-danger')
 			break
 		case EVENT_ACTION_LOCK:
@@ -422,8 +520,8 @@ const showModal = action => {
 	}
 
 	if (action === EVENT_ACTION_ADD) {
-		modal.props.location.value = window.laravel.settings.location
-		modal.props.location.dispatchEvent(new Event('change', {}))
+		modal.props.location_id.value = window.laravel.settings.location
+		modal.props.location_id.dispatchEvent(new Event('change', {}))
 		modal.props.patient.value = ''
 		modal.props.rdvInfo.classList.add('d-none')
 		modal.props.actionButton.classList.add('d-none')
@@ -446,7 +544,14 @@ const showModal = action => {
 			phoneCountryCode: event.extendedProps.patient.phoneCountryCode ?? null,
 		}
 
-		setRdvInfo(patientInfo, event.extendedProps.location)
+		setRdvInfo(patientInfo, event.extendedProps)
+	}
+
+	if (oldEvent && (
+		event.start.getTime() !== oldEvent.start.getTime() ||
+		event.end.getTime() !== oldEvent.end.getTime()
+	)) {
+		modal.classList.add('modal-event-old-event')
 	}
 
 	if (event.allDay) {
@@ -510,11 +615,11 @@ const showModal = action => {
 	customProps.action.show()
 }
 
-modal.props.location.addEventListener('change', () => {
-	if (modal.props.location.value == 2) {
-		modal.classList.add('location-address-visible')
+modal.props.location_id.addEventListener('change', () => {
+	if (modal.props.location_id.value == 2) {
+		modal.classList.add('location-visible')
 	} else {
-		modal.classList.remove('location-address-visible')
+		modal.classList.remove('location-visible')
 	}
 })
 
@@ -563,6 +668,7 @@ modal.props.recurrCheck.addEventListener('change', () => {
 		modal.classList.remove('modal-event-recurr-open')
 	}
 })
+
 modal.props.recurrFrequency.addEventListener('change', () => {
 	// const selected = modal.props.recurrFrequency.options[
 	// 	modal.props.recurrFrequency.selectedIndex
@@ -581,6 +687,7 @@ modal.props.recurrFrequency.addEventListener('change', () => {
 		modal.querySelector('.event-recurr-days').classList.remove('event-recurr-days-visible')
 	}
 })
+
 modal.addEventListener('keydown', e => {
 	if (e.key === 'Escape' && modal.getAttribute('data-bs-keyboard') !== 'false') {
 		modal.props.dismissed = 'escape'
@@ -599,18 +706,18 @@ modal.addEventListener('hide.bs.modal', () => {
 })
 modal.addEventListener('shown.bs.modal', () => {
 	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_ADD}`)) {
-		if (modal.props.location.disabled || modal.props.location.options.length < 2) {
+		if (modal.props.location_id.disabled || modal.props.location_id.options.length < 2) {
 			modal.props.patient.focus()
 		} else {
-			modal.props.location.focus()
+			modal.props.location_id.focus()
 		}
 	}
 	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_UPDATE}`)) {
-		if (!modal.props.location.disabled && modal.props.location.options.length > 1) {
-			modal.props.location.focus()
+		if (!modal.props.location_id.disabled && modal.props.location_id.options.length > 1) {
+			modal.props.location_id.focus()
 		}
 	}
-	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_LOCK}`)) {
+	if (modal.matches(`.${modal.props.actionClass}${EVENT_ACTION_LOCK}, .${modal.props.actionClass}${EVENT_ACTION_UPDATE_LOCK}`)) {
 		modal.props.title.focus()
 	}
 })
@@ -618,7 +725,11 @@ modal.addEventListener('show.bs.modal', () => {
 	modal.props.dismissed = false
 })
 modal.addEventListener('hidden.bs.modal', () => {
-	modal.classList.remove('location-address-visible')
+	modal.classList.remove('location-visible')
+	modal.props.location.country_id.value = window.laravel.defaultCountryId
+	modal.props.locationContainer.querySelectorAll('input').forEach(el => {
+		el.value = null
+	})
 	modal.querySelectorAll('.is-invalid').forEach(el => {
 		el.classList.remove('is-invalid')
 	})
@@ -629,12 +740,32 @@ modal.addEventListener('hidden.bs.modal', () => {
 	if (modal.props.dismissed) {
 		if (customProps.revert) {
 			customProps.revert()
-			customProps.revert = null
 		}
 	}
+	customProps.event = null
+	customProps.oldEvent = null
+	customProps.revert = null
 })
 modal.props.actionButton.addEventListener('click', applyAction)
 
+
+const showUpdateModal = (arg) => {
+	customProps.event = arg.event
+	customProps.oldEvent = arg.oldEvent
+	customProps.revert = arg.revert
+
+	if (!arg.event.extendedProps.patient) {
+		// console.log('%c save locked ', 'color:#fff;background-color:#999;');
+		showModal(EVENT_ACTION_UPDATE_LOCK)
+	} else {
+		if (arg.event.extendedProps.private) {
+			// console.log('%c save private ', 'color:#fff;background-color:#999;');
+		} else {
+			// console.log('%c save and email ', 'color:#fff;background-color:#999;');
+		}
+		showModal(EVENT_ACTION_UPDATE)
+	}
+}
 
 const calendarElement = document.getElementById('app-calendar')
 const calendar = new Calendar(calendarElement, {
@@ -684,13 +815,6 @@ const calendar = new Calendar(calendarElement, {
 		minute: '2-digit',
 		hour12: false,
 		// timeZoneName: 'short',
-	},
-	eventClassNames: function (arg) {
-		if (arg.event.extendedProps.outOfOffice) {
-			return ['fc-out-of-office-event']
-		}
-
-		return null
 	},
 	events: async (info, successCallback, failureCallback) => {
 		// console.log('%c*** events', 'color:#c00;');
@@ -744,6 +868,8 @@ const calendar = new Calendar(calendarElement, {
 		// console.log('%c*** select', 'color:#c00;');
 		customProps.event = arg
 
+		customProps.hidePopover()
+
 		if (arg.allDay) {
 			// console.log('%c lock ALLDAY ', 'color:#fff;background-color:#999;');
 			showModal(EVENT_ACTION_LOCK)
@@ -754,8 +880,9 @@ const calendar = new Calendar(calendarElement, {
 				sanitize: false,
 				content: `
 					<div class="d-flex flex-column">
-						<button id="${popoverKeyIds[0]}" class="btn btn-primary mb-3">${window.laravel.messages.createAppointment}</button>
-						<button id="${popoverKeyIds[1]}" class="btn btn-secondary">${window.laravel.messages.lockSlot}</button>
+						<button id="${popoverKeyIds[0]}" class="btn btn-sm btn-primary btn-calendar-popover mb-2">${window.laravel.messages.createAppointment}</button>
+						<button id="${popoverKeyIds[1]}" class="btn btn-sm btn-secondary btn-calendar-popover mb-2">${window.laravel.messages.lockSlot}</button>
+						<button class="btn btn-sm btn-light btn-close-popover">${window.laravel.messages.close}</button>
 					</div>
 				`,
 			})
@@ -769,20 +896,36 @@ const calendar = new Calendar(calendarElement, {
 	},
 	unselect: arg => {
 		// console.log('%c*** unselect', 'color:#c00;');
-		if (customProps.popover && customProps.popover.tip !== null) {
-			setTimeout(() => {
-				customProps.popover.hide()
-			}, 0);
-		}
+		// if (customProps.popover) {
+		// 	setTimeout(customProps.hidePopover, 0);
+		// }
 
 		customProps.lastSelectOverlap = null
 	},
 	eventClick: arg => {
 		// console.log('%c*** eventClick', 'color:#c00;');
+		const btnTitles = {
+			edit: window.laravel.messages.edit,
+			delete: window.laravel.messages.deleteAppointment,
+		}
+
+		let buttons = `
+			<button id="${popoverKeyIds[2]}" class="btn btn-sm btn-primary btn-calendar-popover mb-2">${window.laravel.messages.edit}</button>
+			<button id="${popoverKeyIds[4]}" class="btn btn-sm btn-danger btn-calendar-popover mb-2">${window.laravel.messages.deleteAppointment}</button>
+		`
+
+		arg.jsEvent.stopPropagation()
+		customProps.hidePopover()
 		customProps.event = arg.event
 
 		if (!arg.event.extendedProps.patient) {
 			const recurring = arg.event._def.recurringDef !== null
+
+			buttons = `<button id="${popoverKeyIds[5]}" class="btn btn-sm btn-secondary btn-calendar-popover mb-2">${window.laravel.messages.unlockSlot}</button>`
+
+			if (!recurring) {
+				buttons = `<button id="${popoverKeyIds[3]}" class="btn btn-sm btn-secondary btn-calendar-popover mb-2">${window.laravel.messages.edit}</button>${buttons}`
+			}
 
 			if (arg.event.allDay) {
 				// console.log(`%c unlock${recurring ? ' RECURRING' : ''} ALLDAY `, 'color:#fff;background-color:#999;');
@@ -793,18 +936,26 @@ const calendar = new Calendar(calendarElement, {
 			} else {
 				// console.log(`%c unlock${recurring ? ' RECURRING' : ''} `, 'color:#fff;background-color:#999;');
 			}
-			showModal(EVENT_ACTION_UNLOCK)
 		} else {
 			if (arg.event.extendedProps.private) {
 				// console.log('%c cancel private ', 'color:#fff;background-color:#999;');
-			} else if (arg.event.extendedProps.outOfOffice) {
-				// console.log('%c cancel outOfOffice ', 'color:#fff;background-color:#999;');
-			} {
+			} else {
 				// console.log('%c cancel ', 'color:#fff;background-color:#999;');
 			}
-			showModal(EVENT_ACTION_CANCEL)
 		}
 
+		customProps.popover = new Popover(arg.jsEvent.target, {
+			trigger: 'manual',
+			html: true,
+			sanitize: false,
+			content: `
+				<div class="d-flex flex-column">
+					${buttons}
+					<button class="btn btn-sm btn-light btn-close-popover">${window.laravel.messages.close}</button>
+				</div>
+			`,
+		})
+		customProps.popover.show()
 		customProps.lastSelectOverlap = null
 	},
 	dateClick: arg => {
@@ -832,42 +983,40 @@ const calendar = new Calendar(calendarElement, {
 
 		customProps.lastSelectOverlap = null
 	},
-	eventAdd: arg => {
-		// console.log('%c*** eventAdd', 'color:#c00;');
+	eventDrop: arg => {
+		// console.log('%c*** eventDrop', 'color:#c00;');
+		showUpdateModal(arg)
 	},
-	eventChange: arg => {
-		// console.log('%c*** eventChange', 'color:#c00;');
-		// Bypass background event which the end has been set manually in "eventClick" callback
-		if (arg.event._def.ui.display === 'background') return
-
-		customProps.event = arg.event
-		customProps.oldEvent = arg.oldEvent
-		customProps.revert = arg.revert
-
-		if (!arg.event.extendedProps.patient) {
-			// console.log('%c save locked ', 'color:#fff;background-color:#999;');
-			showModal(EVENT_ACTION_UPDATE_LOCK)
-		} else {
-			if (arg.event.extendedProps.private) {
-				// console.log('%c save private ', 'color:#fff;background-color:#999;');
-			} else if (arg.event.extendedProps.outOfOffice) {
-				// console.log('%c save outOfOffice ', 'color:#fff;background-color:#999;');
-			} else {
-				// console.log('%c save and email ', 'color:#fff;background-color:#999;');
-			}
-			showModal(EVENT_ACTION_UPDATE)
-		}
+	eventResize: arg => {
+		// console.log('%c*** eventResize', 'color:#c00;');
+		showUpdateModal(arg)
 	},
 
-	// eventDrop: arg => {
-	// 	console.log('%c*** eventDrop', 'color:#c00;');
-	// 	// console.log(arg.oldEvent.start.toISOString());
-	// 	// console.log(arg.event.start.toISOString());
+	// eventAdd: arg => {
+	// 	// console.log('%c*** eventAdd', 'color:#c00;');
 	// },
-	// eventResize: arg => {
-	// 	console.log('%c*** eventResize', 'color:#c00;');
-	// 	// console.log(arg.oldEvent.end.toISOString());
-	// 	// console.log(arg.event.end.toISOString());
+	// eventChange: arg => {
+	// 	// console.log('%c*** eventChange', 'color:#c00;');
+	// 	// Bypass background event which the end has been set manually in "eventClick" callback
+	// 	if (arg.event._def.ui.display === 'background') return
+
+	// 	if (arg.event.start.getTime() === arg.oldEvent.start.getTime() && arg.event.end.getTime() === arg.oldEvent.end.getTime()) return
+
+	// 	customProps.event = arg.event
+	// 	customProps.oldEvent = arg.oldEvent
+	// 	customProps.revert = arg.revert
+
+	// 	if (!arg.event.extendedProps.patient) {
+	// 		// console.log('%c save locked ', 'color:#fff;background-color:#999;');
+	// 		showModal(EVENT_ACTION_UPDATE_LOCK)
+	// 	} else {
+	// 		if (arg.event.extendedProps.private) {
+	// 			// console.log('%c save private ', 'color:#fff;background-color:#999;');
+	// 		} else {
+	// 			// console.log('%c save and email ', 'color:#fff;background-color:#999;');
+	// 		}
+	// 		showModal(EVENT_ACTION_UPDATE)
+	// 	}
 	// },
 	// eventMouseEnter: arg => {
 	// 	// console.log('%c*** eventMouseEnter', 'color:#c00;');
@@ -910,19 +1059,53 @@ Pickers.forEach(picker => {
 })
 
 
-document.body.addEventListener('click', e => {
-	const id = e.target.getAttribute('id')
+document.body.addEventListener('keyup', e => {
+	if (e.key === 'Escape' && customProps.popover) {
+		customProps.hidePopover()
+	}
+})
 
-	if (popoverKeyIds.indexOf(id) > -1) {
-		switch (id) {
-			case popoverKeyIds[0]: // Add event
-				// console.log('%c add and email ', 'color:#fff;background-color:#999;')
-				showModal(EVENT_ACTION_ADD)
-				break;
-			case popoverKeyIds[1]: // Lock slot
-				// console.log('%c lock ', 'color:#fff;background-color:#999;')
-				showModal(EVENT_ACTION_LOCK)
-				break;
+document.body.addEventListener('mousedown', e => {
+	if (customProps.popover && !e.target.classList.contains('btn-calendar-popover')) {
+		customProps.hidePopover()
+	}
+})
+
+document.body.addEventListener('click', e => {
+	if (customProps.popover) {
+		const id = e.target.getAttribute('id')
+
+		if (!calendarElement.querySelector('.fc-highlight')) {
+			customProps.hidePopover()
+		}
+
+		if (popoverKeyIds.indexOf(id) > -1) {
+			switch (id) {
+				case popoverKeyIds[0]: // Add event
+					// console.log('%c add and email ', 'color:#fff;background-color:#999;')
+					showModal(EVENT_ACTION_ADD)
+					break;
+				case popoverKeyIds[1]: // Lock slot
+					// console.log('%c lock ', 'color:#fff;background-color:#999;')
+					showModal(EVENT_ACTION_LOCK)
+					break;
+				case popoverKeyIds[2]: // Update event
+					// console.log('%c update and email ', 'color:#fff;background-color:#999;')
+					showModal(EVENT_ACTION_UPDATE)
+					break;
+				case popoverKeyIds[3]: // Update slot
+					// console.log('%c update slot ', 'color:#fff;background-color:#999;')
+					showModal(EVENT_ACTION_UPDATE_LOCK)
+					break;
+				case popoverKeyIds[4]: // Delete event
+					// console.log('%c delete and email ', 'color:#fff;background-color:#999;')
+					showModal(EVENT_ACTION_CANCEL)
+					break;
+				case popoverKeyIds[5]: // Unlock slot
+					// console.log('%c unlock ', 'color:#fff;background-color:#999;')
+					showModal(EVENT_ACTION_UNLOCK)
+					break;
+			}
 		}
 	}
 })

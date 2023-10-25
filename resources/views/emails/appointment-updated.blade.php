@@ -2,10 +2,16 @@
 
 <x-mail::hello :name="explode(', ', $event['extendedProps']['patient']['name'])[1]" />
 
-{{ __('Your original appointment of :date at :start has been rescheduled. The new appointment is:', [
-	'date' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
-	'start' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
-]) }}
+{{ $old_event ?
+	__('Your original appointment of :date at :start has been rescheduled. The new appointment is:', [
+		'date' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('l j F Y'),
+		'start' => Carbon\Carbon::parse($old_event['localStart'])->translatedFormat('H:i'),
+	]) :
+	__('The location for you appointment of :date at :start has been changed. The new appointment is:', [
+		'date' => Carbon\Carbon::parse($event['localStart'])->translatedFormat('l j F Y'),
+		'start' => Carbon\Carbon::parse($event['localStart'])->translatedFormat('H:i'),
+	])
+}}
 
 <x-mail::appointment
 	:firstname="ucfirst(Auth::user()->firstname)"

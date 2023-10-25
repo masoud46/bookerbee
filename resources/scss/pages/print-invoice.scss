@@ -15,7 +15,7 @@ $width: 192mm;
 $padding-left: 0.3mm;
 $padding-bottom: 1mm;
 $header-left-width: 89.2mm;
-$body-div-padding: .5mm;
+$body-div-padding: 0.5mm;
 $border: 0.4mm solid #000000;
 $border-double: 0.4mm solid #000000;
 
@@ -49,14 +49,12 @@ $border-double: 0.4mm solid #000000;
 	border-collapse: collapse;
 	border-spacing: 0;
 
-
 	button {
 		margin: 2.5mm;
 		padding: 2mm 8mm;
 		font-size: 1.5em;
 		cursor: pointer;
 	}
-
 
 	.cancelled {
 		visibility: hidden;
@@ -262,10 +260,13 @@ $border-double: 0.4mm solid #000000;
 		}
 
 		.patient-name {
-			> div:last-child {
-				width: calc($header-left-width - 20mm);
-				overflow: hidden;
+			display: flex;
+			flex-wrap: nowrap;
+			> div {
 				white-space: nowrap;
+			}
+			> div:last-child {
+				overflow: hidden;
 				text-overflow: ellipsis;
 			}
 		}
@@ -317,7 +318,6 @@ $border-double: 0.4mm solid #000000;
 	}
 
 	.title {
-
 		td {
 			border-right: none;
 
@@ -421,7 +421,6 @@ $border-double: 0.4mm solid #000000;
 		}
 	}
 }
-
 
 @media print {
 	body {
