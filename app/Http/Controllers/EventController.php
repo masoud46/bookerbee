@@ -857,13 +857,6 @@ class EventController extends Controller {
 		$events = $this->get($request->start, $request->end);
 
 		return response()->json($events);
-		// return response()->json([
-		// 	'request' => [
-		// 		'start' => $request->start,
-		// 		'end' => $request->end,
-		// 	],
-		// 	'events' => $events,
-		// ]);
 	}
 
 	/**
@@ -924,7 +917,13 @@ class EventController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function export($id) {
-		$id = Hashids::decode($id)[0];
+		$ids = Hashids::decode($id);
+		
+		if (!is_array($ids) || count($ids) === 0) {
+			abort(404);
+		}
+
+		$id = $ids[0];
 		$event = Event::findOrFail($id);
 		$locale = Patient::findOrFail($event->patient_id)->locale;
 		$user = User::select([

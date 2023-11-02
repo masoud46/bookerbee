@@ -10,7 +10,7 @@ const csrfTag = document.querySelector('meta[name="csrf-token"]')
 
 if ((startInput, endInput)) {
 	if (exportReport) {
-		document.getElementById('export-report').addEventListener('click', async e => {
+		exportReport.addEventListener('click', async e => {
 			const start = startInput.value
 			const end = endInput.value
 			const url = e.target.getAttribute('data-url').replace('?start', start).replace('?end', end)
@@ -21,7 +21,7 @@ if ((startInput, endInput)) {
 	}
 
 	if ((printReport, printOnly, csrfTag)) {
-		document.getElementById('print-report').addEventListener('click', async e => {
+		printReport.addEventListener('click', async e => {
 			const start = startInput.value
 			const end = endInput.value
 			const url = e.target.getAttribute('data-url')

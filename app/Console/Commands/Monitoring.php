@@ -120,31 +120,53 @@ class Monitoring extends Command {
 
 		try {
 			$response = $client->get("/sms/{$service}");
-			$credits = floatval($response['creditsLeft']);
+			
+			if (isset($response['creditsLeft'])) {
+				$credits = floatval($response['creditsLeft']);
 
-			if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
+				if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
 
-			$result['sms']['ovh'] = [
-				'success' => true,
-				'data' => $credits,
-			];
+				$result['sms']['ovh'] = [
+					'success' => true,
+					'data' => $credits,
+				];
 
-			if ($credits < config('project.sms.ovh.critical_credit')) {
+				if ($credits < config('project.sms.ovh.critical_credit')) {
+					$result['sms']['ovh']['success'] = false;
+
+					if ($report['sms']['ovh'] === false) {
+						$any_error = true;
+
+						$message = "SMS critical credits - OVH: {$credits}";
+						$this->sendCriticalReport($message);
+						Log::channel('monitoring')->info($message);
+						if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+
+						Log::channel('monitoring')->info("*** REPORT SENT.");
+						$report['sms']['ovh'] = true;
+					}
+				} else {
+					$report['sms']['ovh'] = false;
+				}
+			} else {
 				$result['sms']['ovh']['success'] = false;
 
 				if ($report['sms']['ovh'] === false) {
 					$any_error = true;
+					$data = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+					$result['sms']['ovh'] = [
+						'success' => false,
+						'data' => $data,
+					];
 
-					$message = "SMS critical credits - OVH: {$credits}";
-					$this->sendCriticalReport($message);
+					$message = "SMS ERROR - OVH: {$data}";
+					$this->sendCriticalReport($message, null, true);
 					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
 					Log::channel('monitoring')->info("*** REPORT SENT.");
 					$report['sms']['ovh'] = true;
 				}
-			} else {
-				$report['sms']['ovh'] = false;
 			}
 		} catch (ClientException $e) {
 			if ($report['sms']['ovh'] === false) {
@@ -203,31 +225,50 @@ class Monitoring extends Command {
 		try {
 			$request = new Request('GET', 'https://auth.sms.to/api/balance', $headers);
 			$response = $client->sendAsync($request)->wait();
-			$credits = json_decode($response->getBody(), true)['balance'];
+			$response = json_decode($response->getBody(), true);
+			
+			if (isset($response['balance'])) {
+				$credits = $response['balance'];
 
-			if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
+				if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
 
-			$result['sms']['smsto'] = [
-				'success' => false,
-				'data' => $credits,
-			];
+				$result['sms']['smsto'] = [
+					'success' => false,
+					'data' => $credits,
+				];
 
-			if ($credits < config('project.sms.smsto.critical_credit')) {
-				$result['sms']['smsto']['success'] = false;
+				if ($credits < config('project.sms.smsto.critical_credit')) {
+					$result['sms']['smsto']['success'] = false;
 
-				if ($report['sms']['smsto'] === false) {
-					$any_error = true;
+					if ($report['sms']['smsto'] === false) {
+						$any_error = true;
 
-					$message = "SMS critical credits - SMSto: {$credits}";
-					$this->sendCriticalReport($message);
-					Log::channel('monitoring')->info($message);
-					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+						$message = "SMS critical credits - SMSto: {$credits}";
+						$this->sendCriticalReport($message);
+						Log::channel('monitoring')->info($message);
+						if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
-					Log::channel('monitoring')->info("*** REPORT SENT.");
-					$report['sms']['smsto'] = true;
+						Log::channel('monitoring')->info("*** REPORT SENT.");
+						$report['sms']['smsto'] = true;
+					}
+				} else {
+					$report['sms']['smsto'] = false;
 				}
 			} else {
-				$report['sms']['smsto'] = false;
+				$any_error = true;
+				$data = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+				$result['sms']['smsto'] = [
+					'success' => false,
+					'data' => $data,
+				];
+
+				$message = "SMS ERROR - SMSto: {$data}";
+				$this->sendCriticalReport($message);
+				Log::channel('monitoring')->info($message);
+				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+
+				Log::channel('monitoring')->info("*** REPORT SENT.");
+				$report['sms']['smsto'] = true;
 			}
 		} catch (ClientException $e) {
 			if ($report['sms']['smsto'] === false) {
@@ -293,12 +334,23 @@ class Monitoring extends Command {
 
 		if ($this->debug) echo "Email credits - SendGrid" . PHP_EOL;
 
+		$email_only = false;
+
 		if ($response === false) {
-			if ($this->debug) echo 'Could not get a response';
+			$any_error = true;
+			$message = 'Could not get a response';
+			if ($this->debug) echo $message;
 			$result['email']['sendgrid'] = [
 				'success' => false,
-				'data' => 'Could not get a response',
+				'data' => $message,
 			];
+
+			$this->sendCriticalReport($message, null, $email_only, "brevo");
+			Log::channel('monitoring')->info($message);
+			if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+
+			Log::channel('monitoring')->info("*** REPORT SENT.");
+			$report['email']['sendgrid'] = true;
 		} else {
 			$res = json_decode($response, true);
 			if (isset($res['remain']) || isset($res['message'])) {
@@ -315,6 +367,7 @@ class Monitoring extends Command {
 					];
 				}
 			} else {
+				$email_only = true;
 				$res = [
 					'success' => false,
 					'data' => 'No $res[\'remain\']) and no $res[\'message\']',
@@ -328,7 +381,7 @@ class Monitoring extends Command {
 					$any_error = true;
 
 					$message = "Email ERROR - SendGrid: {$res['data']}";
-					$this->sendCriticalReport($message, null, false, "brevo");
+					$this->sendCriticalReport($message, null, $email_only, "brevo");
 					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
@@ -341,7 +394,7 @@ class Monitoring extends Command {
 					$any_error = true;
 
 					$message = "Email critical credits - SendGrid: {$res['data']}";
-					$this->sendCriticalReport($message, null, false, "brevo");
+					$this->sendCriticalReport($message, null, $email_only, "brevo");
 					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
@@ -376,6 +429,8 @@ class Monitoring extends Command {
 
 		if ($this->debug) echo "Email credits - Brevo" . PHP_EOL;
 
+		$email_only = false;
+
 		if ($response === false) {
 			$result['email']['brevo'] = [
 				'success' => false,
@@ -397,6 +452,7 @@ class Monitoring extends Command {
 					];
 				}
 			} else {
+				$email_only = true;
 				$res = [
 					'success' => false,
 					'data' => 'No $res[\'plan\'][0][\'credits\']) and no $res[\'message\']',
@@ -410,7 +466,7 @@ class Monitoring extends Command {
 					$any_error = true;
 
 					$message = "Email ERROR - Brevo: {$res['data']}";
-					$this->sendCriticalReport($message, null, false, "sendgrid");
+					$this->sendCriticalReport($message, null, $email_only, "sendgrid");
 					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
@@ -423,7 +479,7 @@ class Monitoring extends Command {
 					$any_error = true;
 
 					$message = "Email critical credits - Brevo: {$res['data']}";
-					$this->sendCriticalReport($message, null, false, "sendgrid");
+					$this->sendCriticalReport($message, null, $email_only, "sendgrid");
 					Log::channel('monitoring')->info($message);
 					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
 
