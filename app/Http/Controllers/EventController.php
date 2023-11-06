@@ -10,14 +10,13 @@ use App\Models\Patient;
 use App\Models\Settings;
 use App\Models\User;
 use Carbon\Carbon;
-use Hashids;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Vinkla\Hashids\Facades\Hashids;
 
 class EventController extends Controller {
 	/**

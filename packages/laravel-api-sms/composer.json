@@ -1,0 +1,29 @@
+{
+	"name": "masoud46/laravel-api-sms",
+	"description": "API SMS for Laravel framework",
+	"authors": [
+		{
+			"name": "Masoud"
+		}
+	],
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"require": {
+		"php": ">=5.6.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Masoud46\\LaravelApiSms\\": "src/"
+		},
+		"files": [
+			"src/helpers.php"
+		]
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Masoud46\\LaravelApiSms\\ApiSmsServiceProvider"
+			]
+		}
+	}
+}

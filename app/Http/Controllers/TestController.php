@@ -2,22 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\AppointmentEmail;
 use App\Models\Country;
 use App\Models\Event;
-use App\Models\Location;
-use App\Models\Patient;
-use App\Models\Settings;
 use App\Models\User;
 use Carbon\Carbon;
-use Hashids;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class TestController extends Controller {
 	/**

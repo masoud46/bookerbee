@@ -1,0 +1,34 @@
+{
+	"name": "masoud46/laravel-api-mail",
+	"description": "API mailer for Laravel framework",
+	"license": "cc-by-4.0",
+	"authors": [
+		{
+			"name": "Md.Harun-Ur-Rashid",
+			"email": "harun.cox@gmail.com"
+		},
+		{
+			"name": "Masoud"
+		}
+	],
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"require": {
+		"php": ">=5.6.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Masoud46\\LaravelApiMail\\": "src/"
+		},
+		"files": [
+			"src/helpers.php"
+		]
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Masoud46\\LaravelApiMail\\ApiMailServiceProvider"
+			]
+		}
+	}
+}

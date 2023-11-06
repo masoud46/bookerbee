@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Country;
 use App\Models\Event;
 use App\Models\Patient;
-use Hashids;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Vinkla\Hashids\Facades\Hashids;
 
 class PatientController extends Controller {
 	/**

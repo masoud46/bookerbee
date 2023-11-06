@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Mail\AppointmentEmail;
 use App\Mail\AppointmentReminder;
-use App\Models\Location;
-use App\Models\Patient;
 use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Masoud46\LaravelApiMail\Facades\ApiMail;
+use Masoud46\LaravelApiSms\Facades\ApiSms;
+use Vinkla\Hashids\Facades\Hashids;
 
 class SendEmailController extends Controller {
 	/**
@@ -57,6 +57,31 @@ class SendEmailController extends Controller {
 		$event['user_phone'] = $event['user_phone_prefix'] . " " . $event['user_phone_number'];
 		$msg = $this->getMessage("fr");
 		if ($msg) $event['msg_email'] = $msg;
+
+
+		// /*** EMAIL ***/
+		// $payload = [
+		// 	'to' => 'masoudf46@gmail.com',
+		// 	'subject' => 'Reminder test',
+		// 	'body' => (new AppointmentReminder($event))->render(),
+		// ];
+		// // return ApiMail::send($payload);
+		// return ApiMail::provider('sendgrid')->send($payload);
+
+		/*** SMS ***/
+		$payload = [
+			'country' => 'BE',
+			'to' => '+32472877055',
+			'message' => "SMS ô tést...",
+			'dryrun' => true,
+		];
+
+		return ApiSms::provider('ovh')->send($payload);
+		// return ApiSms::provider('ovh')->estimate($payload);
+		// return ApiSms::provider('ovh')->balance();
+
+
+
 		return new AppointmentReminder($event);
 	}
 
@@ -89,7 +114,7 @@ class SendEmailController extends Controller {
 					],
 				],
 				'id' => '38',
-				'hash_id' => \Hashids::encode(38),
+				'hash_id' => Hashids::encode(38),
 				'localEnd' => '2023-05-31T11:30:00+02:00',
 				'localStart' => '2023-05-31T09:30:00+02:00',
 				'start' => '2023-05-31T07:00:00.000Z',

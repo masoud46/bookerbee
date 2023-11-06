@@ -1,0 +1,68 @@
+<?php
+
+namespace Masoud46\LaravelApiMail\Services;
+
+use Masoud46\LaravelApiMail\Contract\Sendable;
+
+class Mailgun extends Sendable {
+	protected $key;
+	protected $domain;
+	protected $from;
+	protected $serviceUrl;
+
+	public function __construct() {
+		$this->key = config('api-mail.drivers.mailgun.api_key');
+		$this->domain = config('api-mail.drivers.mailgun.domain');
+		$this->from = config('api-mail.drivers.mailgun.from');
+		$this->serviceUrl = "https://api.mailgun.net/v3/" . $this->domain . "/messages";
+	}
+
+	public function makePayload($payload) {
+		$from = makeEmailAddressString(array_key_exists("from", $payload) ? $payload["from"] : $this->from);
+		$to = $payload["to"];
+		$subject = $payload["subject"];
+		$body = $payload["body"];
+		$toString = null;
+
+		if (is_string($to)) $toString = $payload["to"];
+		if (is_array($to))$toString = implode(",", $payload["to"]);
+
+		$data = [
+			"from" => $from,
+			"to" => $toString,
+			"subject" => $subject,
+			"html" => $body
+		];
+
+		if (array_key_exists("cc", $payload)) {
+			if (is_string($payload["cc"])) $data['cc'] = $payload["cc"];
+			if (is_array($payload["cc"])) $data['cc'] = implode(",", $payload["cc"]);
+		}
+
+		return $data;
+	}
+
+	public function send($payload) {
+		$data = $this->makePayload($payload);
+
+		$ch = curl_init($this->serviceUrl);
+
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($ch, CURLOPT_USERPWD, "api:" . $this->key);
+
+		$result = curl_exec($ch);
+		$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		if ($statusCode == 200) {
+			return (object) ['success' => true, 'message' => 'successfully sent'];
+		} else {
+			$message = json_decode($result)->message;
+			return (object) ['success' => false, 'message' => $message];
+		}
+	}
+}

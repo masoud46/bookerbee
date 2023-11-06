@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use Hashids;
+use Vinkla\Hashids\Facades\Hashids;
 
 trait HashidsRouteTrait {
 	public function resolveRouteBinding($value, $field = null) {
