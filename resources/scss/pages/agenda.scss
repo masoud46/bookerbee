@@ -33,6 +33,12 @@
 }
 
 .fc-list-event {
+	&.fc-out-of-office-event {
+		.fc-list-event-dot {
+			border-color: rgba(#8000aa, 0.5) !important;
+		}
+	}
+
 	&.fc-private-event {
 		.fc-list-event-dot {
 			border-color: rgba(#198754, 0.5) !important;

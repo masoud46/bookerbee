@@ -76,7 +76,8 @@ class SendEmailController extends Controller {
 			'dryrun' => true,
 		];
 
-		return ApiSms::provider('ovh')->send($payload);
+		return ApiSms::send($payload);
+		// return ApiSms::provider('ovh')->send($payload);
 		// return ApiSms::provider('ovh')->estimate($payload);
 		// return ApiSms::provider('ovh')->balance();
 
@@ -92,7 +93,7 @@ class SendEmailController extends Controller {
 			$action = $data['action'];
 			$event = [
 				'address' => [
-					'line1' => __('Your home address'),
+					'line1' => __('Your residence'),
 					// 'line1' => 'Route de Luxembourg 205',
 					// 'line2' => null,
 					// 'line3' => 'Line 3',

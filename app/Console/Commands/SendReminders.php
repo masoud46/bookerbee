@@ -166,8 +166,6 @@ class SendReminders extends Command {
 					];
 				} else {
 					$location = Location::whereId($event->location_id)->first();
-					$event_array['address'] = [
-					];
 
 					switch ($location->code) {
 						case '009':
@@ -191,7 +189,7 @@ class SendReminders extends Command {
 							];
 							break;
 						case '003':
-							$event_array['address'] = ['line1' => __('Your home address')];
+							$event_array['address'] = ['line1' => __('Your residence')];
 							break;
 					}
 				}

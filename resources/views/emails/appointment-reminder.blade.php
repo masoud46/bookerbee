@@ -6,7 +6,7 @@ $end = Carbon\Carbon::parse($event['end'])->setTimezone($event['timezone']);
 
 <x-mail::hello :name="$event['patient_firstname']" />
 
-{{ __('Your next appointment with the following details, will start in about :time hours.', ['time' => $event['remaining_time']]) }}
+{{ __('Your appointment with the following details, will start in about :time hours.', ['time' => $event['remaining_time']]) }}
 
 <x-mail::appointment
 	:firstname="ucfirst($event['user_firstname'])"

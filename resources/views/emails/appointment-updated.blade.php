@@ -23,7 +23,7 @@
 	:message="isset($event['msg_email']) ? $event['msg_email'] : null"
 />
 
-<x-mail::import-appointment :url="route('event.export', ['id' => $event['hash_id']])" />
+<x-mail::import-appointment :url="LaravelLocalization::getLocalizedURL(app()->getLocale(), route('event.export', ['id' => $event['hash_id']]))" />
 
 <x-mail::cancel-appointment :email="Auth::user()->email" :phone="$event['user_phone']" />
 

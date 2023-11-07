@@ -78,7 +78,7 @@ class EventController extends Controller {
 	private function dbToJs(Event $e) {
 		$event = [
 			'id' => $e->id,
-			// 'all_day' => $e->all_day === true,
+			'allDay' => $e->all_day === 1,
 			'className' => $this->eventClassName($e->location_id, $e->category),
 			'extendedProps' => [
 				'category' => $e->category,
@@ -133,92 +133,14 @@ class EventController extends Controller {
 		}
 
 		if ($e->title) $event['title'] = $e->title;
-		if ($e->start) $event['start'] = $e->all_day ? substr($e->start, 0, 10) : $e->start;
-		if ($e->end) $event['end'] = $e->all_day ? substr($e->end, 0, 10) : $e->end;
+		// if ($e->start) $event['start'] = $e->all_day ? substr($e->start, 0, 10) : $e->start;
+		// if ($e->end) $event['end'] = $e->all_day ? substr($e->end, 0, 10) : $e->end;
+		if ($e->start) $event['start'] = $e->start;
+		if ($e->end) $event['end'] = $e->end;
 		if ($e->duration) $event['duration'] = $e->duration;
 
 		return $event;
 	}
-
-	/**
-	 * Get the extra information. address according to events's location id and personal
-	 * 1. Address, from events's location id.
-	 * 2. Personal messages to add into email and sms, from settings.
-	 *
-	 * @param  Array $params
-	 * @return Array
-	 */
-	private function getExtraInfo($params) {
-		$data = User::select([
-			"users.address_line1",
-			"users.address_line2",
-			"users.address_line3",
-			"users.address_code",
-			"users.address_city",
-			"users.address2_line1",
-			"users.address2_line2",
-			"users.address2_line3",
-			"users.address2_code",
-			"users.address2_city",
-			"countries.name AS address_country",
-			"countries2.name AS address2_country",
-			"settings.duration",
-			"settings.msg_email",
-			"settings.msg_sms",
-		])
-			->join("settings", "settings.id", "=", "users.id")
-			->join("countries", "countries.id", "=", "users.address_country_id")
-			->leftJoin("countries AS countries2", "countries2.id", "=", "users.address2_country_id")
-			->where("users.id", "=", $params['user_id'])
-			->first();
-
-		$location = Location::whereId($params['location_id'])->first()->code;
-		$msg_email = $data->msg_email ? json_decode($data->msg_email, true) : [];
-		$msg_sms = $data->msg_sms ? json_decode($data->msg_sms, true) : [];
-
-		if (isset($params['locale'])) {
-			$data->address_country = __($data->address_country, [], $params['locale']);
-
-			if ($data->address2_country) {
-				$data->address2_country = __($data->address2_country, [], $params['locale']);
-			}
-		}
-
-		$address = [];
-		switch ($location) {
-			case '003':
-				$address = ['line1' => __('Your home address')];
-				break;
-			case '009':
-				$address = [
-					"line1" => $data->address_line1,
-					"line2" => $data->address_line2,
-					"line3" => $data->address_line3,
-					"code" => $data->address_code,
-					"city" => $data->address_city,
-					"country" => $data->address_country,
-				];
-				break;
-			case '009b':
-				$address = [
-					"line1" => $data->address2_line1,
-					"line2" => $data->address2_line2,
-					"line3" => $data->address2_line3,
-					"code" => $data->address2_code,
-					"city" => $data->address2_city,
-					"country" => $data->address2_country,
-				];
-				break;
-		}
-
-		return [
-			'duration' => $data->duration,
-			'msg_email' => $msg_email,
-			'msg_sms' => $msg_sms,
-			'address' => $address,
-		];
-	}
-
 	/**
 	 * Get a listing of the resource between two dates.
 	 *
@@ -283,6 +205,7 @@ class EventController extends Controller {
 			->leftJoin("event_locations", "event_locations.event_id", "=", "events.id")
 			->get();
 
+// dd($db_events->toArray());
 		$events = [];
 		foreach ($db_events as $e) {
 			if ($e->patient_phone_number) {
@@ -298,6 +221,83 @@ class EventController extends Controller {
 		}
 
 		return $events;
+	}
+
+
+	/**
+	 * Get the extra information. address according to events's location id and personal
+	 * 1. Address, from events's location id.
+	 * 2. Personal messages to add into email and sms, from settings.
+	 *
+	 * @param  Array $params
+	 * @return Array
+	 */
+	private function getExtraInfo($params) {
+		$data = User::select([
+			"users.address_line1",
+			"users.address_line2",
+			"users.address_line3",
+			"users.address_code",
+			"users.address_city",
+			"users.address2_line1",
+			"users.address2_line2",
+			"users.address2_line3",
+			"users.address2_code",
+			"users.address2_city",
+			"countries.name AS address_country",
+			"countries2.name AS address2_country",
+			"settings.duration",
+			"settings.msg_email",
+			"settings.msg_sms",
+		])
+			->join("settings", "settings.id", "=", "users.id")
+			->join("countries", "countries.id", "=", "users.address_country_id")
+			->leftJoin("countries AS countries2", "countries2.id", "=", "users.address2_country_id")
+			->where("users.id", "=", $params['user_id'])
+			->first();
+
+		$location = Location::whereId($params['location_id'])->first()->code;
+		$msg_email = $data->msg_email ? json_decode($data->msg_email, true) : [];
+		$msg_sms = $data->msg_sms ? json_decode($data->msg_sms, true) : [];
+		$data->address_country = __($data->address_country);
+
+		if ($data->address2_country) {
+			$data->address2_country = __($data->address2_country);
+		}
+
+		$address = [];
+		switch ($location) {
+			case '003':
+				$address = ['line1' => __('Your residence')];
+				break;
+			case '009':
+				$address = [
+					"line1" => $data->address_line1,
+					"line2" => $data->address_line2,
+					"line3" => $data->address_line3,
+					"code" => $data->address_code,
+					"city" => $data->address_city,
+					"country" => $data->address_country,
+				];
+				break;
+			case '009b':
+				$address = [
+					"line1" => $data->address2_line1,
+					"line2" => $data->address2_line2,
+					"line3" => $data->address2_line3,
+					"code" => $data->address2_code,
+					"city" => $data->address2_city,
+					"country" => $data->address2_country,
+				];
+				break;
+		}
+
+		return [
+			'duration' => $data->duration,
+			'msg_email' => $msg_email,
+			'msg_sms' => $msg_sms,
+			'address' => $address,
+		];
 	}
 
 	/**
@@ -355,15 +355,15 @@ class EventController extends Controller {
 			config('project.mail.default_dev_provider');
 
 		$to = $event['extendedProps']['patient']['email'];
-
 		$locale = $event['extendedProps']['patient']['locale'];
+
 		$info = $this->getExtraInfo([
 			'user_id' => Auth::user()->id,
 			'location_id' => $event['extendedProps']['location_id'],
-			'locale' => $event['extendedProps']['patient']['locale'],
 		]);
 		$event['duration'] = $info['duration'];
 		$event['address'] = $event['extendedProps']['address'] ?? $info['address'];
+
 		$personal_message = $info['msg_email'][$locale] ?? array_shift($info['msg_email']) ?? null;
 
 		if ($personal_message && $action !== "delete") {
@@ -415,13 +415,13 @@ class EventController extends Controller {
 		$country_id = $event['extendedProps']['patient']['phoneCountryId'];
 		$country_code = $event['extendedProps']['patient']['phoneCountryCode'];
 		$to = preg_replace('/(\(0\)|\s)+/', '', $event['extendedProps']['patient']['phone']);
-
 		$locale = $event['extendedProps']['patient']['locale'];
+
 		$info = $this->getExtraInfo([
 			'user_id' => Auth::user()->id,
 			'location_id' => $event['extendedProps']['location_id'],
-			'locale' => $event['extendedProps']['patient']['locale'],
 		]);
+
 		$personal_message = $info['msg_sms'][$locale] ?? array_shift($info['msg_sms']) ?? null;
 
 		switch ($action) {
@@ -887,8 +887,10 @@ class EventController extends Controller {
 			"TRANSP:OPAQUE" . PHP_EOL .
 			"PRIORITY:1" . PHP_EOL .
 			"BEGIN:VALARM" . PHP_EOL .
+			// "TRIGGER;VALUE=DATE-TIME:%s" . PHP_EOL .
+			"TRIGGER:-PT1D" . PHP_EOL .
 			"ACTION:DISPLAY" . PHP_EOL .
-			"TRIGGER;VALUE=DATE-TIME:%s" . PHP_EOL .
+			"DESCRIPTION:" . __('Appointment reminder') . PHP_EOL .
 			"END:VALARM" . PHP_EOL .
 			"END:VEVENT" . PHP_EOL;
 
@@ -898,12 +900,14 @@ class EventController extends Controller {
 			$event['local_end'],
 			$event['user_name'],
 			$event['user_email'],
-			$event['user_name'] . "\\n" . $event['user_phone'],
+			$event['user_name'] . "\\n" .
+				__('Phone:') . " " . $event['user_phone'] . "\\n" .
+				__('Email:') . " " . $event['user_email'],
 			$event['location'],
 			$event['summary'],
 			$event['created'],
 			date("Ymd\THis"),
-			$event['alarm']
+			// $event['alarm']
 		);
 
 		return sprintf($ical_template, $ical_body);
@@ -917,14 +921,14 @@ class EventController extends Controller {
 	 */
 	public function export($id) {
 		$ids = Hashids::decode($id);
-		
+
 		if (!is_array($ids) || count($ids) === 0) {
 			abort(404);
 		}
 
 		$id = $ids[0];
 		$event = Event::findOrFail($id);
-		$locale = Patient::findOrFail($event->patient_id)->locale;
+		// $locale = Patient::findOrFail($event->patient_id)->locale;
 		$user = User::select([
 			"users.firstname",
 			"users.lastname",
@@ -951,7 +955,6 @@ class EventController extends Controller {
 		$info = $this->getExtraInfo([
 			'user_id' => $event->user_id,
 			'location_id' => $event->location_id,
-			'locale' => $locale,
 		]);
 		$event->location = makeOneLineAddress($info['address']);
 

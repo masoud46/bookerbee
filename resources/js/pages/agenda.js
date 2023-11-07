@@ -241,9 +241,12 @@ const storeEvent = async (action, event, oldEvent = null) => {
 	// 	event.end = event.endStr
 	// }
 
-	event.extendedProps.location_id = event.extendedProps.patient?.id // event is an appointment
-		? parseInt(modal.props.location_id.value)
-		: null
+	// event.extendedProps.location_id = event.extendedProps?.patient?.id // event is an appointment
+	// 	? parseInt(modal.props.location_id.value)
+	// 	: null
+	if (event.extendedProps?.patient) { // event is an appointment
+		event.extendedProps.location_id = parseInt(modal.props.location_id.value)
+	}
 
 	delete event.startStr
 	delete event.endStr
