@@ -6,6 +6,10 @@
 	box-shadow: 4px 4px 10px rgba(#000, 0.2);
 }
 
+.fc-timegrid-col .fc-allday-event .fc-event-title {
+	display: none;
+}
+
 .fc-h-event,
 .fc-v-event {
 	&.fc-private-event {

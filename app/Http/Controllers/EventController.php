@@ -47,13 +47,15 @@ class EventController extends Controller {
 	 *
 	 * @return String
 	 */
-	private function eventClassName($location_id, $category = null) {
+	private function eventClassName($location_id, $category = null, $all_day = false) {
+		$all_day_class = $all_day ? ' fc-allday-event' : '';
+
 		if ($category === 2) {
-			return 'fc-private-event';
+			return 'fc-private-event' . $all_day_class;
 		}
 
 		if (!$location_id) {
-			return 'fc-locked-event';
+			return 'fc-locked-event' . $all_day_class;
 		}
 
 		$locations = array_column(
@@ -79,7 +81,7 @@ class EventController extends Controller {
 		$event = [
 			'id' => $e->id,
 			'allDay' => $e->all_day === 1,
-			'className' => $this->eventClassName($e->location_id, $e->category),
+			'className' => $this->eventClassName($e->location_id, $e->category, $e->all_day === 1),
 			'extendedProps' => [
 				'category' => $e->category,
 			],
@@ -122,14 +124,17 @@ class EventController extends Controller {
 			}
 		}
 
-		if ($rrule) {
-			if ($e->rrule_until) $rrule['until'] = $e->rrule_until;
-			if ($e->rrule_byweekday) $rrule['byweekday'] = explode(',', $e->rrule_byweekday);
-
-			$event['rrule'] = $rrule;
+		if ($rrule || $e->all_day) {
 			$event['display'] = 'background';
-			$event['editable'] = false;
-			$event['startEditable'] = false;
+
+			if ($rrule) {
+				if ($e->rrule_until) $rrule['until'] = $e->rrule_until;
+				if ($e->rrule_byweekday) $rrule['byweekday'] = explode(',', $e->rrule_byweekday);
+
+				$event['rrule'] = $rrule;
+				$event['editable'] = false;
+				$event['startEditable'] = false;
+			}
 		}
 
 		if ($e->title) $event['title'] = $e->title;
@@ -205,7 +210,7 @@ class EventController extends Controller {
 			->leftJoin("event_locations", "event_locations.event_id", "=", "events.id")
 			->get();
 
-// dd($db_events->toArray());
+		// dd($db_events->toArray());
 		$events = [];
 		foreach ($db_events as $e) {
 			if ($e->patient_phone_number) {
