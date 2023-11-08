@@ -269,11 +269,15 @@ const storeEvent = async (action, event, oldEvent = null) => {
 			switch (method) {
 				case 'POST':
 					event.id = result.id
-					if (result.className) event.classNames = result.className
+					event.extendedProps = event.extendedProps ?? {}
+					event.extendedProps.category = result.category
+					event.extendedProps.location_id = result.location_id
+					if (result.classNames) event.classNames = result.classNames
+					if (result.display) event.display = result.display
 					calendar.addEvent(event)
 					break;
 				case 'PUT':
-					customProps.event.setProp('classNames', result.className ? [result.className] : [])
+					customProps.event.setProp('classNames', result.classNames ?? [])
 					customProps.event.setExtendedProp('location_id', event.extendedProps.location_id)
 					if (event.extendedProps.location) {
 						const location = {
@@ -860,6 +864,10 @@ const calendar = new Calendar(calendarElement, {
 
 		customProps.lastSelectOverlap = null
 	},
+	// eventClassNames: arg => {
+	// 	console.log('%c*** eventClassNames', 'color:#c00;');
+	// 	if (arg.event.id == 318) console.log(arg.event);
+	// },
 	selectOverlap: event => {
 		// console.log('%c*** selectOverlap', 'color:#0c0;');
 		// To allow all day locking if there is only background LOCK events

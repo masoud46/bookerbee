@@ -43,19 +43,25 @@ class EventController extends Controller {
 	}
 
 	/**
-	 * Set event's className according to location.
+	 * Set event's classNames.
 	 *
 	 * @return String
 	 */
-	private function eventClassName($location_id, $category = null, $all_day = false) {
-		$all_day_class = $all_day ? ' fc-allday-event' : '';
+	private function eventClassNames($location_id, $all_day = false, $category = null) {
+		$classNames = [];
+
+		if ($all_day) {
+			$classNames[] = 'fc-allday-event';
+		}
 
 		if ($category === 2) {
-			return 'fc-private-event' . $all_day_class;
+			$classNames[] = 'fc-private-event';
+			return $classNames;
 		}
 
 		if (!$location_id) {
-			return 'fc-locked-event' . $all_day_class;
+			$classNames[] = 'fc-locked-event';
+			return $classNames;
 		}
 
 		$locations = array_column(
@@ -81,7 +87,7 @@ class EventController extends Controller {
 		$event = [
 			'id' => $e->id,
 			'allDay' => $e->all_day === 1,
-			'className' => $this->eventClassName($e->location_id, $e->category, $e->all_day === 1),
+			'classNames' => $this->eventClassNames($e->location_id, $e->all_day === 1, $e->category),
 			'extendedProps' => [
 				'category' => $e->category,
 			],
@@ -109,9 +115,10 @@ class EventController extends Controller {
 				$event['extendedProps']['patient']['phoneCountryCode'] = $e->patient_phone_country_code;
 			}
 
-			if ($e->location_id) {
-				$event['extendedProps']['location_id'] = $e->location_id;
-			}
+			// if ($e->location_id) {
+			// 	$event['extendedProps']['location_id'] = $e->location_id;
+			// }
+			$event['extendedProps']['location_id'] = $e->location_id ?? null;
 
 			if ($e->location_name) {
 				$event['extendedProps']['location'] = [
@@ -627,8 +634,14 @@ class EventController extends Controller {
 		$result = [
 			'success' => false,
 			'id' => $event->id,
-			'className' => $this->eventClassName($event->location_id)
+			'category' => $event->category,
+			'location_id' => $event->location_id,
+			'classNames' => $this->eventClassNames($event->location_id, $event->all_day),
 		];
+
+		if (isset($data['rrule']) || $event->all_day) {
+			$result['display'] = 'background';
+		}
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -722,7 +735,7 @@ class EventController extends Controller {
 
 		$event->save();
 
-		$result['className'] = $this->eventClassName($event->location_id);
+		$result['classNames'] = $this->eventClassNames($event->location_id, $event->all_day);
 
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
