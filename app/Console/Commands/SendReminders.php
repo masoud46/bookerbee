@@ -360,7 +360,6 @@ class SendReminders extends Command {
 					Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
 					Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
 
-dd((!$this->is_local || config('project.send_emails')));
 					if (!$this->is_local || config('project.send_emails')) {
 						$this->sendEmail($event_array, $payload, true);
 					}
