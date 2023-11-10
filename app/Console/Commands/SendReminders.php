@@ -296,7 +296,7 @@ class SendReminders extends Command {
 					'subject' => __("Appointment reminder"),
 					'body' => (new AppointmentReminder($event_array))->render(),
 				];
-
+file_put_contents(__DIR__ . '/reminder.html', $payload['body']);die('ok');
 				if (!$this->is_production) {
 					echo var_export($event_array, true) . PHP_EOL;
 				}

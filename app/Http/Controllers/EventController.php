@@ -404,7 +404,7 @@ class EventController extends Controller {
 			'subject' => $subject,
 			'body' => $body,
 		];
-
+file_put_contents(__DIR__ . '/email.html', $payload['body']);die('ok');
 		try {
 			$mail = ApiMail::provider($provider);
 			$res = $mail->send($payload);
