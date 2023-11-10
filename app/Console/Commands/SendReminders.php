@@ -50,6 +50,7 @@ class SendReminders extends Command {
 	 * @return Void
 	 */
 	protected function sendEmail($event, $payload, $is_first) {
+dd((!$this->is_local || config('project.send_emails')));
 		$n = $is_first ? 1 : 2;
 		$nStr = $n === 1 ? 'FIRST' : 'SECOND';
 
