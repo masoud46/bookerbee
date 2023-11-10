@@ -510,7 +510,7 @@ class EventController extends Controller {
 				break;
 		}
 
-		Log::channel('agenda')->info("[SENDING SMS] {$to}");
+		Log::channel('agenda')->info("[SENDING SMS ({$provider})] {$to}");
 
 		if ($action !== 'delete') {
 			// if (isset($event['extendedProps']['patient']['email'])) {

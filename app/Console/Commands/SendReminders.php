@@ -54,7 +54,7 @@ class SendReminders extends Command {
 		$nStr = $n === 1 ? 'FIRST' : 'SECOND';
 
 		try {
-			Log::channel('reminder')->info("[SENDING {$nStr} EMAIL]");
+			Log::channel('reminder')->info("[SENDING {$nStr} EMAIL ({$this->email_provider})]");
 
 			$res = ApiMail::provider($this->email_provider)
 				->send($payload);
@@ -92,7 +92,7 @@ class SendReminders extends Command {
 	 */
 	protected function sendSms($event, $payload) {
 		try {
-			Log::channel('reminder')->info("[SENDING SMS] {$payload['to']}");
+			Log::channel('reminder')->info("[SENDING SMS ({$this->sms_provider})] {$payload['to']}");
 
 			$res = ApiSms::provider($this->sms_provider)
 				->send($payload);
