@@ -9,6 +9,7 @@ use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Masoud46\LaravelApiMail\Facades\ApiMail;
 use Masoud46\LaravelApiSms\Facades\ApiSms;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -296,7 +297,7 @@ class SendReminders extends Command {
 					'subject' => __("Appointment reminder"),
 					'body' => (new AppointmentReminder($event_array))->render(),
 				];
-file_put_contents(__DIR__ . '/reminder.html', $payload['body']);die('ok');
+Storage::put('reminder.html', $payload['body']);die('ok');
 				if (!$this->is_production) {
 					echo var_export($event_array, true) . PHP_EOL;
 				}

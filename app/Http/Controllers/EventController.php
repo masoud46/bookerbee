@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Masoud46\LaravelApiMail\Facades\ApiMail;
 use Masoud46\LaravelApiSms\Facades\ApiSms;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -404,7 +405,8 @@ class EventController extends Controller {
 			'subject' => $subject,
 			'body' => $body,
 		];
-file_put_contents(__DIR__ . '/email.html', $payload['body']);die('ok');
+Storage::put('email.html', $payload['body']);return ['success' => false];
+
 		try {
 			$mail = ApiMail::provider($provider);
 			$res = $mail->send($payload);
