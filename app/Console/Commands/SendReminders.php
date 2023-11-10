@@ -50,7 +50,6 @@ class SendReminders extends Command {
 	 * @return Void
 	 */
 	protected function sendEmail($event, $payload, $is_first) {
-dd((!$this->is_local || config('project.send_emails')));
 		$n = $is_first ? 1 : 2;
 		$nStr = $n === 1 ? 'FIRST' : 'SECOND';
 
@@ -361,6 +360,7 @@ dd((!$this->is_local || config('project.send_emails')));
 					Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
 					Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
 
+dd((!$this->is_local || config('project.send_emails')));
 					if (!$this->is_local || config('project.send_emails')) {
 						$this->sendEmail($event_array, $payload, true);
 					}
