@@ -6,7 +6,6 @@ use App\Mail\AppointmentEmail;
 use App\Models\Country;
 use App\Models\Event;
 use App\Models\Location;
-use App\Models\Patient;
 use App\Models\Settings;
 use App\Models\User;
 use Carbon\Carbon;
@@ -14,7 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Masoud46\LaravelApiMail\Facades\ApiMail;
+use Masoud46\LaravelApiSms\Facades\ApiSms;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -362,9 +362,9 @@ class EventController extends Controller {
 			return ['success' => true];
 		}
 
-		$provider = config('app.env') === 'production' ?
-			config('project.mail.default_provider') :
-			config('project.mail.default_dev_provider');
+		$provider = config('app.env') === 'production'
+			? config('api-mail.default_provider')
+			: config('api-mail.default_dev_provider');
 
 		$to = $event['extendedProps']['patient']['email'];
 		$locale = $event['extendedProps']['patient']['locale'];
@@ -384,21 +384,57 @@ class EventController extends Controller {
 
 		$result = ['success' => false];
 
+		Log::channel('agenda')->info("[SENDING EMAIL ({$provider})] {$to}");
+
+		$body = (new AppointmentEmail($action, $event, $old_event))->render();
+		$subject = __("New appointment");
+
+		if ($action === "update") {
+			if ($old_event) {
+				$subject = __("Your appointment has been rescheduled");
+			} else {
+				$subject = __("The location of you appointment has been changed");
+			}
+		} else if ($action === "delete") {
+			$subject = __("Your appointment has been canceled");
+		}
+
+		$payload = [
+			'to' => $to,
+			'subject' => $subject,
+			'body' => $body,
+		];
+
 		try {
-			Log::channel('agenda')->info("[SENDING EMAIL] {$to}");
+			$mail = ApiMail::provider($provider);
+			$res = $mail->send($payload);
 
-			Mail::mailer($provider)
-				->to($to)
-				->send(new AppointmentEmail($action, $event, $old_event));
+			if (!$res->success) { // Retry after 2 seconds
+				Log::channel('agenda')->info("[!!! EMAIL ERROR !!!]");
+				Log::channel('agenda')->info($res->message);
+				Log::channel('agenda')->info("[RESENDING EMAIL]");
 
-			$result['success'] = true;
+				sleep(2);
+				$res = $mail->send($payload);
 
-			Log::channel('agenda')->info("[EMAIL SENT]");
-		} catch (\Throwable $th) {
+				if (!$res->success) {
+					Log::channel('agenda')->info("[!!! EMAIL ERROR !!!]");
+					Log::channel('agenda')->info($res->message);
+
+					$result['error'] = $res->message;
+				}
+			}
+
+			if ($res->success) {
+				$result['success'] = true;
+
+				Log::channel('agenda')->info("[EMAIL SENT]");
+			}
+		} catch (\Exception $e) {
 			Log::channel('agenda')->info("[!!! ERROR !!!]");
-			Log::channel('agenda')->info($th->__toString());
+			Log::channel('agenda')->info($e->getMessage());
 
-			$result['error'] = $th->getMessage();
+			$result['error'] = $e->getMessage();
 		}
 
 		return $result;
@@ -422,6 +458,10 @@ class EventController extends Controller {
 
 		$result = ['success' => false, 'data' => null];
 
+		$provider = config('app.env') === 'production'
+			? config('api-sms.default_provider')
+			: config('api-sms.default_dev_provider');
+
 		$user_name = ucfirst(Auth::user()->firstname) . " " . strtoupper(Auth::user()->lastname);
 		$name = ucfirst(trim(explode(",", $event['extendedProps']['patient']['name'])[1]));
 		$country_id = $event['extendedProps']['patient']['phoneCountryId'];
@@ -434,18 +474,19 @@ class EventController extends Controller {
 			'location_id' => $event['extendedProps']['location_id'],
 		]);
 
+		$message = __("Hello :name", ['name' => $name]) . ",\n";
 		$personal_message = $info['msg_sms'][$locale] ?? array_shift($info['msg_sms']) ?? null;
 
 		switch ($action) {
 			case 'add':
-				$message = __("Your appointment of :date at :start with :name has been confirmed.", [
+				$message .= __("Your appointment of :date at :start with :name has been confirmed.", [
 					'name' => $user_name,
 					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
 					'start' => Carbon::parse($event['localStart'])->format('H:i'),
 				]);
 				break;
 			case 'update':
-				$message = $old_event ?
+				$message .= $old_event ?
 					__("Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.", [
 						'name' => $user_name,
 						'old_date' => Carbon::parse($old_event['localStart'])->format('d/m/Y'),
@@ -461,7 +502,7 @@ class EventController extends Controller {
 				break;
 			case 'delete':
 				$personal_message = null;
-				$message = __("Your appointment of :date at :start with :name has been canceled.", [
+				$message .= __("Your appointment of :date at :start with :name has been canceled.", [
 					'name' => $user_name,
 					'date' => Carbon::parse($event['localStart'])->format('d/m/Y'),
 					'start' => Carbon::parse($event['localStart'])->format('H:i'),
@@ -469,66 +510,62 @@ class EventController extends Controller {
 				break;
 		}
 
-		// if (isset($event['extendedProps']['patient']['email']) && $action !== "delete") {
-		// 	$message .= " " . __("A detailed email has been sent to you.");
-		// }
+		Log::channel('agenda')->info("[SENDING SMS] {$to}");
+
+		if ($action !== 'delete') {
+			// if (isset($event['extendedProps']['patient']['email'])) {
+			// 	$message .= " " . __("A detailed email has been sent to you.");
+			// }
+			$address = $event['extendedProps']['address'] ?? $info['address'];
+			$message .= "\n" . ($action === 'update' && !$old_event
+				? __('New address:')
+				: __('Address:')
+			) . ' ' . makeOneLineAddress($address);
+		}
+
+		if ($personal_message) {
+			$message .= "\n\n" . $personal_message;
+		}
+
+		$res = ['success' => false, 'data' => null];
+		$payload = [
+			'country' => $country_code,
+			'to' => $to,
+			'message' => $message,
+			'dryrun' => config('app.env') !== 'production' && !config('project.send_sms'),
+		];
+
 		try {
-			Log::channel('agenda')->info("[SENDING SMS] {$to}");
+			$sms = ApiSms::provider($provider);
+			$res = $sms->send($payload);
 
-			$sms = new \App\Notifications\SmsMessage([
-				'event_id' => $event['id'],
-				'action' => $action,
-				'country' => $country_code,
-				// 'provider' => "smsto",
-			]);
-			$sms = $sms
-				->to($to)
-				->line(__("Hello :name", ['name' => $name]) . ",")
-				->line($message);
+			if (!$res->success) { // Retry after 2 seconds
+				Log::channel('agenda')->info("[!!! SMS ERROR !!!]");
+				Log::channel('agenda')->info($res->message);
+				Log::channel('agenda')->info("[RESENDING SMS]");
 
-			if ($action !== 'delete') {
-				$address = $event['extendedProps']['address'] ?? $info['address'];
-				$sms = $sms->line(($action === 'update' && !$old_event ?
-						__('New address:') :
-						__('Address:')) . ' ' . makeOneLineAddress($address)
-				);
-			}
+				sleep(2);
+				$res = $sms->send($payload);
 
-			if ($personal_message) {
-				$sms = $sms->line()->line($personal_message);
-			}
+				if (!$res->success) {
+					Log::channel('agenda')->info("[!!! SMS ERROR !!!]");
+					Log::channel('agenda')->info($res->message);
 
-			$res = ['success' => false, 'data' => null];
-
-			if (config('app.env') === 'production' || config('project.send_sms')) {
-				$res = $sms->send();
-
-				if (!$res['success']) { // If failed, retry once
-					Log::channel('agenda')->info("[*** SMS ERROR ***]");
-					if ($res['error']) Log::channel('agenda')->info($res['error']);
-					Log::channel('agenda')->info("[RESENDING SMS]");
-					$res = $sms->send();
+					$result['error'] = $res->message;
 				}
-			} else {
-				$res = $sms->dryRun()->send();
 			}
 
-			if ($res['success']) {
-				Log::channel('agenda')->info("[SMS SENT]");
-
+			if ($res->success) {
 				$result['success'] = true;
 				$result['data'] = $res;
-			} else {
-				Log::channel('agenda')->info("[!!! SMS ERROR !!!]");
-				Log::channel('agenda')->info(print_r($res, true));
 
-				$result['error'] = $res['data'];
+				Log::channel('agenda')->info("[SMS SENT]");
 			}
-		} catch (\Throwable $th) {
+		} catch (\Exception $e) {
 			Log::channel('agenda')->info("[!!! ERROR !!!]");
-			Log::channel('agenda')->info($th->__toString());
+			Log::channel('agenda')->info($e->getMessage());
 
-			$result['error'] = $th->getMessage();
+			$result['error'] = $e->getMessage();
 		}
 
 		return $result;
@@ -628,16 +665,17 @@ class EventController extends Controller {
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
 		$sms = $phone && in_array("sms", Auth::user()->features);
-
-		$sms_result = ['success' => true];
-		$email_result = ['success' => true];
+		$classNames = $this->eventClassNames($event->location_id, $event->all_day);
 		$result = [
 			'success' => false,
 			'id' => $event->id,
 			'category' => $event->category,
 			'location_id' => $event->location_id,
-			'classNames' => $this->eventClassNames($event->location_id, $event->all_day),
 		];
+
+		if ($classNames) {
+			$result['classNames'] = $classNames;
+		}
 
 		if (isset($data['rrule']) || $event->all_day) {
 			$result['display'] = 'background';
@@ -656,6 +694,9 @@ class EventController extends Controller {
 			if (isset($data['extendedProps']['location'])) {
 				$data['extendedProps']['address'] = locationToAddress($data['extendedProps']['location']);
 			}
+
+			$sms_result = ['success' => false];
+			$email_result = ['success' => false];
 
 			if ($sms) {
 				$sms_result = $this->sendSMS("add", $data);
@@ -676,8 +717,8 @@ class EventController extends Controller {
 			} else {
 				DB::rollBack();
 
-				$result['email_error'] = $email_result['error'];
-				$result['sms_error'] = $sms_result['error'];
+				$result['email_error'] = $email_result['error'] ?? null;
+				$result['sms_error'] = $sms_result['error'] ?? null;
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");
@@ -735,14 +776,14 @@ class EventController extends Controller {
 
 		$event->save();
 
-		$result['classNames'] = $this->eventClassNames($event->location_id, $event->all_day);
-
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
 		$sms = $phone && in_array("sms", Auth::user()->features);
+		$classNames = $this->eventClassNames($event->location_id, $event->all_day);
 
-		$sms_result = ['success' => true];
-		$email_result = ['success' => true];
+		if ($classNames) {
+			$result['classNames'] = $classNames;
+		}
 
 		if ($event->patient_id && ($email || $sms)) {
 			Log::channel('agenda')->info(
@@ -757,6 +798,9 @@ class EventController extends Controller {
 			if (isset($data['extendedProps']['location'])) {
 				$data['extendedProps']['address'] = locationToAddress($data['extendedProps']['location']);
 			}
+
+			$sms_result = ['success' => false];
+			$email_result = ['success' => false];
 
 			if ($sms) {
 				$sms_result = $this->sendSMS("update", $data, $old_event);
@@ -777,8 +821,8 @@ class EventController extends Controller {
 			} else {
 				DB::rollBack();
 
-				$result['email_error'] = $email_result['error'];
-				$result['sms_error'] = $sms_result['error'];
+				$result['email_error'] = $email_result['error'] ?? null;
+				$result['sms_error'] = $sms_result['error'] ?? null;
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");
@@ -819,9 +863,6 @@ class EventController extends Controller {
 		$email = $data['extendedProps']['patient']['email'] ?? null;
 		$phone = $data['extendedProps']['patient']['phone'] ?? null;
 		$sms = $phone && in_array("sms", Auth::user()->features);
-
-		$sms_result = ['success' => true];
-		$email_result = ['success' => true];
 		$result = ['success' => false, 'id' => $event->id];
 
 		if ($event->patient_id && ($email || $sms)) {
@@ -833,6 +874,9 @@ class EventController extends Controller {
 			);
 
 			LaravelLocalization::setLocale($data['extendedProps']['patient']['locale']);
+
+			$sms_result = ['success' => false];
+			$email_result = ['success' => false];
 
 			if ($sms) {
 				$sms_result = $this->sendSMS("delete", $data);
@@ -850,8 +894,8 @@ class EventController extends Controller {
 			} else {
 				DB::rollBack();
 
-				$result['email_error'] = $email_result['error'];
-				$result['sms_error'] = $sms_result['error'];
+				$result['email_error'] = $email_result['error'] ?? null;
+				$result['sms_error'] = $sms_result['error'] ?? null;
 			}
 
 			Log::channel('agenda')->info("------------------------------------------------------------");

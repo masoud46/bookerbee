@@ -18,10 +18,11 @@ yarn-error.log
 /.idea
 /.vscode
 
-.env.psychosexo
-.env.private
+.env.development
 /crt
 
 /resources/templates/serge.com
 /resources/templates/manager.eva.com
+
+/app/Http/Controllers/TestController.php
 

@@ -111,13 +111,13 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 				Route::put('/event/{event}', [EventController::class, 'update'])->name('event.update');
 				Route::delete('/event/{event}', [EventController::class, 'destroy'])->name('event.cancel');
 
-				Route::post('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');
 				// test
-				Route::put('/send/appointment', [SendEmailController::class, 'sendAppointmentEmail'])->name('email.appointment');
-				Route::put('/send/reminder', [SendEmailController::class, 'sendReminderEmail'])->name('email.reminder');
+				// Route::post('/send/appointment', [TestController::class, 'sendAppointmentEmail'])->name('email.appointment');
+				Route::put('/send/appointment', [TestController::class, 'sendAppointmentEmail'])->name('email.appointment');
+				Route::put('/send/reminder', [TestController::class, 'sendReminderEmail'])->name('email.reminder');
 
-				Route::get('/send/change-email', [SendEmailController::class, 'sendChangeEmail'])->name('email.change-email');
-				Route::get('/send/change-password', [SendEmailController::class, 'sendChangePassword'])->name('email.change-password');
+				Route::get('/send/change-email', [TestController::class, 'sendChangeEmail'])->name('email.change-email');
+				Route::get('/send/change-password', [TestController::class, 'sendChangePassword'])->name('email.change-password');
 			});
 		});
 	}

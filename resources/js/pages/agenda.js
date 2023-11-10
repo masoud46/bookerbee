@@ -298,15 +298,11 @@ const storeEvent = async (action, event, oldEvent = null) => {
 					break;
 			}
 
+			customProps.revert = null
 			customProps.action.hide()
 		} else {
 			// console.log('%c failed! ', 'color:white;background-color:red;');
 			document.body.classList.remove('sending-email')
-
-			if (customProps.revert) {
-				customProps.revert()
-				customProps.revert = null
-			}
 
 			if (result.error && result?.code === 302) { // handled by utils.fetch
 				customProps.action.hide()
@@ -318,20 +314,11 @@ const storeEvent = async (action, event, oldEvent = null) => {
 		}
 	} catch (err) {
 		console.error('err', err);
-		if (customProps.revert) {
-			customProps.revert()
-			customProps.revert = null
-		}
-
 		error = true
 		message = window.laravel.messages.unexpectedError
 	} finally {
 		document.body.classList.remove('sending-email')
 	}
-
-	customProps.event = null
-	customProps.oldEvent = null
-	customProps.revert = null
 
 	utils.showAlert({ message, type: error ? 'error' : 'success' })
 }
@@ -708,8 +695,8 @@ modal.addEventListener('click', e => {
 			: false
 		)
 })
-modal.addEventListener('hide.bs.modal', () => {
-	modal.props.recurrCheck.removeAttribute('opened')
+modal.addEventListener('show.bs.modal', () => {
+	modal.props.dismissed = false
 })
 modal.addEventListener('shown.bs.modal', () => {
 	if (modal.classList.contains(`${modal.props.actionClass}${EVENT_ACTION_ADD}`)) {
@@ -728,8 +715,16 @@ modal.addEventListener('shown.bs.modal', () => {
 		modal.props.title.focus()
 	}
 })
-modal.addEventListener('show.bs.modal', () => {
-	modal.props.dismissed = false
+modal.addEventListener('hide.bs.modal', () => {
+	modal.props.recurrCheck.removeAttribute('opened')
+
+	if (customProps.revert) {
+		customProps.revert()
+	}
+
+	customProps.event = null
+	customProps.oldEvent = null
+	customProps.revert = null
 })
 modal.addEventListener('hidden.bs.modal', () => {
 	modal.classList.remove('location-visible')
@@ -743,15 +738,6 @@ modal.addEventListener('hidden.bs.modal', () => {
 	modal.querySelectorAll('.invalid-feedback').forEach(el => {
 		el.classList.add('d-none')
 	})
-
-	if (modal.props.dismissed) {
-		if (customProps.revert) {
-			customProps.revert()
-		}
-	}
-	customProps.event = null
-	customProps.oldEvent = null
-	customProps.revert = null
 })
 modal.props.actionButton.addEventListener('click', applyAction)
 

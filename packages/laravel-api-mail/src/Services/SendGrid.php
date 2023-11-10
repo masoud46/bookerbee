@@ -57,11 +57,13 @@ class SendGrid extends Sendable {
 
 		curl_close($ch);
 
-		if ($statusCode == 202) {
-			return (object) ['success' => true, 'message' => 'Sent.'];
-		} else {
-			$message = json_decode($result)->errors[0]->message;
-			return (object) ['success' => false, 'message' => $message];
+		if ($statusCode != 202) {
+			return (object) [
+				'success' => false,
+				'message' => $statusCode == 0 ? 'Host no found.' : rtrim($result, "\n\r"),
+			];
 		}
+
+		return (object) ['success' => true];
 	}
 }

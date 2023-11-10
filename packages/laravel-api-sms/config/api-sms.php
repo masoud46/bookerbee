@@ -2,6 +2,7 @@
 return [
 	// ATT: providers' name, 10 characters max.
 	'default_provider' => env('APISMS_DEFAULT_PROVIDER', 'ovh'),
+	'default_dev_provider' => env('APISMS_DEFAULT_DEV_PROVIDER', 'ovh'),
 	'default_country_code' => env('APISMS_DEFAULT_COUNTRY_CODE', 'LU'),
 	'price_multiplier' => env('APISMS_PRICE_MULTIPLIER', 10000),
 

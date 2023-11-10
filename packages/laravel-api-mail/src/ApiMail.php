@@ -65,6 +65,7 @@ class ApiMail {
 	/**
 	 * @param $provider
 	 * @return object
+	 * @throws \Exception
 	 */
 	public function provider($provider = null) {
 		$this->setProvider($provider ?? config('api-mail.default_provider'));
@@ -73,7 +74,7 @@ class ApiMail {
 
 	/**
 	 * @param $payload
-	 * @return array|void
+	 * @return object
 	 * @throws \Exception
 	 */
 	public function send($payload) {

@@ -9,7 +9,8 @@ use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Masoud46\LaravelApiMail\Facades\ApiMail;
+use Masoud46\LaravelApiSms\Facades\ApiSms;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class SendReminders extends Command {
@@ -35,12 +36,105 @@ class SendReminders extends Command {
 	 */
 	protected $description = 'Send reminder email/sms to patients about their upcoming appointments';
 
+	protected $is_local;
+	protected $is_production;
+	protected $email_provider;
+	protected $sms_provider;
+	protected $countries;
+
+	/**
+	 * Send email.
+	 * @param  Array $event
+	 * @param  Array $payload
+	 * @param Boolean $is_first
+	 * @return Void
+	 */
+	protected function sendEmail($event, $payload, $is_first) {
+		$n = $is_first ? 1 : 2;
+		$nStr = $n === 1 ? 'FIRST' : 'SECOND';
+
+		try {
+			Log::channel('reminder')->info("[SENDING {$nStr} EMAIL]");
+
+			$res = ApiMail::provider($this->email_provider)
+				->send($payload);
+
+			if ($res->success) {
+				Log::channel('reminder')->info("[EMAIL SENT] {$payload['to']}");
+
+				if (!$this->is_local) {
+					try {
+						Event::whereId($event['id'])->update(['reminder_email' => $n]);
+					} catch (\Throwable $th) {
+						Log::channel('reminder')->info("[!!! DB WARNING !!!]");
+						Log::channel('reminder')->info($th->__toString());
+						Log::channel('reminder')->info(print_r($event, true));
+					}
+				}
+
+				Log::channel('reminder')->info("[EVENT REMINDER_EMAIL UPDATED TO {$n}] {$event['id']}");
+			} else {
+				Log::channel('reminder')->info("[!!! EMAIL ERROR !!!]");
+				Log::channel('reminder')->info($res->message);
+				Log::channel('reminder')->info(print_r($event, true));
+			}
+		} catch (\Exception $e) {
+			Log::channel('reminder')->info("[!!! ERROR !!!]");
+			Log::channel('reminder')->info($e->getMessage());
+		}
+	}
+
+	/**
+	 * Send SMS.
+	 * @param  Array $event
+	 * @param  Array $payload
+	 * @return Void
+	 */
+	protected function sendSms($event, $payload) {
+		try {
+			Log::channel('reminder')->info("[SENDING SMS] {$payload['to']}");
+
+			$res = ApiSms::provider($this->sms_provider)
+				->send($payload);
+
+			if ($res->success) {
+				Log::channel('reminder')->info("[SMS SENT]");
+
+				if (!$this->is_local) {
+					try {
+						Event::whereId($event['id'])->update(['reminder_sms' => 1]);
+					} catch (\Throwable $th) {
+						Log::channel('reminder')->info("[!!! DB WARNING !!!]");
+						Log::channel('reminder')->info($th->__toString());
+						Log::channel('reminder')->info(print_r($event, true));
+					}
+				} else {
+					Log::channel('reminder')->info(print_r($res, true));
+				}
+
+				if (!$this->is_production) {
+					echo var_export($res, true) . PHP_EOL;
+				}
+
+				Log::channel('reminder')->info("[EVENT REMINDER_SMS UPDATED] {$event['id']}");
+			} else {
+				Log::channel('reminder')->info("[!!! SMS ERROR !!!]");
+				Log::channel('reminder')->info(print_r($res->message, true));
+			}
+		} catch (\Exception $e) {
+			Log::channel('reminder')->info("[!!! ERROR !!!]");
+			Log::channel('reminder')->info($e->getMessage());
+		}
+	}
+
 	/**
 	 * Send the reminders.
+	 * @param  Integer $test_user_id
+	 * @return Void
 	 */
 	protected function send($test_user_id) {
-		$is_local = config('app.env') === 'local';
-		$is_production = config('app.env') === 'production';
+		$this->is_local = config('app.env') === 'local';
+		$this->is_production = config('app.env') === 'production';
 
 		$email_hours = config('project.reminder_email_time');
 		$email_time = Carbon::now()->addHours($email_hours);
@@ -96,8 +190,8 @@ class SendReminders extends Command {
 			->where("events.status", "=", 1) // has not been canceled
 			->where("start", ">", Carbon::now())
 			->where("start", "<=", $email_time)
-			->where(function ($query) use ($is_production, $test_user_id) {
-				if (!$is_production) { // if not production, get test-user's events only
+			->where(function ($query) use ($test_user_id) {
+				if (!$this->is_production) { // if not production, get test-user's events only
 					$query->where("events.user_id", "=", $test_user_id); // test-user
 				}
 			})
@@ -120,35 +214,35 @@ class SendReminders extends Command {
 			->leftJoin("event_locations", "event_locations.event_id", "=", "events.id")
 			->get();
 
-		if (!$is_production) {
+		if (!$this->is_production) {
 			echo var_export($events->toArray(), true) . PHP_EOL;
 			echo "events: {$events->count()}" . PHP_EOL;
 			echo "test user: $test_user_id" . PHP_EOL;
 		}
 
 		if ($events->count()) {
-			$countries = array_column(
+			$this->countries = array_column(
 				Country::all()->toArray(),
 				null,
 				'id'
 			);
 
-			$mail_provider = $is_production
-				? config('project.mail.default_provider')
-				: config('project.mail.default_dev_provider');
+			$this->email_provider = $this->is_production
+				? config('api-mail.default_provider')
+				: config('api-mail.default_dev_provider');
 
-			// send reminders
-			$events->map(function ($event) use (
-				$is_local,
-				$is_production,
-				$sms_time,
-				$mail_provider,
-				$countries,
-			) {
+			$this->sms_provider = $this->is_production
+				? config('api-sms.default_provider')
+				: config('api-sms.default_dev_provider');
+
+			// Send reminders
+			$events->map(function ($event) use ($sms_time) {
+				LaravelLocalization::setLocale($event->patient_locale);
+
 				$event_array = $event->toArray();
 
 				$number = ltrim($event->user_phone_number, '0');
-				$event_array['user_phone'] = "{$countries[$event->user_phone_country_id]['prefix']} {$number}";
+				$event_array['user_phone'] = "{$this->countries[$event->user_phone_country_id]['prefix']} {$number}";
 
 				$start = Carbon::parse($event->start);
 				$event_array['remaining_time'] = $start->diffInHours(Carbon::now()->floorUnit('hour'));
@@ -162,7 +256,7 @@ class SendReminders extends Command {
 						"line2" => $event->location_address,
 						"code" => $event->location_code,
 						"city" => $event->location_city,
-						"country" => __($countries[$event->location_country_id]['name'], [], $event['patient_locale']),
+						"country" => __($this->countries[$event->location_country_id]['name'], [], $event['patient_locale']),
 					];
 				} else {
 					$location = Location::whereId($event->location_id)->first();
@@ -175,7 +269,7 @@ class SendReminders extends Command {
 								"line3" => $event->address_line3,
 								"code" => $event->address_code,
 								"city" => $event->address_city,
-								"country" => __($countries[$event->address_country_id]['name'], [], $event['patient_locale']),
+								"country" => __($this->countries[$event->address_country_id]['name'], [], $event['patient_locale']),
 							];
 							break;
 						case '009b':
@@ -185,7 +279,7 @@ class SendReminders extends Command {
 								"line3" => $event->address2_line3,
 								"code" => $event->address2_code,
 								"city" => $event->address2_city,
-								"country" => __($countries[$event->address2_country_id]['name'], [], $event['patient_locale']),
+								"country" => __($this->countries[$event->address2_country_id]['name'], [], $event['patient_locale']),
 							];
 							break;
 						case '003':
@@ -197,7 +291,13 @@ class SendReminders extends Command {
 				$event_array['msg_email'] = $msg_email[$event['patient_locale']] ?? array_shift($msg_email) ?? null;
 				$event_array['msg_sms'] = $msg_sms[$event['patient_locale']] ?? array_shift($msg_sms) ?? null;
 
-				if (!$is_production) {
+				$payload = [
+					'to' => $event->patient_email,
+					'subject' => __("Appointment reminder"),
+					'body' => (new AppointmentReminder($event_array))->render(),
+				];
+
+				if (!$this->is_production) {
 					echo var_export($event_array, true) . PHP_EOL;
 				}
 
@@ -206,34 +306,14 @@ class SendReminders extends Command {
 					Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
 					Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
 
-					LaravelLocalization::setLocale($event['patient_locale']);
-
 					$features = explode(",", $event->user_features);
 					foreach ($features as $index => $feature) {
 						$features[$index] = trim($feature);
 					};
 
 					if ($event->reminder_email < 2 && $event->patient_email) {
-						if (!$is_local || config('project.send_emails')) {
-							try {
-								Log::channel('reminder')->info("[SENDING SECOND EMAIL]");
-
-								Mail::mailer($mail_provider)
-									->to($event->patient_email)
-									->send(new AppointmentReminder($event_array));
-
-								Log::channel('reminder')->info("[EMAIL SENT] {$event->patient_email}");
-
-								if (!$is_local) {
-									Event::whereId($event->id)->update(['reminder_email' => 2]);
-								}
-
-								Log::channel('reminder')->info("[EVENT REMINDER_EMAIL UPDATED TO 2] {$event->id}");
-							} catch (\Throwable $th) {
-								Log::channel('reminder')->info("[!!! ERROR !!!]");
-								Log::channel('reminder')->info($th->__toString());
-								Log::channel('reminder')->info(print_r($event_array, true));
-							}
+						if (!$this->is_local || config('project.send_emails')) {
+							$this->sendEmail($event_array, $payload, false);
 						}
 					}
 
@@ -243,64 +323,35 @@ class SendReminders extends Command {
 						in_array("sms", $features)
 					) {
 
-						$result = ['success' => true];
 						$user_name = ucfirst($event->user_firstname) . " " . strtoupper($event->user_lastname);
 						$patient_name = ucfirst($event->patient_firstname);
+						$country_code = $this->countries[$event->patient_phone_country_id]['code'];
 						$number = ltrim($event->patient_phone_number, '0');
-						$number = "{$countries[$event->patient_phone_country_id]['prefix']} {$number}";
-						$country_code = $countries[$event->patient_phone_country_id]['code'];
-						$message = __("Your appointment with :name will start in about :time hours.", [
-							'name' => $user_name,
-							'time' => $event_array['remaining_time'],
-						]);
+						$number = "{$this->countries[$event->patient_phone_country_id]['prefix']} {$number}";
+						$to = preg_replace('/\s+/', '', $number);
+						$message =
+							__("Hello :name", ['name' => $patient_name]) . ",\n" .
+							__("Your appointment with :name will start in about :time hours.", [
+								'name' => $user_name,
+								'time' => $event_array['remaining_time'],
+							]);
 
 						if ($event->patient_email) {
 							$message .= " " . __("A detailed email has been sent to you.");
 						}
 
-						$sms = new \App\Notifications\SmsMessage([
-							'event_id' => $event_array['id'],
-							'action' => "remind",
-							'country' => $country_code,
-						]);
-						$sms = $sms
-							->to(preg_replace('/\s+/', '', $number))
-							->line(__("Hello :name", ['name' => $patient_name]) . ",")
-							->line($message)
-							->line(__("Address:") . " " . makeOneLineAddress($event_array['address']));
-
 						if ($event_array['msg_sms']) {
-							$sms = $sms->line()->line($event_array['msg_sms']);
+							$message .= "\n\n" . $event_array['msg_sms'];
 						}
 
-						try {
-							Log::channel('reminder')->info("[SENDING SMS] {$number}");
+						$payload = [
+							'country' => $country_code,
+							'to' => $to,
+							'message' => $message,
+							'dryrun' => !$this->is_production && !config('project.send_sms'),
+						];
 
-							if ($is_production || config('project.send_sms')) {
-								$result = $sms->send();
-							} else {
-								$result = $sms->dryRun()->send();
-							}
-
-							if ($result['success']) {
-								Log::channel('reminder')->info("[SMS SENT]");
-
-								if (!$is_local) {
-									Event::whereId($event->id)->update(['reminder_sms' => 1]);
-								} else {
-									Log::channel('reminder')->info(print_r($result['data'], true));
-								}
-
-								Log::channel('reminder')->info("[EVENT REMINDER_SMS UPDATED] {$event->id}");
-							} else {
-								Log::channel('reminder')->info("[!!! SMS ERROR !!!]");
-								Log::channel('reminder')->info(print_r($result, true));
-							}
-						} catch (\Throwable $th) {
-							Log::channel('reminder')->info("[!!! ERROR !!!]");
-							Log::channel('reminder')->info($th->__toString());
-							Log::channel('reminder')->info(print_r($event->toArray(), true));
-						}
+						$this->sendSms($event_array, $payload);
 					}
 
 					Log::channel('reminder')->info("----------------------------------------------");
@@ -309,28 +360,8 @@ class SendReminders extends Command {
 					Log::channel('reminder')->info("Patient: {$event->patient_lastname}, {$event->patient_firstname} ({$event->patient_id}) ({$event->patient_locale})");
 					Log::channel('reminder')->info("Event: {$event->start} - {$event->end} ({$event->id})");
 
-					LaravelLocalization::setLocale($event['patient_locale']);
-
-					if (!$is_local || config('project.send_emails')) {
-						try {
-							Log::channel('reminder')->info("[SENDING FIRST EMAIL]");
-
-							Mail::mailer($mail_provider)
-								->to($event->patient_email)
-								->send(new AppointmentReminder($event_array));
-
-							Log::channel('reminder')->info("[EMAIL SENT] {$event->patient_email}");
-
-							if (!$is_local) {
-								Event::whereId($event->id)->update(['reminder_email' => 1]);
-							}
-
-							Log::channel('reminder')->info("[EVENT REMINDER_EMAIL UPDATED TO 1] {$event->id}");
-						} catch (\Throwable $th) {
-							Log::channel('reminder')->info("[!!! ERROR !!!]");
-							Log::channel('reminder')->info($th->__toString());
-							Log::channel('reminder')->info(print_r($event_array, true));
-						}
+					if (!$this->is_local || config('project.send_emails')) {
+						$this->sendEmail($event_array, $payload, true);
 					}
 
 					Log::channel('reminder')->info("----------------------------------------------");
@@ -341,6 +372,7 @@ class SendReminders extends Command {
 
 	/**
 	 * Execute the console command.
+	 * @return Void
 	 */
 	public function handle() {
 		$test_user_id = intval($this->argument('test_user_id'));

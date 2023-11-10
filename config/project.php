@@ -53,6 +53,7 @@ return [
 	'sms' => [
 		// ATT: provider's name, 10 characters max.
 		'default_provider' => env('SMS_DEFAULT_PROVIDER', 'ovh'),
+		'default_dev_provider' => env('SMS_DEFAULT_DEV_PROVIDER', 'ovh'),
 		'smsto' => [
 			'api_key' => env('SMS_SMSTO_API_KEY', null),
 			'sender_id' => env('SMS_SMSTO_SENDER_ID', null),

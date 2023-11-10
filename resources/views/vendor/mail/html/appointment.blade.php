@@ -27,7 +27,7 @@
 </tr>
 <tr>
 <td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("Date:") }}</td>
-<td style="font-weight: bold;">{{ $date }}</td>
+<td style="font-weight: bold;">{{ ucfirst($date) }}</td>
 </tr>
 <tr>
 <td align="right" valign="top" style="text-align: right; vertical-align: top;">{{ __("Time:") }}</td>

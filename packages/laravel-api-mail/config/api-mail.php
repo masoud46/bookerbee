@@ -1,6 +1,7 @@
 <?php
 return [
 	'default_provider' => env('APIMAIL_DEFAULT_PROVIDER', 'brevo'),
+	'default_dev_provider' => env('APIMAIL_DEFAULT_DEV_PROVIDER', 'sendgrid'),
 
 	'drivers' => [
 		'brevo' => [

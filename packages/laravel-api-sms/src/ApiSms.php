@@ -62,6 +62,7 @@ class ApiSms {
 	/**
 	 * @param $provider
 	 * @return object
+	 * @throws \Exception
 	 */
 	public function provider($provider = null) {
 		$this->setProvider($provider ?? config('api-sms.default_provider'));
@@ -70,7 +71,7 @@ class ApiSms {
 
 	/**
 	 * @param $payload
-	 * @return array|void
+	 * @return object
 	 * @throws \Exception
 	 */
 	public function estimate($payload) {
@@ -80,7 +81,7 @@ class ApiSms {
 
 	/**
 	 * @param $payload
-	 * @return array|void
+	 * @return object
 	 * @throws \Exception
 	 */
 	public function send($payload) {
@@ -89,7 +90,7 @@ class ApiSms {
 	}
 
 	/**
-	 * @return array|void
+	 * @return object
 	 * @throws \Exception
 	 */
 	public function balance() {

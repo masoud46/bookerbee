@@ -54,11 +54,13 @@ class Brevo extends Sendable {
 
 		curl_close($ch);
 
-		if ($statusCode == 201 || $statusCode == 202) {
-			return (object) ['success' => true, 'message' => 'Sent.'];
-		} else {
-			$message = json_decode($result)->message;
-			return (object) ['success' => false, 'message' => $message];
+		if ($statusCode != 201 && $statusCode != 202) {
+			return (object) [
+				'success' => false,
+				'message' => $statusCode == 0 ? 'Host no found.' : json_decode($result)->error,
+			];
 		}
+
+		return (object) ['success' => true];
 	}
 }

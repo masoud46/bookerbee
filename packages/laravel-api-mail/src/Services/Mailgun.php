@@ -31,7 +31,7 @@ class Mailgun extends Sendable {
 			"from" => $from,
 			"to" => $toString,
 			"subject" => $subject,
-			"html" => $body
+			"html" => $body,
 		];
 
 		if (array_key_exists("cc", $payload)) {
@@ -58,11 +58,13 @@ class Mailgun extends Sendable {
 
 		curl_close($ch);
 
-		if ($statusCode == 200) {
-			return (object) ['success' => true, 'message' => 'successfully sent'];
-		} else {
-			$message = json_decode($result)->message;
-			return (object) ['success' => false, 'message' => $message];
+		if (!$statusCode == 200) {
+			return (object) [
+				'success' => false,
+				'message' => $statusCode == 0 ? 'Host no found.' : rtrim($result, "\n\r"),
+			];
 		}
+
+		return (object) ['success' => true];
 	}
 }
