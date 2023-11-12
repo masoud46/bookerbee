@@ -18,7 +18,7 @@ class MonitoringEmail extends Mailable {
 	/**
 	 * Create a new message instance.
 	 */
-	public function __construct(String $message, String $link = null) {
+	public function __construct(string $message, string $link = null) {
 		$this->message = $message;
 		$this->link = $link;
 	}

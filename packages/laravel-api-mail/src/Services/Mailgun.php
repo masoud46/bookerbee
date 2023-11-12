@@ -67,4 +67,11 @@ class Mailgun extends Sendable {
 
 		return (object) ['success' => true];
 	}
+
+	public function balance() {
+		return (object) [
+			'success' => false,
+			'message' => 'This function is not implemented yet.',
+		];
+	}
 }

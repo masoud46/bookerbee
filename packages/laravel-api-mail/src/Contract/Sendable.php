@@ -7,4 +7,6 @@ abstract class Sendable {
 	}
 	public function send($payload) {
 	}
+	public function balance() {
+	}
 }

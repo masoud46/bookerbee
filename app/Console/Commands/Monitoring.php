@@ -10,6 +10,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Masoud46\LaravelApiMail\Facades\ApiMail;
+use Masoud46\LaravelApiSms\Facades\ApiSms;
 
 class Monitoring extends Command {
 	/**
@@ -28,6 +30,15 @@ class Monitoring extends Command {
 
 	protected $for_admin_page;
 	protected $debug;
+	protected $providers;
+	protected $report_file;
+	protected $report;
+	protected $channel = 'monitoring';
+	protected $any_error = false;
+	protected $result = [
+		'email' => [],
+		'sms' => [],
+	];
 
 	/**
 	 * Create a new console command instance.
@@ -37,467 +48,185 @@ class Monitoring extends Command {
 	public function __construct($for_admin_page = false) {
 		$this->for_admin_page = $for_admin_page;
 		$this->debug = !$for_admin_page && config('app.env') === 'local';
+		$this->providers = [
+			'email' => array_keys(array_filter(config('api-mail.drivers'), function ($driver) {
+				return $driver['active'];
+			})),
+			'sms' => array_keys(array_filter(config('api-sms.drivers'), function ($driver) {
+				return $driver['active'];
+			})),
+		];
+
+		$this->report_file = config('project.monitoring.filename');
+		if (Storage::missing($this->report_file)) {
+			$providers = ['email' => [], 'sms' => []];
+			foreach ($this->providers as $service => $values)
+				foreach ($values as $provider)
+					$providers[$service][$provider] = false;
+			Storage::put($this->report_file, json_encode($providers), JSON_UNESCAPED_SLASHES);
+
+			$old_mask = umask(0);
+			@mkdir(storage_path("app/{$this->report_file}"), 0777, true);
+			umask($old_mask);
+		}
+		$this->report = Storage::json($this->report_file);
 
 		parent::__construct();
 	}
 
 	/**
-	 * Send report about critical status.
+	 * Send critical status or error report.
 	 */
-	private function sendCriticalReport($message, $link = null, $email_only = false, $mail_provider = "sendgrid", $sms_provider = "ovh") {
-		if ($this->for_admin_page || $this->debug) {
-			return;
-		}
+	private function sendReport($providers, $subject, $message) {
+		if ($this->for_admin_page || $this->debug) return;
+		// if ($this->for_admin_page) return;
 
-		$email = config('project.monitoring.email');
-		$phone = config('project.monitoring.phone');
-
-		try {
-			Mail::mailer($mail_provider)
-				->to($email)
-				->send(new MonitoringEmail($message, $link));
-		} catch (\Throwable $th) {
-		}
-
-		if (!$email_only) {
+		if (isset($providers['email'])) {
+			$payload = [
+				'to' => config('project.monitoring.email'),
+				'subject' => $subject,
+				'body' => (new MonitoringEmail($message))->render(),
+			];
 			try {
-				$sms = new \App\Notifications\SmsMessage(['provider' => $sms_provider]);
-				$sms->to(preg_replace('/\s+/', '', $phone))
-					->line($message)
-					->send();
-			} catch (\Throwable $th) {
+				$email = ApiMail::provider($providers['email']);
+				if (!$email->send($payload)->success) { // Retry once
+					sleep(2);
+					$email->send($payload);
+				}
+			} catch (\Exception $e) {
+				echo $e->getMessage();
 			}
 		}
 
-		sleep(3);
+		if (isset($providers['sms'])) {
+			$to = preg_replace('/\s+/', '', config('project.monitoring.phone'));
+			$payload = [
+				// 'country' => $country_code,
+				'to' => $to,
+				'message' => $message,
+				'dryrun' => config('app.env') !== 'production',
+			];
+			try {
+				$sms = ApiSms::provider($providers['sms']);
+				if (!$sms->send($payload)->success) { // Retry once
+					sleep(2);
+					$sms->send($payload);
+				}
+				if ($payload['dryrun']) echo "sms ({$providers['sms']}): {$to} <- {$message}" . PHP_EOL;
+			} catch (\Exception $e) {
+				echo $e->getMessage();
+			}
+		}
+
+		sleep(2);
+	}
+
+	/**
+	 * Log error/critical status and send report.
+	 */
+	private function inform($service, $provider, $message) {
+		if ($this->report[$service][$provider] === false) {
+			$this->any_error = true;
+
+			if ($this->debug) echo "{$service} ERROR - {$provider}: {$message}" . PHP_EOL . PHP_EOL;
+			$this->result[$service][$provider] = [
+				'success' => false,
+				'data' => $message,
+			];
+
+			$subject = "Monitoring: {$service} - {$provider}";
+			$message = "{$service} ERROR - {$provider}: {$message}";
+			$providers = [
+				'email' => config('api-mail.default_provider'),
+				'sms' => config('api-sms.default_provider'),
+			];
+
+			// Switch provider if it is the default provider.
+			// Except for critical SMS ballance where there is no other provider
+			if (
+				$provider === $providers[$service] &&
+				($service != 'sms' || count($this->providers[$service]) > 1)
+			) {
+				$filtered = array_values(
+					array_filter($this->providers[$service], function ($p) use ($provider) {
+						return $p !== $provider;
+					})
+				);
+
+				if (count($filtered)) {
+					$providers[$service] = $filtered[0];
+				} else {
+					unset($providers[$service]);
+				}
+			}
+
+			// OVH issue: do not send SMS if OVH server is not responding
+			if ($service === 'sms' && $provider === 'ovh' && str_contains($message, 'cURL error 28')) {
+				unset($providers['sms']);
+			}
+
+			Log::channel($this->channel)->info($message);
+
+			$this->sendReport($providers, $subject, $message);
+			Log::channel($this->channel)->info("*** REPORT SENT.");
+			if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
+
+			$this->report[$service][$provider] = true;
+		}
 	}
 
 	/**
 	 * Execute the console command.
 	 */
 	public function handle() {
-		$email_limit = intval(config('project.monitoring.email_limit'));
+		foreach ($this->providers as $service => $values) {
+			if ($this->debug) echo strtoupper(PHP_EOL . "{$service} balance") . PHP_EOL;
+			foreach ($values as $provider) {
+				$this->result[$service][$provider] = ['success' => false];
+				$api = $service === 'email' ? 'mail' : 'sms';
+				$critical_balance = config("api-{$api}.drivers.{$provider}.critical_balance");
+				if ($this->debug) echo "{$provider}: ";
 
-		$any_error = false;
-		$result = [
-			'sms' => [],
-			'email' => [],
-		];
+				try {
+					$result = $api === 'mail'
+						? ApiMail::provider($provider)->balance()
+						: ApiSms::provider($provider)->balance();
 
-		$filename = 'monitoring_report.json';
-		if (Storage::missing($filename)) {
-			Storage::put($filename, json_encode([
-				'sms' => [
-					'ovh' => false,
-					'smsto' => false,
-				],
-				'email' => [
-					'sendgrid' => false,
-					'brevo' => false,
-				],
-			]), JSON_UNESCAPED_SLASHES);
+					if ($result->success) {
+						$result->critical = $result->data <= $critical_balance;
+						$this->result[$service][$provider] = [
+							'success' => true,
+							'data' => $result->data,
+							'critical' => $result->critical,
+						];
+						if ($this->debug) echo $result->data . PHP_EOL;
 
-			$old_mask = umask(0);
-			@mkdir(storage_path("app/{$filename}"), 0777, true);
-			umask($old_mask);
-		}
-
-		$report = Storage::json('monitoring_report.json');
-
-
-		/*************************/
-		/*** SMS - OVH credits ***/
-		/*************************/
-		if ($this->debug) echo "SMS credits - OVH" . PHP_EOL;
-
-		$client = new \Ovh\Api(
-			config('project.sms.ovh.application_key'),
-			config('project.sms.ovh.application_secret'),
-			config('project.sms.ovh.endpoint'),
-			config('project.sms.ovh.consumer_key'),
-		);
-		$service = config('project.sms.ovh.service');
-
-		try {
-			$response = $client->get("/sms/{$service}");
-			
-			if (isset($response['creditsLeft'])) {
-				$credits = floatval($response['creditsLeft']);
-
-				if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
-
-				$result['sms']['ovh'] = [
-					'success' => true,
-					'data' => $credits,
-				];
-
-				if ($credits < config('project.sms.ovh.critical_credit')) {
-					$result['sms']['ovh']['success'] = false;
-
-					if ($report['sms']['ovh'] === false) {
-						$any_error = true;
-
-						$message = "SMS critical credits - OVH: {$credits}";
-						$this->sendCriticalReport($message);
-						Log::channel('monitoring')->info($message);
-						if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-						Log::channel('monitoring')->info("*** REPORT SENT.");
-						$report['sms']['ovh'] = true;
+						if ($this->result[$service][$provider]['critical']) {
+							if ($this->debug) echo '---CRITICAL---' . PHP_EOL;
+							$this->inform($service, $provider, "Low balance :: {$result->data}");
+						} else {
+							$this->report[$service][$provider] = false;
+						}
+					} else {
+						$this->result[$service][$provider]['message'] = $result->message;
+						$this->inform($service, $provider, $result->message);
 					}
-				} else {
-					$report['sms']['ovh'] = false;
+				} catch (\Exception $e) {
+					$message = $e->getMessage();
+					$this->result[$service][$provider]['message'] = $message;
+					$this->inform($service, $provider, $message);
 				}
-			} else {
-				$result['sms']['ovh']['success'] = false;
-
-				if ($report['sms']['ovh'] === false) {
-					$any_error = true;
-					$data = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-					$result['sms']['ovh'] = [
-						'success' => false,
-						'data' => $data,
-					];
-
-					$message = "SMS ERROR - OVH: {$data}";
-					$this->sendCriticalReport($message, null, true);
-					Log::channel('monitoring')->info($message);
-					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-					Log::channel('monitoring')->info("*** REPORT SENT.");
-					$report['sms']['ovh'] = true;
-				}
-			}
-		} catch (ClientException $e) {
-			if ($report['sms']['ovh'] === false) {
-				$any_error = true;
-
-				$response = $e->getResponse();
-				$error = $response->getBody()->getContents();
-
-				if ($this->debug) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
-				$result['sms']['ovh'] = [
-					'success' => false,
-					'data' => $error,
-				];
-
-				$message = "SMS ERROR - OVH: {$error}";
-				$this->sendCriticalReport($message, null, true);
-				Log::channel('monitoring')->info($message);
-				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-				Log::channel('monitoring')->info("*** REPORT SENT.");
-				$report['sms']['ovh'] = true;
-			}
-		} catch (\Exception $e) {
-			if ($report['sms']['ovh'] === false) {
-				$any_error = true;
-
-				$error = $e->getMessage();
-				if ($this->debug) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
-				$result['sms']['ovh'] = [
-					'success' => false,
-					'data' => $error,
-				];
-
-				$message = "SMS ERROR - OVH: {$error}";
-				$this->sendCriticalReport($message, null, true);
-				Log::channel('monitoring')->info($message);
-				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-				Log::channel('monitoring')->info("*** REPORT SENT.");
-				$report['sms']['ovh'] = true;
 			}
 		}
 
+		Storage::put($this->report_file, json_encode($this->report), JSON_UNESCAPED_SLASHES);
 
-		/***************************/
-		/*** SMS - SMSto credits ***/
-		/***************************/
-		if ($this->debug) echo "SMS - SMSto credits" . PHP_EOL;
-
-		$client = new Client();
-		$headers = [
-			'Authorization' => 'Bearer ' . config('project.sms.smsto.api_key'),
-			'Content-Type' => 'application/json',
-		];
-
-		try {
-			$request = new Request('GET', 'https://auth.sms.to/api/balance', $headers);
-			$response = $client->sendAsync($request)->wait();
-			$response = json_decode($response->getBody(), true);
-			
-			if (isset($response['balance'])) {
-				$credits = $response['balance'];
-
-				if ($this->debug) echo $credits . PHP_EOL . PHP_EOL;
-
-				$result['sms']['smsto'] = [
-					'success' => false,
-					'data' => $credits,
-				];
-
-				if ($credits < config('project.sms.smsto.critical_credit')) {
-					$result['sms']['smsto']['success'] = false;
-
-					if ($report['sms']['smsto'] === false) {
-						$any_error = true;
-
-						$message = "SMS critical credits - SMSto: {$credits}";
-						$this->sendCriticalReport($message);
-						Log::channel('monitoring')->info($message);
-						if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-						Log::channel('monitoring')->info("*** REPORT SENT.");
-						$report['sms']['smsto'] = true;
-					}
-				} else {
-					$report['sms']['smsto'] = false;
-				}
-			} else {
-				$any_error = true;
-				$data = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-				$result['sms']['smsto'] = [
-					'success' => false,
-					'data' => $data,
-				];
-
-				$message = "SMS ERROR - SMSto: {$data}";
-				$this->sendCriticalReport($message);
-				Log::channel('monitoring')->info($message);
-				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-				Log::channel('monitoring')->info("*** REPORT SENT.");
-				$report['sms']['smsto'] = true;
-			}
-		} catch (ClientException $e) {
-			if ($report['sms']['smsto'] === false) {
-				$any_error = true;
-
-				$response = $e->getResponse();
-				$error = $response->getBody()->getContents();
-				if ($this->debug) echo "ERROR (ClientException): " . $error . PHP_EOL . PHP_EOL;
-				$result['sms']['smsto'] = [
-					'success' => false,
-					'data' => $error,
-				];
-
-				$message = "SMS ERROR - SMSto: {$error}";
-				$this->sendCriticalReport($message, null, true);
-				Log::channel('monitoring')->info($message);
-				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-				Log::channel('monitoring')->info("*** REPORT SENT.");
-				$report['sms']['smsto'] = true;
-			}
-		} catch (\Exception $e) {
-			if ($report['sms']['smsto'] === false) {
-				$any_error = true;
-
-				$error = $e->getMessage();
-				if ($this->debug) echo "ERROR (Exception): " . $error . PHP_EOL . PHP_EOL;
-				$result['sms']['smsto'] = [
-					'success' => false,
-					'data' => $error,
-				];
-
-				$message = "SMS ERROR - SMSto: {$error}";
-				$this->sendCriticalReport($message, null, true);
-				Log::channel('monitoring')->info($message);
-				if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-				Log::channel('monitoring')->info("*** REPORT SENT.");
-				$report['sms']['smsto'] = true;
-			}
+		if ($this->any_error) {
+			Log::channel($this->channel)->info("----------------------------------------");
 		}
 
+		if ($this->debug) echo PHP_EOL;
 
-		/********************************/
-		/*** Email - SendGrid credits ***/
-		/********************************/
-		$url = 'https://api.sendgrid.com/v3/user/credits';
-		$api_key = config('project.mail.sendgrid.admin_key');
-
-		$ch = curl_init($url);
-		$headers = [
-			'Content-Type: application/json',
-			'Authorization: Bearer ' . $api_key,
-		];
-
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-		$response = curl_exec($ch);
-		curl_close($ch);
-
-		if ($this->debug) echo "Email credits - SendGrid" . PHP_EOL;
-
-		$email_only = false;
-
-		if ($response === false) {
-			$any_error = true;
-			$message = 'Could not get a response';
-			if ($this->debug) echo $message;
-			$result['email']['sendgrid'] = [
-				'success' => false,
-				'data' => $message,
-			];
-
-			$this->sendCriticalReport($message, null, $email_only, "brevo");
-			Log::channel('monitoring')->info($message);
-			if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-			Log::channel('monitoring')->info("*** REPORT SENT.");
-			$report['email']['sendgrid'] = true;
-		} else {
-			$res = json_decode($response, true);
-			if (isset($res['remain']) || isset($res['message'])) {
-				if ($this->debug) echo ($res['remain'] ?? $res['message']) . PHP_EOL . PHP_EOL;
-				if (isset($res['remain'])) {
-					$res = [
-						'success' => true,
-						'data' => intval($res['remain']),
-					];
-				} else {
-					$res = [
-						'success' => false,
-						'data' => $res['message'],
-					];
-				}
-			} else {
-				$email_only = true;
-				$res = [
-					'success' => false,
-					'data' => 'No $res[\'remain\']) and no $res[\'message\']',
-				];
-			}
-
-			$result['email']['sendgrid'] = $res;
-
-			if (!$res['success']) {
-				if ($report['email']['sendgrid'] === false) {
-					$any_error = true;
-
-					$message = "Email ERROR - SendGrid: {$res['data']}";
-					$this->sendCriticalReport($message, null, $email_only, "brevo");
-					Log::channel('monitoring')->info($message);
-					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-					Log::channel('monitoring')->info("*** REPORT SENT.");
-					$report['email']['sendgrid'] = true;
-				}
-			} else if ($res['data'] < $email_limit) {
-				$result['email']['sendgrid']['success'] = false;
-				if ($report['email']['sendgrid'] === false) {
-					$any_error = true;
-
-					$message = "Email critical credits - SendGrid: {$res['data']}";
-					$this->sendCriticalReport($message, null, $email_only, "brevo");
-					Log::channel('monitoring')->info($message);
-					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-					Log::channel('monitoring')->info("*** REPORT SENT.");
-					$report['email']['sendgrid'] = true;
-				}
-			} else {
-				$report['email']['sendgrid'] = false;
-			}
-		}
-
-
-		/*****************************/
-		/*** Email - Brevo credits ***/
-		/*****************************/
-		$url = 'https://api.brevo.com/v3/account';
-		$api_key = config('project.mail.brevo.api_key');
-
-		$ch = curl_init($url);
-		$headers = [
-			'accept: application/json',
-			'api-key: ' . $api_key,
-		];
-
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-		$response = curl_exec($ch);
-		curl_close($ch);
-
-		if ($this->debug) echo "Email credits - Brevo" . PHP_EOL;
-
-		$email_only = false;
-
-		if ($response === false) {
-			$result['email']['brevo'] = [
-				'success' => false,
-				'data' => 'Could not get a response',
-			];
-		} else {
-			$res = json_decode($response, true);
-			if (isset($res['plan'][0]['credits']) || isset($res['message'])) {
-				if ($this->debug) echo ($res['plan'][0]['credits'] ?? $res['message']) . PHP_EOL . PHP_EOL;
-				if (isset($res['plan'][0]['credits'])) {
-					$res = [
-						'success' => true,
-						'data' => intval($res['plan'][0]['credits']),
-					];
-				} else {
-					$res = [
-						'success' => false,
-						'data' => $res['message'],
-					];
-				}
-			} else {
-				$email_only = true;
-				$res = [
-					'success' => false,
-					'data' => 'No $res[\'plan\'][0][\'credits\']) and no $res[\'message\']',
-				];
-			}
-
-			$result['email']['brevo'] = $res;
-
-			if (!$res['success']) {
-				if ($report['email']['brevo'] === false) {
-					$any_error = true;
-
-					$message = "Email ERROR - Brevo: {$res['data']}";
-					$this->sendCriticalReport($message, null, $email_only, "sendgrid");
-					Log::channel('monitoring')->info($message);
-					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-					Log::channel('monitoring')->info("*** REPORT SENT.");
-					$report['email']['brevo'] = true;
-				}
-			} else if ($res['data'] < $email_limit) {
-				$result['email']['brevo']['success'] = false;
-				if ($report['email']['brevo'] === false) {
-					$any_error = true;
-
-					$message = "Email critical credits - Brevo: {$res['data']}";
-					$this->sendCriticalReport($message, null, $email_only, "sendgrid");
-					Log::channel('monitoring')->info($message);
-					if ($this->debug) echo "*** REPORT SENT" . PHP_EOL . PHP_EOL;
-
-					Log::channel('monitoring')->info("*** REPORT SENT.");
-					$report['email']['brevo'] = true;
-				}
-			} else {
-				$report['email']['brevo'] = false;
-			}
-		}
-
-
-		Storage::put('monitoring_report.json', json_encode($report), JSON_UNESCAPED_SLASHES);
-
-		if ($any_error) {
-			Log::channel('monitoring')->info("----------------------------------------");
-		}
-
-		return $result;
+		return $this->result;
 	}
 }

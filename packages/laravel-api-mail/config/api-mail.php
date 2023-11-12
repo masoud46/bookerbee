@@ -10,13 +10,18 @@ return [
 				'name' => env('APIMAIL_BREVO_FROM_NAME'),
 				'email' => env('APIMAIL_BREVO_FROM_EMAIL'),
 			],
+			'critical_balance' => intval(env('APIMAIL_BREVO_CRITICAL_BALANCE', 50)),
+			'active' => (bool) env('APIMAIL_BREVO_ACTIVE', false),
 		],
 		'sendgrid' => [
 			'api_key' => env('APIMAIL_SENDGRID_APIKEY'),
+			'admin_key' => env('APIMAIL_SENDGRID_ADMINKEY'),
 			'from' => [
 				'name' => env('APIMAIL_SENDGRID_FROM_NAME'),
 				'email' => env('APIMAIL_SENDGRID_FROM_EMAIL'),
 			],
+			'critical_balance' => intval(env('APIMAIL_SENDGRID_CRITICAL_BALANCE', 50)),
+			'active' => (bool) env('APIMAIL_SENDGRID_ACTIVE', false),
 		],
 		'mailgun' => [
 			'api_key' => env('APIMAIL_MAILGUN_APIKEY'),
@@ -25,6 +30,8 @@ return [
 				'name' => env('APIMAIL_MAILGUN_FROM_NAME'),
 				'email' => env('APIMAIL_MAILGUN_FROM_EMAIL'),
 			],
+			'critical_balance' => intval(env('APIMAIL_MAILGUN_CRITICAL_BALANCE', 50)),
+			'active' => (boolean) env('APIMAIL_MAILGUN_ACTIVE', false),
 		],
 	]
 ];

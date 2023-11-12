@@ -34,7 +34,7 @@ return [
 	'monitoring' => [
 		'email' => env('APP_MONITORING_EMAIL', null),
 		'phone' => env('APP_MONITORING_PHONE', null),
-		'email_limit' => intval(env('APP_MONITORING_EMAIL_LIMIT', 50)),
+		'filename' => env('APP_MONITORING_FILENAME', 'monitoring_report.json'),
 	],
 
 	'mail' => [

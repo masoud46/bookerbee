@@ -81,4 +81,12 @@ class ApiMail {
 		$this->validatePayload($payload);
 		return $this->mailService->send($payload);
 	}
+
+	/**
+	 * @return object
+	 * @throws \Exception
+	 */
+	public function balance() {
+		return $this->mailService->balance();
+	}
 }
