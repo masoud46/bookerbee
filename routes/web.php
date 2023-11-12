@@ -31,7 +31,6 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 // Route::get('/ss', [UserController::class, 'ss']);
 
 // Test routes
-Route::get('/test/sms-cost/{user_id}/{start}/{end}', [AdminController::class, 'getSmsCost'])->name('test.sms_cost');
 // Signed URL
 Route::get('/subscribe/{id}/{email}', [UserController::class, 'sign'])->name('subscribe');
 Route::get('/unsubscribe/{id}/{email}', function (Request $request, $id, $email) {
@@ -68,6 +67,7 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 			Route::get('/admin/truncate/log/{log}', [AdminController::class, 'truncateLog'])->name('admin.truncate.log');
 			Route::get('/admin/monitoring', [AdminController::class, 'monitoring'])->name('admin.monitoring');
 			Route::post('/admin/sms/buy/{credits}', [AdminController::class, 'buySMSCredits'])->name('admin.sms.buy');
+			Route::get('/admin/sms/cost/{user_id}/{start}/{end}', [AdminController::class, 'getSmsCost'])->name('admin.sms.cost');
 		});
 
 		Route::group(['middleware' => ['userIsNotSuspended']], function () {
