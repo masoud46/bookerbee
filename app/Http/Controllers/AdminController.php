@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Console\Commands\Monitoring;
+use App\Models\Event;
+use App\Models\User;
+use Carbon\Carbon;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Routing\Controller;
 
@@ -91,6 +94,110 @@ class AdminController extends Controller {
 		$monitoring = (new Monitoring(true))->handle();
 
 		return response()->json($monitoring);
+	}
+
+	/**
+	 * Get the SMS cost between two dates
+	 *
+	 * @param  Integer $user_id
+	 * @param  String $start
+	 * @param  String $end
+	 * @return Array
+	 */
+	public function getSMSCost($user_id, $start, $end) {
+		$result = ['success' =>  false];
+
+		$user = User::select([
+			'users.id',
+			'users.firstname',
+			'users.lastname',
+			'users.timezone',
+		])->whereId($user_id)->first();
+
+		$start_date = new Carbon($start, $user->timezone);
+		$end_date = (new Carbon($end, $user->timezone))->subSecond()->addDay();
+
+		$events = Event::select([
+			"events.id",
+			"events.status",
+			"event_sms.action",
+			"event_sms.provider",
+			"event_sms.currency",
+			"event_sms.parts",
+			"event_sms.cost",
+			"event_sms.created_at",
+			"countries.name AS country",
+		])
+			->join("event_sms", "event_sms.event_id", "=", "events.id")
+			->join("countries", "countries.code", "=", "event_sms.country")
+			->where("events.user_id", "=", $user_id)
+			->whereBetween("event_sms.created_at", [$start, $end])
+			->orderBy('event_sms.created_at')
+			->get();
+
+		$add = 0;
+		$delete = 0;
+		$update = 0;
+		$remind = 0;
+		$total = 0;
+
+		foreach ($events as $event) {
+			$total += $event->cost;
+			$event->cost /= config('project.sms_price_multiplier');
+
+			switch ($event->action) {
+				case 'add':
+					$add++;
+					break;
+				case 'update':
+					$update++;
+					break;
+				case 'delete':
+					$delete++;
+					break;
+				case 'remind':
+					$remind++;
+					break;
+			}
+		}
+
+		$count = $events->count();
+
+		// $total = 197901;
+
+		$cost = $total * 100 / config('project.sms_price_multiplier');
+		$cost = ceil($cost);
+		$cost = number_format($cost / 100, 2);
+
+		// $total = number_format($total / config('project.sms_price_multiplier'), 2);
+
+		$first = $events->first();
+		$last = $events->last();
+
+		if ($first) $first = Carbon::parse($first->created_at)->format('d/m/Y H:i:s');
+		if ($last) $last = Carbon::parse($last->created_at)->format('d/m/Y H:i:s');
+
+		$user = $user->toArray();
+		$events = $events->toArray();
+		$result['data'] = compact(
+			'add',
+			'update',
+			'delete',
+			'remind',
+			'count',
+			'total',
+			'cost',
+			'first',
+			'last',
+			'user',
+			'events'
+		);
+		$result['success'] = true;
+
+		// dd($user->toArray(), $add, $update, $delete, $remind, $total, $first, $last, $events->toArray());
+		dd($result['data']);
+
+		return $result;
 	}
 
 	/**

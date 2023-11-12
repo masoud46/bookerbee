@@ -31,7 +31,7 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 // Route::get('/ss', [UserController::class, 'ss']);
 
 // Test routes
-Route::get('/test/sms-cost/{user_id}/{start}/{end}', [TestController::class, 'getSmsCost'])->name('test.sms_cost');
+Route::get('/test/sms-cost/{user_id}/{start}/{end}', [AdminController::class, 'getSmsCost'])->name('test.sms_cost');
 // Signed URL
 Route::get('/subscribe/{id}/{email}', [UserController::class, 'sign'])->name('subscribe');
 Route::get('/unsubscribe/{id}/{email}', function (Request $request, $id, $email) {
