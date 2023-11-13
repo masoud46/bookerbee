@@ -78,12 +78,12 @@ class Monitoring extends Command {
 	 * Send critical status or error report.
 	 */
 	private function sendReport($providers, $subject, $message) {
-		if ($this->for_admin_page || $this->debug) return;
-		// if ($this->for_admin_page) return;
+		if ($this->for_admin_page) return;
 
 		if (isset($providers['email'])) {
+			$to = config('project.monitoring.email');
 			$payload = [
-				'to' => config('project.monitoring.email'),
+				'to' => $to,
 				'subject' => $subject,
 				'body' => (new MonitoringEmail($message))->render(),
 			];
@@ -93,6 +93,7 @@ class Monitoring extends Command {
 					sleep(2);
 					$email->send($payload);
 				}
+				if ($this->debug) echo "email ({$providers['email']}): {$to} <- {$message}" . PHP_EOL;
 			} catch (\Exception $e) {
 				echo $e->getMessage();
 			}
@@ -112,7 +113,7 @@ class Monitoring extends Command {
 					sleep(2);
 					$sms->send($payload);
 				}
-				if ($payload['dryrun']) echo "sms ({$providers['sms']}): {$to} <- {$message}" . PHP_EOL;
+				if ($this->debug) echo "sms ({$providers['sms']}): {$to} <- {$message}" . PHP_EOL;
 			} catch (\Exception $e) {
 				echo $e->getMessage();
 			}
