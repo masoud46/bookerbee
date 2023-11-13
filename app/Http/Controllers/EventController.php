@@ -843,6 +843,14 @@ class EventController extends Controller {
 	 */
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
+		
+		if ($event->category === 0) { // locked event
+			$result = ['id' => $event->id];
+			$event->delete();
+			$result['success'] = true;
+
+			return response()->json($result);
+		}
 
 		DB::beginTransaction();
 
