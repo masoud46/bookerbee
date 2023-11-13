@@ -115,7 +115,7 @@
 									<div class="row">
 										<label for="invoice-doc_date" class="col-sm-4 col-form-label col-form-label-sm text-sm-end"><span class="required-field">{{ __('Date') }}</span></label>
 										<div class="col-sm-8">
-											<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : '') }}">
+											<input type="date" id="invoice-doc_date" name="invoice-doc_date" class="form-control form-control-sm @error('invoice-doc_date') is-invalid @enderror" value="{{ old('invoice-doc_date', $update ? $invoice->doc_date : ($lastInvoice ? $lastInvoice['doc_date'] : '')) }}">
 											@error('invoice-doc_date')
 												<div class="invalid-feedback">{{ $message }}</div>
 											@enderror
