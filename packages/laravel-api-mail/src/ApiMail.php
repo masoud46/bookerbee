@@ -4,6 +4,7 @@ namespace Masoud46\LaravelApiMail;
 
 use Masoud46\LaravelApiMail\Services\Brevo;
 use Masoud46\LaravelApiMail\Services\Mailgun;
+use Masoud46\LaravelApiMail\Services\Postmark;
 use Masoud46\LaravelApiMail\Services\SendGrid;
 
 class ApiMail {
@@ -34,6 +35,9 @@ class ApiMail {
 				break;
 			case 'mailgun':
 				$this->mailService = new Mailgun();
+				break;
+			case 'postmark':
+				$this->mailService = new Postmark();
 				break;
 			case 'sendgrid':
 				$this->mailService = new SendGrid();

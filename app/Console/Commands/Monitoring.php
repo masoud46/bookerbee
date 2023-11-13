@@ -190,6 +190,7 @@ class Monitoring extends Command {
 			foreach ($values as $provider) {
 				$this->result[$service][$provider] = ['success' => false];
 				$api = $service === 'email' ? 'mail' : 'sms';
+				$limit = config("api-{$api}.drivers.{$provider}.monthly_limit");
 				$critical_balance = config("api-{$api}.drivers.{$provider}.critical_balance");
 				if ($this->debug) echo "{$provider}: ";
 
@@ -205,6 +206,7 @@ class Monitoring extends Command {
 							$this->result[$service][$provider] = [
 								'success' => true,
 								'data' => $data,
+								'limit' => $limit,
 								'critical' => $result->critical,
 							];
 							if ($this->debug) echo $data . PHP_EOL;
