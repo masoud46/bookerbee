@@ -124,11 +124,11 @@ class Monitoring extends Command {
 	/**
 	 * Log error/critical status and send report.
 	 */
-	private function inform($service, $provider, $message) {
+	private function inform($service, $provider, $message, $critical = true) {
 		if ($this->report[$service][$provider] === false) {
 			$this->any_error = true;
 
-			if ($this->debug) echo "{$service} ERROR - {$provider}: {$message}" . PHP_EOL . PHP_EOL;
+			if ($this->debug) echo "{$service} ERROR - {$provider}: {$message}" . PHP_EOL;
 			$this->result[$service][$provider] = [
 				'success' => false,
 				'data' => $message,
@@ -165,6 +165,11 @@ class Monitoring extends Command {
 				unset($providers['sms']);
 			}
 
+			// Do not send SMS if the report is not critical
+			if (!$critical) {
+				unset($providers['sms']);
+			}
+
 			Log::channel($this->channel)->info($message);
 
 			$this->sendReport($providers, $subject, $message);
@@ -193,18 +198,31 @@ class Monitoring extends Command {
 						: ApiSms::provider($provider)->balance();
 
 					if ($result->success) {
-						$result->critical = $result->data <= $critical_balance;
-						$this->result[$service][$provider] = [
-							'success' => true,
-							'data' => $result->data,
-							'critical' => $result->critical,
-						];
-						if ($this->debug) echo $result->data . PHP_EOL;
+						$data = $result->data ?? null;
+						if ($data) {
+							$result->critical = $data <= $critical_balance;
+							$this->result[$service][$provider] = [
+								'success' => true,
+								'data' => $data,
+								'critical' => $result->critical,
+							];
+							if ($this->debug) echo $data . PHP_EOL;
 
-						if ($this->result[$service][$provider]['critical']) {
-							if ($this->debug) echo '---CRITICAL---' . PHP_EOL;
-							$this->inform($service, $provider, "Low balance :: {$result->data}");
+							if ($this->result[$service][$provider]['critical']) {
+								if ($this->debug) echo '---CRITICAL---' . PHP_EOL;
+								$this->inform($service, $provider, "Low balance :: {$data}");
+							} else {
+								$this->report[$service][$provider] = false;
+							}
 						} else {
+							$data = "No data returned :: status:{$result->status} - response:{$result->response}";
+							$this->result[$service][$provider] = [
+								'success' => false,
+								'data' => $data,
+								'critical' => false,
+							];
+							if ($this->debug) echo '---NO DATA---' . PHP_EOL . $data . PHP_EOL;
+							$this->inform($service, $provider, $data, false); // Not critical
 							$this->report[$service][$provider] = false;
 						}
 					} else {

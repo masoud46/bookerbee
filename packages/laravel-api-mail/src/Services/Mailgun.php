@@ -53,19 +53,24 @@ class Mailgun extends Sendable {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 		curl_setopt($ch, CURLOPT_USERPWD, "api:" . $this->key);
 
-		$result = curl_exec($ch);
+		$response = curl_exec($ch);
 		$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		curl_close($ch);
 
-		if (!$statusCode == 200) {
-			return (object) [
-				'success' => false,
-				'message' => $statusCode == 0 ? 'Host no found.' : rtrim($result, "\n\r"),
-			];
+		$result = (object) [
+			'success' => $statusCode < 300,
+			'status' => $statusCode,
+			'response' => $response,
+		];
+
+		if ($result->success) {
+			if ($statusCode == 200) $result->data = json_decode($response);
+		} else {
+			$result->message = $statusCode == 0 ? 'Host no found.' : rtrim($response, "\n\r");
 		}
 
-		return (object) ['success' => true];
+		return $result;
 	}
 
 	public function balance() {

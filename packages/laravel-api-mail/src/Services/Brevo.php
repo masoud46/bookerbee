@@ -23,9 +23,11 @@ class Brevo extends Sendable {
 		$method = strlen($body) ? 'POST' : 'GET';
 		$ch = curl_init($url);
 
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
+		// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
 
 		if ($method === 'POST') {
 			curl_setopt($ch, CURLOPT_POST, 1);
@@ -37,7 +39,11 @@ class Brevo extends Sendable {
 
 		curl_close($ch);
 
-		$result = (object) ['success' => $statusCode < 300];
+		$result = (object) [
+			'success' => $statusCode < 300,
+			'status' => $statusCode,
+			'response' => $response,
+		];
 
 		if ($result->success) {
 			if ($statusCode == 200) $result->data = json_decode($response);

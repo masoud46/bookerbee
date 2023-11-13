@@ -54,13 +54,13 @@ class SendReminders extends Command {
 		$nStr = $n === 1 ? 'FIRST' : 'SECOND';
 
 		try {
-			Log::channel('reminder')->info("[SENDING {$nStr} EMAIL ({$this->email_provider})]");
+			Log::channel('reminder')->info("[SENDING {$nStr} EMAIL ({$this->email_provider})] {$payload['to']}");
 
 			$res = ApiMail::provider($this->email_provider)
 				->send($payload);
 
 			if ($res->success) {
-				Log::channel('reminder')->info("[EMAIL SENT] {$payload['to']}");
+				Log::channel('reminder')->info("[EMAIL SENT]");
 
 				if (!$this->is_local) {
 					try {

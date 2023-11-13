@@ -27,8 +27,6 @@ class SendGrid extends Sendable {
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-		// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-		// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
 		if ($method === 'POST') {
 			curl_setopt($ch, CURLOPT_POST, 1);
@@ -43,7 +41,11 @@ class SendGrid extends Sendable {
 
 		curl_close($ch);
 
-		$result = (object) ['success' => $statusCode < 300];
+		$result = (object) [
+			'success' => $statusCode < 300,
+			'status' => $statusCode,
+			'response' => $response,
+		];
 
 		if ($result->success) {
 			if ($statusCode == 200) $result->data = json_decode($response);
