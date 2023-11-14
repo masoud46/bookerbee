@@ -195,6 +195,7 @@ class Monitoring extends Command {
 				if ($this->debug) echo "{$provider}: ";
 
 				try {
+// if ($provider === 'sendgrid') $z = ApiMail::provider('test')->balance();
 					$result = $api === 'mail'
 						? ApiMail::provider($provider)->balance()
 						: ApiSms::provider($provider)->balance();
@@ -218,7 +219,7 @@ class Monitoring extends Command {
 								$this->report[$service][$provider] = false;
 							}
 						} else {
-							$data = "No data returned :: status:{$result->status} - response:{$result->response}";
+							$data = "no data :: status:{$result->status} - response:{$result->response}";
 							$this->result[$service][$provider] = [
 								'success' => false,
 								'data' => $data,
@@ -229,13 +230,18 @@ class Monitoring extends Command {
 							$this->report[$service][$provider] = false;
 						}
 					} else {
-						$this->result[$service][$provider]['message'] = $result->message;
-						$this->inform($service, $provider, $result->message);
+						$message = "success false :: message:{$result->message}";
+						if (isset($result->status)) $message .= " - status:{$result->status}";
+						if (isset($result->response)) $message .= " - response:{$result->response}";
+						$this->result[$service][$provider]['message'] = $message;
+						$this->inform($service, $provider, $message);
+						if ($this->debug) echo $message . PHP_EOL;
 					}
 				} catch (\Exception $e) {
-					$message = $e->getMessage();
+					$message = "exception :: {$e->getMessage()}" . PHP_EOL . PHP_EOL . "{$e->getFile()} - line {$e->getLine()}";
 					$this->result[$service][$provider]['message'] = $message;
 					$this->inform($service, $provider, $message);
+					if ($this->debug) echo $message . PHP_EOL;
 				}
 			}
 		}
