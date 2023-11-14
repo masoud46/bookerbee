@@ -1,6 +1,16 @@
 import { utils } from '../utils/utils'
 
-document.querySelector('#monitoring').addEventListener('click', async () => {
+import '../../scss/pages/admin.scss'
+
+
+const body = document.querySelector('body')
+
+document.querySelector('#monitoring').addEventListener('click', async e => {
+	const btn = e.target
+	
+	btn.classList.add('btn-spinner')
+	body.classList.add('busy')
+
 	document.querySelector('#monitoring-result').innerHTML = ''
 
 	const response = await utils.fetch({ url: '/admin/monitoring' })
@@ -23,11 +33,18 @@ document.querySelector('#monitoring').addEventListener('click', async () => {
 	}
 
 	document.querySelector('#monitoring-result').innerHTML = result
+
+	body.classList.remove('busy')
+	btn.classList.remove('btn-spinner')
 })
 
 document.querySelectorAll('[id$=-log]').forEach(btn => {
 	btn.addEventListener('click', e => {
-		const log = e.target.getAttribute('id').split('-')[0]
+		const btn = e.target
+		const log = btn.getAttribute('id').split('-')[0]
+		
+		btn.classList.add('btn-spinner')
+		body.classList.add('busy')
 
 		document.querySelector('#log-truncate').setAttribute('data-log', log)
 		document.querySelector('#log-result').innerHTML = ''
@@ -42,10 +59,13 @@ document.querySelectorAll('[id$=-log]').forEach(btn => {
 				document.querySelector('#log-truncate').disabled = false
 			}
 
-			e.target.classList.add('btn-success')
+			btn.classList.add('btn-success')
 			content.innerHTML = response.data
 			setTimeout(async () => {
 				content.scrollTop = content.scrollHeight;
+
+				body.classList.remove('busy')
+				btn.classList.remove('btn-spinner')
 			}, 0);
 		}, 0);
 	})

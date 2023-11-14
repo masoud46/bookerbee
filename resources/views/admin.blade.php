@@ -3,16 +3,16 @@
 @php($default_country_code = config('project.default_country_code'))
 
 @section('content')
-	<style>
-		#log-result {
-			height: 400px;
-		}
-	</style>
 	<div class="container">
 		<div class="form-group row mt-4">
 			<div class="col-12 d-flex">
 				<div class="flex-grow-1">
-					<button id="monitoring" class="btn btn-sm btn-primary me-3">Monitoring result</button>
+					<button id="monitoring" class="btn btn-sm btn-primary me-3">
+						<div class="icon-hidden spinner">
+							<div class="spinner-border"></div>
+						</div>
+						Monitoring result
+					</button>
 				</div>
 				<div class="input-group input-group-sm w-auto">
 					<span class="input-group-text">OVH</span>
@@ -26,11 +26,36 @@
 		<div class="form-group row">
 			<div class="col-12">
 				<div class="mt-3 mb-1">logs</div>
-				<button type="button" id="laravel-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Laravel</button>
-				<button type="button" id="application-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Application</button>
-				<button type="button" id="reminder-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Reminder</button>
-				<button type="button" id="agenda-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Agenda</button>
-				<button type="button" id="monitoring-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">Monitoring</button>
+				<button type="button" id="laravel-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">
+					<div class="icon-hidden spinner">
+						<div class="spinner-border"></div>
+					</div>
+					Laravel
+				</button>
+				<button type="button" id="application-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">
+					<div class="icon-hidden spinner">
+						<div class="spinner-border"></div>
+					</div>
+					Application
+				</button>
+				<button type="button" id="reminder-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">
+					<div class="icon-hidden spinner">
+						<div class="spinner-border"></div>
+					</div>
+					Reminder
+				</button>
+				<button type="button" id="agenda-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">
+					<div class="icon-hidden spinner">
+						<div class="spinner-border"></div>
+					</div>
+					Agenda
+				</button>
+				<button type="button" id="monitoring-log" class="btn btn-sm btn-primary btn-log mb-2 me-3">
+					<div class="icon-hidden spinner">
+						<div class="spinner-border"></div>
+					</div>
+					Monitoring
+				</button>
 				<button type="button" id="log-truncate" class="btn btn-sm btn-outline-danger btn-log mb-2" disabled><i class="far fa-trash-can pe-none me-0"></i></button>
 				<pre id="log-result"></pre>
 			</div>
