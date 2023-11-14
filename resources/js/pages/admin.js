@@ -13,8 +13,9 @@ document.querySelector('#monitoring').addEventListener('click', async () => {
 			for (const provider in response[type]) {
 				const data = response[type][provider]
 				const limit = typeof data.limit === 'number' ? ` / ${JSON.stringify(data.limit)}` : ''
+				const dataClass = data.critical ? 'text-bg-danger' : (!data.success ? 'text-bg-warning' : '')
 
-				result += `    ${provider}: <span class="p-1 ${data.success ? '' : 'text-bg-danger'}">${JSON.stringify(data.data)}${limit}</span><br>`
+				result += `    ${provider}: <span class="p-1 ${dataClass}">${data.success ? JSON.stringify(data.data) : data.message}${limit}</span><br>`
 			}
 
 			result += `<br>`
