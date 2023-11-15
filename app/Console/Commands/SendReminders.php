@@ -246,6 +246,8 @@ class SendReminders extends Command {
 
 				$start = Carbon::parse($event->start);
 				$event_array['remaining_time'] = $start->diffInHours(Carbon::now()->floorUnit('hour'));
+				$event_start = Carbon::parse($event->start);
+				$event_start = $event_start->setTimezone($event['timezone']);
 
 				$msg_email = $event->msg_email ? json_decode($event->msg_email, true) : [];
 				$msg_sms = $event->msg_sms ? json_decode($event->msg_sms, true) : [];
@@ -331,9 +333,10 @@ class SendReminders extends Command {
 						$to = preg_replace('/\s+/', '', $number);
 						$message =
 							__("Hello :name", ['name' => $patient_name]) . ",\n" .
-							__("Your appointment with :name will start in about :time hours.", [
+							__("Your next appointment with :name will take place on :date at :time.", [
 								'name' => $user_name,
-								'time' => $event_array['remaining_time'],
+								'date' => $event_start->translatedFormat('l j F Y'),
+								'time' => $event_start->translatedFormat('H:i'),
 							]);
 
 						if ($event->patient_email) {

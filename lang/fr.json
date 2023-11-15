@@ -301,6 +301,8 @@
 	"Hello :name": "Bonjour :name",
 	"Your appointment with the following details, will start in about :time hours.": "Votre rendez-vous avec les détails suivants, commencera dans environ :time heures.",
 	"Your appointment with :name will start in about :time hours.": "Votre rendez-vous avec :name commencera dans environ :time heures.",
+	"Your next appointment with the following details will take place on :date at :time.": "Votre prochain rendez-vous avec les détails suivants aura lieu le :date à :time.",
+	"Your next appointment with :name will take place on :date at :time.": "Votre prochain rendez-vous avec :name aura lieu le :date à :time.",
 	"Your appointment of :date at :start with :name has been confirmed.": "Votre rendez-vous du :date à :start avec :name a été confirmé.",
 	"Your appointment of :old_date at :old_start with :name has been rescheduled for :date at :start.": "Votre rendez-vous du :old_date à :old_start avec :name a été reporté au :date à :start.",
 	"The location for you appointment of :date at :start with :name has been changed.": "Le lieu de votre rendez-vous du :date à :start avec :name a été changé.",
