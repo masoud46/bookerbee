@@ -3,12 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Mail\MonitoringEmail;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Psr7\Request;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Masoud46\LaravelApiMail\Facades\ApiMail;
 use Masoud46\LaravelApiSms\Facades\ApiSms;
@@ -238,7 +234,7 @@ class Monitoring extends Command {
 						if ($this->debug) echo $message . PHP_EOL;
 					}
 				} catch (\Exception $e) {
-					$message = "exception :: {$e->getMessage()}" . PHP_EOL . PHP_EOL . "{$e->getFile()} - line {$e->getLine()}";
+					$message = "exception :: {$e->getMessage()}" . PHP_EOL . "{$e->getFile()} - line {$e->getLine()}";
 					$this->result[$service][$provider]['message'] = $message;
 					$this->inform($service, $provider, $message);
 					if ($this->debug) echo $message . PHP_EOL;
