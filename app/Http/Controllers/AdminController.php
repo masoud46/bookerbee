@@ -114,8 +114,14 @@ class AdminController extends Controller {
 			'users.timezone',
 		])->whereId($user_id)->first();
 
-		$start_date = new Carbon($start, $user->timezone);
-		$end_date = (new Carbon($end, $user->timezone))->subSecond()->addDay();
+		$start_date = (new Carbon($start, $user->timezone))
+			->startOfDay()
+			->timezone('UTC')
+			->toDateTimeString();
+		$end_date = (new Carbon($end, $user->timezone))
+			->endOfDay()
+			->timezone('UTC')
+			->toDateTimeString();
 
 		$events = Event::select([
 			"events.id",
@@ -131,7 +137,9 @@ class AdminController extends Controller {
 			->join("event_sms", "event_sms.event_id", "=", "events.id")
 			->join("countries", "countries.code", "=", "event_sms.country")
 			->where("events.user_id", "=", $user_id)
-			->whereBetween("event_sms.created_at", [$start, $end])
+			// ->whereBetween("event_sms.created_at", [$start, $end])
+			->whereDate("event_sms.created_at", '>=', $start)
+			->whereDate("event_sms.created_at", '<=', $end)
 			->orderBy('event_sms.created_at')
 			->get();
 
@@ -174,9 +182,14 @@ class AdminController extends Controller {
 		$first = $events->first();
 		$last = $events->last();
 
-		if ($first) $first = Carbon::parse($first->created_at)->format('d/m/Y H:i:s');
-		if ($last) $last = Carbon::parse($last->created_at)->format('d/m/Y H:i:s');
-
+		if ($first) {
+			$first_event = $first->toArray();
+			$first = Carbon::parse($first->created_at)->timezone($user->timezone)->format('d/m/Y H:i:s');
+		}
+		if ($last) {
+			$last_event = $last->toArray();
+			$last = Carbon::parse($last->created_at)->timezone($user->timezone)->format('d/m/Y H:i:s');
+		}
 		$user = $user->toArray();
 		$events = $events->toArray();
 		$result['data'] = compact(
@@ -190,7 +203,11 @@ class AdminController extends Controller {
 			'first',
 			'last',
 			'user',
-			'events'
+			'start_date',
+			'end_date',
+			'first_event',
+			'last_event',
+			'events',
 		);
 		$result['success'] = true;
 
