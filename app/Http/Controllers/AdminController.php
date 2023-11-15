@@ -181,6 +181,8 @@ class AdminController extends Controller {
 
 		$first = $events->first();
 		$last = $events->last();
+		$first_event = null;
+		$last_event = null;
 
 		if ($first) {
 			$first_event = $first->toArray();
