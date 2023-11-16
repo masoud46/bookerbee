@@ -137,11 +137,13 @@ class AdminController extends Controller {
 			->join("event_sms", "event_sms.event_id", "=", "events.id")
 			->join("countries", "countries.code", "=", "event_sms.country")
 			->where("events.user_id", "=", $user_id)
-			// ->whereBetween("event_sms.created_at", [$start, $end])
-			->whereDate("event_sms.created_at", '>=', $start)
-			->whereDate("event_sms.created_at", '<=', $end)
+			->whereBetween("event_sms.created_at", [$start_date, $end_date])
+			// ->whereDate("event_sms.created_at", '>=', $start_date)
+			// ->whereDate("event_sms.created_at", '<=', $end_date)
 			->orderBy('event_sms.created_at')
 			->get();
+// ->toSql();
+// dd($user_id, $start_date, $end_date, $events);
 
 		$add = 0;
 		$delete = 0;
@@ -171,13 +173,9 @@ class AdminController extends Controller {
 
 		$count = $events->count();
 
-		// $total = 197901;
-
 		$cost = $total * 100 / config('project.sms_price_multiplier');
 		$cost = ceil($cost);
 		$cost = number_format($cost / 100, 2);
-
-		// $total = number_format($total / config('project.sms_price_multiplier'), 2);
 
 		$first = $events->first();
 		$last = $events->last();
@@ -204,11 +202,11 @@ class AdminController extends Controller {
 			'cost',
 			'first',
 			'last',
-			'user',
 			'start_date',
 			'end_date',
 			'first_event',
 			'last_event',
+			'user',
 			'events',
 		);
 		$result['success'] = true;
