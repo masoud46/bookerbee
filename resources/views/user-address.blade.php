@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-location-dot me-2"></i>' . __('Address')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-location-dot fa-fw me-2"></i>' . __('Address')])
 
 @php($default_country_code = config('project.default_country_code'))
 @php($user = Auth::user())

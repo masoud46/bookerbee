@@ -1,5 +1,5 @@
-{{-- @extends('layouts.app', ['page_title' => '<i class="fas fa-hospital-user me-2"></i>' . __('Patient')]) --}}
-@extends('layouts.app', ['page_title' => '<i class="fas fa-user me-2"></i>' . __('Patient')])
+{{-- @extends('layouts.app', ['page_title' => '<i class="fas fa-hospital-user fa-fw me-2"></i>' . __('Patient')]) --}}
+@extends('layouts.app', ['page_title' => '<i class="fas fa-user fa-fw me-2"></i>' . __('Patient')])
 
 @php
 	$default_country_code = config('project.default_country_code');

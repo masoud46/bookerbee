@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-user me-2"></i>' . __('Account')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-user fa-fw me-2"></i>' . __('Account')])
 
 @section('content')
 	<div class="container">

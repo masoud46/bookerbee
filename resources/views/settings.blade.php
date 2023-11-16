@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-sliders me-2"></i>' . __('Settings')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-sliders fa-fw me-2"></i>' . __('Settings')])
 
 @php
 	$locales = LaravelLocalization::getSupportedLocales();

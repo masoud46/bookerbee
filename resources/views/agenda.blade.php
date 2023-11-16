@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="far fa-calendar-days me-2"></i>' . __('Agenda') . '<span class="ms-2 text-muted agenda-timezone">' . Auth::user()->timezone . '</span>'])
+@extends('layouts.app', ['page_title' => '<i class="far fa-calendar-days fa-fw me-2"></i>' . __('Agenda') . '<span class="ms-2 text-muted agenda-timezone">' . Auth::user()->timezone . '</span>'])
 
 @php
 	$default_country_code = config('project.default_country_code');

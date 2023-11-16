@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-rectangle-list me-2"></i>' . __('Statement')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-rectangle-list fa-fw me-2"></i>' . __('Statement')])
 
 
 @php

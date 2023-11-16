@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page_title' => '<i class="fas fa-users me-2"></i>' . __('Patients')])
+@extends('layouts.app', ['page_title' => '<i class="fas fa-users fa-fw me-2"></i>' . __('Patients')])
 
 @php
 	$default_country_code = config('project.default_country_code');
