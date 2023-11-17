@@ -212,6 +212,10 @@ class Monitoring extends Command {
 								if ($this->debug) echo '---CRITICAL---' . PHP_EOL;
 								$this->inform($service, $provider, "Low balance :: {$data}");
 							} else {
+								$data = $data . ($limit ? "/{$limit}" : '');
+								$message = "OK - {$service}:{$provider} :: {$data}";
+								Log::channel($this->channel)->info($message);
+
 								$this->report[$service][$provider] = false;
 							}
 						} else {

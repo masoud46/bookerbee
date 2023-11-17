@@ -142,8 +142,6 @@ class AdminController extends Controller {
 			// ->whereDate("event_sms.created_at", '<=', $end_date)
 			->orderBy('event_sms.created_at')
 			->get();
-// ->toSql();
-// dd($user_id, $start_date, $end_date, $events);
 
 		$add = 0;
 		$delete = 0;
@@ -184,15 +182,17 @@ class AdminController extends Controller {
 
 		if ($first) {
 			$first_event = $first->toArray();
-			$first = Carbon::parse($first->created_at)->timezone($user->timezone)->format('d/m/Y H:i:s');
+			$first = Carbon::parse($first->created_at)->format('Y-m-d H:i:s');
 		}
 		if ($last) {
 			$last_event = $last->toArray();
-			$last = Carbon::parse($last->created_at)->timezone($user->timezone)->format('d/m/Y H:i:s');
+			$last = Carbon::parse($last->created_at)->format('Y-m-d H:i:s');
 		}
 		$user = $user->toArray();
 		$events = $events->toArray();
 		$result['data'] = compact(
+			'start_date',
+			'end_date',
 			'add',
 			'update',
 			'delete',
@@ -202,8 +202,6 @@ class AdminController extends Controller {
 			'cost',
 			'first',
 			'last',
-			'start_date',
-			'end_date',
 			'first_event',
 			'last_event',
 			'user',
