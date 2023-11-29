@@ -823,7 +823,7 @@ const calendar = new Calendar(calendarElement, {
 				utils.showMessage(window.laravel.messages.unexpectedError)
 			}
 		} else {
-			// calendar.removeAllEvents()
+			calendar.removeAllEvents()
 			successCallback(result)
 		}
 	},
