@@ -11,8 +11,7 @@ class Postmark extends Sendable {
 	protected $sandbox_token;
 	protected $from;
 	protected $serviceUrl = 'https://api.postmarkapp.com/email';
-	// protected $balanceUrl = 'https://api.postmarkapp.com/stats/outbound?fromdate=2014-01-01&todate=2014-02-01';
-	protected $balanceUrl = 'https://api.postmarkapp.com/stats/outbound/sends?fromdate=%s&todate=%s';
+	protected $balanceUrl = 'https://api.postmarkapp.com/stats/outbound?fromdate=%s&todate=%s';
 
 	public function __construct() {
 		$this->headers = [
@@ -84,7 +83,8 @@ class Postmark extends Sendable {
 	}
 
 	public function balance() {
-		$from = Carbon::now()->firstOfMonth()->format('Y-m-d');
+		// $from = Carbon::now()->firstOfMonth()->format('Y-m-d');
+		$from = '2023-01-01'; // For free account
 		$to = Carbon::now()->lastOfMonth()->format('Y-m-d');
 
 		$headers = array_merge($this->headers, [$this->token]);
