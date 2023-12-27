@@ -162,10 +162,13 @@ class Monitoring extends Command {
 				unset($providers['sms']);
 			}
 
-			// Do not send SMS if the report is not critical
-			if (!$critical) {
-				unset($providers['sms']);
-			}
+			// // Do not send SMS if the report is not critical
+			// if (!$critical) {
+			// 	unset($providers['sms']);
+			// }
+
+			// Disable SMS report
+			unset($providers['sms']);
 
 			Log::channel($this->channel)->info($message);
 
