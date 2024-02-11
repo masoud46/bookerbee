@@ -792,6 +792,7 @@ const calendar = new Calendar(calendarElement, {
 	eventOverlap: false,
 	// selectOverlap: false,
 	eventOrderStrict: true,
+	displayEventEnd: false,
 	headerToolbar: {
 		left: 'prev,next today',
 		center: 'title',

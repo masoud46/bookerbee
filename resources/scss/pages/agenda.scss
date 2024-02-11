@@ -50,6 +50,19 @@
 	}
 }
 
+a.fc-event .fc-event-main-frame {
+	.fc-event-time {
+		order: 2;
+		
+		&::after {
+			content: '';
+		}
+	}
+	.fc-event-title-container {
+		order: 1;
+	}
+}
+
 .fc-locked-event {
 	background-color: #ddd !important;
 	border-color: #ddd !important;

@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Masoud46\LaravelApiMail\Facades\ApiMail;
+use Masoud46\LaravelApiSms\Facades\ApiSms;
 
 class UserController extends Controller {
 	/**
@@ -73,7 +75,7 @@ class UserController extends Controller {
 	 */
 	public function edit() {
 		$countries = Country::sortedList();
-		
+
 		if (Auth::user()->status === 0) {
 			session()->now("error", __("Your account information is not complete!"));
 		}
@@ -114,7 +116,7 @@ class UserController extends Controller {
 			session()->flash("error", __('The provided password is not correct.'));
 			return back();
 		}
-		
+
 		$params = $request->all();
 
 		$user = User::whereId(Auth::user()->id)->first();
@@ -294,9 +296,12 @@ class UserController extends Controller {
 		$result['success'] = !$validator->fails();
 
 		if ($result['success']) {
-			$provider = config('app.env') === 'production' ?
-				config('project.mail.default_provider') :
-				config('project.mail.default_dev_provider');
+			// $provider = config('app.env') === 'production' ?
+			// 	config('project.mail.default_provider') :
+			// 	config('project.mail.default_dev_provider');
+			$provider = config('app.env') === 'production'
+				? config('api-mail.default_provider')
+				: config('api-mail.default_dev_provider');
 			$expiration = config('project.token_expiration_time');
 			$token = Str::random(64);
 
@@ -305,21 +310,59 @@ class UserController extends Controller {
 			$res = UserToken::create(Auth::user()->id, $email, 'change-email', $token);
 
 			if ($res['success']) {
+				// try {// MASOUD
+				// 	Mail::mailer($provider)
+				// 		->to($email)
+				// 		->send(new ChangeEmailAddress(route('account.email.update', ['token' => "{$token}?email={$email}"]), $expiration));
+
+				// 	$result['data'] = __('An email has been sent to :email. Click on the button in email to confirm the modification.', [
+				// 		'email' => "\"{$email}\"",
+				// 	]);
+
+				// 	Log::channel('application')->info("[EMAIL SENT]");
+				// } catch (\Throwable $th) {
+				// 	Log::channel('application')->info("[!!! ERROR !!!]");
+				// 	Log::channel('application')->info($th->__toString());
+
+				// 	$result['error'] = $th->getMessage();
+				// }
+				$payload = [
+					'to' => $email,
+					'subject' => __("Change email address notification"),
+					'body' => (new ChangeEmailAddress(route('account.email.update', ['token' => "{$token}?email={$email}"]), $expiration))->render(),
+				];
 				try {
-					Mail::mailer($provider)
-						->to($email)
-						->send(new ChangeEmailAddress(route('account.email.update', ['token' => "{$token}?email={$email}"]), $expiration));
+					$mail = ApiMail::provider($provider);
+					$res = $mail->send($payload);
 
-					$result['data'] = __('An email has been sent to :email. Click on the button in email to confirm the modification.', [
-						'email' => "\"{$email}\"",
-					]);
+					if (!$res->success) { // Retry after 2 seconds
+						Log::channel('application')->info("[!!! EMAIL ERROR !!!]");
+						Log::channel('application')->info($res->message);
+						Log::channel('application')->info("[RESENDING EMAIL]");
 
-					Log::channel('application')->info("[EMAIL SENT]");
-				} catch (\Throwable $th) {
+						sleep(2);
+						$res = $mail->send($payload);
+
+						if (!$res->success) {
+							Log::channel('application')->info("[!!! EMAIL ERROR !!!]");
+							Log::channel('application')->info($res->message);
+
+							$result['error'] = $res->message;
+						}
+					}
+
+					if ($res->success) {
+						$result['data'] = __('An email has been sent to :email. Click on the button in email to confirm the modification.', [
+							'email' => "\"{$email}\"",
+						]);
+
+						Log::channel('application')->info("[EMAIL SENT]");
+					}
+				} catch (\Exception $e) {
 					Log::channel('application')->info("[!!! ERROR !!!]");
-					Log::channel('application')->info($th->__toString());
+					Log::channel('application')->info($e->getMessage());
 
-					$result['error'] = $th->getMessage();
+					$result['error'] = $e->getMessage();
 				}
 			} else {
 				Log::channel('application')->info("[!!! ERROR !!!]");
@@ -345,7 +388,7 @@ class UserController extends Controller {
 		// ^^^ why not "$token = $request->token" !!?? ^^^
 		$email = $request->email;
 		$connected = Auth::check();
-		
+
 		if ($token && $email) {
 			$res = UserToken::verify($email, 'change-email', $token);
 
@@ -420,45 +463,59 @@ class UserController extends Controller {
 	private function sendSMS($country, $to, $lines) {
 		$result = ['success' => false, 'data' => null];
 
+		$provider = config('app.env') === 'production'
+			? config('api-sms.default_provider')
+			: config('api-sms.default_dev_provider');
+
 		$to = preg_replace('/(\(0\)|\s)+/', '', $to);
 
+		$message = '';
+		foreach ($lines as $key => $line) {
+			$message .= $line;
+
+			if ($key !== array_key_last($lines)) $message .= "\n";
+		}
+
+		$res = ['success' => false, 'data' => null];
+
+		$payload = [
+			'country' => $country,
+			'to' => $to,
+			'message' => $message,
+			'dryrun' => config('app.env') !== 'production' && !config('project.send_sms'),
+		];
+
 		try {
-			Log::channel('application')->info("[SENDING CHANGE_PHONE SMS] {$to}");
+			$sms = ApiSms::provider($provider);
+			$res = $sms->send($payload);
 
-			$sms = new \App\Notifications\SmsMessage([
-				'country' => $country,
-				// 'provider' => "smsto",
-			]);
-			$sms = $sms->to($to);
+			if (!$res->success) { // Retry after 2 seconds
+				Log::channel('application')->info("[!!! SMS ERROR !!!]");
+				Log::channel('application')->info($res->message);
+				Log::channel('application')->info("[RESENDING SMS]");
 
-			foreach ($lines as $line) {
-				$sms = $sms->line($line);
+				sleep(2);
+				$res = $sms->send($payload);
+
+				if (!$res->success) {
+					Log::channel('application')->info("[!!! SMS ERROR !!!]");
+					Log::channel('application')->info($res->message);
+
+					$result['error'] = $res->message;
+				}
 			}
 
-			$res = ['success' => false, 'data' => null];
-
-			if (config('app.env') === 'production' || config('project.send_sms')) {
-				$res = $sms->send();
-			} else {
-				$res = $sms->dryRun()->send();
-			}
-
-			if ($res['success']) {
+			if ($res->success) {
 				Log::channel('application')->info("[SMS SENT]");
 
 				$result['success'] = true;
 				$result['data'] = $res;
-			} else {
-				Log::channel('application')->info("[!!! SMS ERROR !!!]");
-				Log::channel('application')->info(print_r($res, true));
-
-				$result['error'] = $res['data'];
 			}
-		} catch (\Throwable $th) {
+		} catch (\Exception $e) {
 			Log::channel('application')->info("[!!! ERROR !!!]");
-			Log::channel('application')->info($th->__toString());
+			Log::channel('application')->info($e->getMessage());
 
-			$result['error'] = $th->getMessage();
+			$result['error'] = $e->getMessage();
 		}
 
 		return $result;
@@ -562,9 +619,9 @@ class UserController extends Controller {
 	 */
 	public function updatePhone(Request $request) {
 		$result = ['success' => false];
-		
+
 		$params = $request->all();
-		
+
 		if ($params['phone_country_id'] && $params['phone_number']) {
 			$phone = $this->generateUpdatePhoneData(
 				$params['phone_country_id'],
@@ -580,7 +637,7 @@ class UserController extends Controller {
 				]);
 
 				$prefix = Country::whereId($phone['country_id'])->first()->prefix;
-				
+
 				$result['data'] = "{$prefix} {$phone['number']}";
 				$result['message'] = __('Your phone number has been updated.');
 				$result['success'] = true;
