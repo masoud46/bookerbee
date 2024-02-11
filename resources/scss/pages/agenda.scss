@@ -53,6 +53,7 @@
 a.fc-event .fc-event-main-frame {
 	.fc-event-time {
 		order: 2;
+		opacity: 0.5;
 		
 		&::after {
 			content: '';
