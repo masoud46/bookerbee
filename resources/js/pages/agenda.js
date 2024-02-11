@@ -771,7 +771,8 @@ const calendar = new Calendar(calendarElement, {
 		bootstrap5Plugin,
 		momentTimezonePlugin,
 	],
-	height: 'auto',
+	// height: 'auto',
+	contentHeight: 550,
 	allDaySlot: window.laravel.agenda.lock,
 	timeZone: window.laravel.agenda.timezone,
 	locales: allLocales,
@@ -793,6 +794,7 @@ const calendar = new Calendar(calendarElement, {
 	// selectOverlap: false,
 	eventOrderStrict: true,
 	displayEventEnd: false,
+	expandRows: true,
 	headerToolbar: {
 		left: 'prev,next today',
 		center: 'title',
