@@ -556,10 +556,27 @@ class EventController extends Controller {
 			}
 
 			if ($res->success) {
+				unset($res->success);
+				$res->event_id = $event['id'];
+				$res->action = $action;
+
+				$result['data'] = json_decode(json_encode($res, true), true);
 				$result['success'] = true;
-				$result['data'] = $res;
 
 				Log::channel('agenda')->info("[SMS SENT]");
+
+				// Add sms cost to event_sms table
+				if (!$payload['dryrun']) {
+					Log::channel('agenda')->info("[INSERTING SMS COST TO DB]");
+					try {
+						DB::table('event_sms')->insert($result['data']);
+
+						Log::channel('agenda')->info("[SMS COST INSERTED]");
+					} catch (\Exception $e) {
+						Log::channel('agenda')->info("[!!! ERROR !!!]");
+						Log::channel('agenda')->info($e->getMessage());
+					}
+				}
 			}
 		} catch (\Exception $e) {
 			Log::channel('agenda')->info("[!!! ERROR !!!]");
@@ -695,6 +712,8 @@ class EventController extends Controller {
 				$data['extendedProps']['address'] = locationToAddress($data['extendedProps']['location']);
 			}
 
+			$data['id'] = $event->id;
+
 			$sms_result = ['success' => false];
 			$email_result = ['success' => false];
 
@@ -703,7 +722,7 @@ class EventController extends Controller {
 			}
 
 			if ($email) {
-				$data['hash_id'] = Hashids::encode($event->id);
+				$data['hash_id'] = Hashids::encode($data['id']);
 				$data['user_phone'] = $this->getUserPhone();
 
 				$email_result = $this->sendEmail("add", $data);
@@ -843,7 +862,7 @@ class EventController extends Controller {
 	 */
 	public function destroy(Request $request, Event $event) {
 		$data = $request->all()['event'];
-		
+
 		if ($event->category === 0) { // locked event
 			$result = ['id' => $event->id];
 			$event->delete();

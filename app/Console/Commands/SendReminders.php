@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Masoud46\LaravelApiMail\Facades\ApiMail;
 use Masoud46\LaravelApiSms\Facades\ApiSms;
@@ -56,8 +57,17 @@ class SendReminders extends Command {
 		try {
 			Log::channel('reminder')->info("[SENDING {$nStr} EMAIL ({$this->email_provider})] {$payload['to']}");
 
-			$res = ApiMail::provider($this->email_provider)
-				->send($payload);
+			$mail = ApiMail::provider($this->email_provider);
+			$res = $mail->send($payload);
+
+			if (!$res->success) { // Retry after 2 seconds
+				Log::channel('reminder')->info("[!!! EMAIL ERROR !!!]");
+				Log::channel('reminder')->info($res->message);
+				Log::channel('reminder')->info("[RESENDING EMAIL]");
+
+				sleep(2);
+				$res = $mail->send($payload);
+			}
 
 			if ($res->success) {
 				Log::channel('reminder')->info("[EMAIL SENT]");
@@ -94,8 +104,17 @@ class SendReminders extends Command {
 		try {
 			Log::channel('reminder')->info("[SENDING SMS ({$this->sms_provider})] {$payload['to']}");
 
-			$res = ApiSms::provider($this->sms_provider)
-				->send($payload);
+			$sms = ApiSms::provider($this->sms_provider);
+			$res = $sms->send($payload);
+
+			if (!$res->success) { // Retry after 2 seconds
+				Log::channel('reminder')->info("[!!! SMS ERROR !!!]");
+				Log::channel('reminder')->info($res->message);
+				Log::channel('reminder')->info("[RESENDING SMS]");
+
+				sleep(2);
+				$res = $sms->send($payload);
+			}
 
 			if ($res->success) {
 				Log::channel('reminder')->info("[SMS SENT]");
@@ -117,6 +136,25 @@ class SendReminders extends Command {
 				}
 
 				Log::channel('reminder')->info("[EVENT REMINDER_SMS UPDATED] {$event['id']}");
+
+				if (!$payload['dryrun']) {
+					// Add sms cost to event_sms table
+					unset($res->success);
+					$res->event_id = $event['id'];
+					$res->action = "remind";
+					
+					$res = json_decode(json_encode($res, true), true);
+
+					Log::channel('reminder')->info("[INSERTING SMS COST TO DB]");
+					try {
+						DB::table('event_sms')->insert($res);
+
+						Log::channel('reminder')->info("[SMS COST INSERTED]");
+					} catch (\Exception $e) {
+						Log::channel('reminder')->info("[!!! ERROR !!!]");
+						Log::channel('reminder')->info($e->getMessage());
+					}
+				}
 			} else {
 				Log::channel('reminder')->info("[!!! SMS ERROR !!!]");
 				Log::channel('reminder')->info(print_r($res->message, true));

@@ -135,12 +135,17 @@ if (!function_exists('makeOneLineAddress')) {
 			$address .= ", {$params['line2']}";
 		if (isset($params['line3']) && $params['line3'])
 			$address .= ", {$params['line3']}";
+		// if (
+		// 	isset($params['code']) && $params['code'] &&
+		// 	isset($params['city']) && $params['city'] &&
+		// 	isset($params['country']) && $params['country']
+		// )
+		// 	$address .= ", {$params['code']} {$params['city']}, {$params['country']}";
 		if (
 			isset($params['code']) && $params['code'] &&
-			isset($params['city']) && $params['city'] &&
-			isset($params['country']) && $params['country']
+			isset($params['city']) && $params['city']
 		)
-			$address .= ", {$params['code']} {$params['city']}, {$params['country']}";
+			$address .= ", {$params['code']} {$params['city']}";
 
 		return $address;
 	}
