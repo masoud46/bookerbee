@@ -461,9 +461,12 @@ const applyAction = () => {
 
 // Set modal elements according to the action 
 const showModal = action => {
-	const format = 'DD/MM/YYYY'
+	const dateFormat = 'DD/MM/YYYY'
+	const timeFormat = 'HH:mm'
 	const event = customProps.event
 	const oldEvent = customProps.oldEvent
+	const start = toMoment(event.start, calendar)
+	const end = toMoment(event.end, calendar)
 	const rrule = event._def?.recurringDef ?? false
 	const privateEvent = event.extendedProps?.private ?? false
 	const sameDay = event.allDay
@@ -479,16 +482,19 @@ const showModal = action => {
 
 	modal.props.title.value = event.title ?? ''
 	modal.props.patient.value = event.title
-	modal.props.startDate.textContent = toMoment(event.start, calendar).format(format)
-	modal.props.startTime.textContent = event.start.toTimeString().substring(0, 5)
-	modal.props.endDate.textContent = toMoment(event.end, calendar).format(format)
-	modal.props.endTime.textContent = event.end.toTimeString().substring(0, 5)
+	modal.props.startDate.textContent = start.format(dateFormat)
+	modal.props.startTime.textContent = start.format(timeFormat)
+	modal.props.endDate.textContent = end.format(dateFormat)
+	modal.props.endTime.textContent = end.format(timeFormat)
 
 	if (oldEvent) {
-		modal.props.oldStartDate.textContent = toMoment(oldEvent.start, calendar).format(format)
-		modal.props.oldStartTime.textContent = oldEvent.start.toTimeString().substring(0, 5)
-		modal.props.oldEndDate.textContent = toMoment(oldEvent.end, calendar).format(format)
-		modal.props.oldEndTime.textContent = oldEvent.end.toTimeString().substring(0, 5)
+		const oldStart = toMoment(oldEvent.start, calendar)
+		const oldEnd = toMoment(oldEvent.end, calendar)
+
+		modal.props.oldStartDate.textContent = oldStart.format(dateFormat)
+		modal.props.oldStartTime.textContent = oldStart.format(timeFormat)
+		modal.props.oldEndDate.textContent = oldEnd.format(dateFormat)
+		modal.props.oldEndTime.textContent = oldEnd.format(timeFormat)
 	}
 
 	modal.querySelector('.event-recurr-form').reset()
