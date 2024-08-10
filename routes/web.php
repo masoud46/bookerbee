@@ -110,14 +110,6 @@ Route::prefix(LaravelLocalization::setLocale())->middleware(['localeCookieRedire
 				Route::post('/event', [EventController::class, 'store'])->name('event.add');
 				Route::put('/event/{event}', [EventController::class, 'update'])->name('event.update');
 				Route::delete('/event/{event}', [EventController::class, 'destroy'])->name('event.cancel');
-
-				// test
-				// Route::post('/send/appointment', [TestController::class, 'sendAppointmentEmail'])->name('email.appointment');
-				Route::put('/send/appointment', [TestController::class, 'sendAppointmentEmail'])->name('email.appointment');
-				Route::put('/send/reminder', [TestController::class, 'sendReminderEmail'])->name('email.reminder');
-
-				Route::get('/send/change-email', [TestController::class, 'sendChangeEmail'])->name('email.change-email');
-				Route::get('/send/change-password', [TestController::class, 'sendChangePassword'])->name('email.change-password');
 			});
 		});
 	}
